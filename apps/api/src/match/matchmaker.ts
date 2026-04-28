@@ -1,0 +1,154 @@
+import { db, matchPlayers, users } from "@quizelo/db";
+import { eq } from "drizzle-orm";
+import type { FastifyBaseLogger } from "fastify";
+import { randomUUID } from "node:crypto";
+import { MATCH_CONFIG } from "./config";
+import { persistMatchCreate } from "./persistence";
+import { pickQuestionsForMatch } from "./questions";
+import { rngFromSeed } from "./random";
+import { registry } from "./registry";
+import { MatchRoom } from "./room";
+import type { MatchPlayer, MatchState } from "./types";
+
+interface PendingLobby {
+  matchId: string;
+  locale: string;
+  room: MatchRoom;
+}
+
+class Matchmaker {
+  private pendingByLocale = new Map<string, PendingLobby>();
+
+  async enqueue(opts: {
+    userId: string;
+    locale: string;
+    log: FastifyBaseLogger;
+  }): Promise<{ matchId: string }> {
+    const { userId, locale, log } = opts;
+
+    // Resume only if the user is actually still playing (hasn't been
+    // eliminated, hasn't left). Eliminated rows stay in the room so we
+    // can compute final ranks at match end, but they shouldn't trap
+    // the user in their lost match.
+    for (const room of registry.list()) {
+      const ongoing = room.state.players.some(
+        (p) =>
+          p.userId === userId &&
+          (p.status === "active" || p.status === "finalist"),
+      );
+      if (ongoing) {
+        return { matchId: room.state.matchId };
+      }
+    }
+
+    let pending = this.pendingByLocale.get(locale);
+    if (pending) {
+      const already = pending.room.state.players.some((p) => p.userId === userId);
+      if (!already) {
+        await this.addPlayerToLobby(pending.room, userId, log);
+        pending.room.onPlayerJoined();
+      }
+      return { matchId: pending.matchId };
+    }
+
+    pending = await this.openLobby(locale, log);
+    await this.addPlayerToLobby(pending.room, userId, log);
+    pending.room.startLobby();
+    pending.room.onPlayerJoined();
+
+    // The lobby slot is no longer joinable once the silent-fill timer fires.
+    setTimeout(() => {
+      if (this.pendingByLocale.get(locale)?.matchId === pending!.matchId) {
+        this.pendingByLocale.delete(locale);
+      }
+    }, MATCH_CONFIG.lobby.silentFillMs + 500);
+
+    return { matchId: pending.matchId };
+  }
+
+  private async openLobby(
+    locale: string,
+    log: FastifyBaseLogger,
+  ): Promise<PendingLobby> {
+    const matchId = randomUUID();
+    const seed = randomUUID();
+    const rand = rngFromSeed(seed);
+    const pool = await pickQuestionsForMatch(locale, rand);
+
+    const state: MatchState = {
+      matchId,
+      status: "lobby",
+      mode: "quick",
+      locale,
+      seed,
+      players: [],
+      questionPool: pool.map((q) => q.id),
+      questions: new Map(pool.map((q) => [q.id, q])),
+      currentAnswers: new Map(),
+      answersBuffer: [],
+      lobbyStartsAt: null,
+      createdAt: Date.now(),
+    };
+
+    const room = new MatchRoom(state, log);
+    registry.set(matchId, room);
+
+    const pending: PendingLobby = { matchId, locale, room };
+    this.pendingByLocale.set(locale, pending);
+    log.info({ matchId, locale }, "match lobby opened");
+    return pending;
+  }
+
+  private async addPlayerToLobby(
+    room: MatchRoom,
+    userId: string,
+    log: FastifyBaseLogger,
+  ): Promise<void> {
+    if (room.state.players.length >= MATCH_CONFIG.size) {
+      throw new Error("LOBBY_FULL");
+    }
+
+    const row = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+    if (!row) throw new Error("USER_NOT_FOUND");
+
+    const player: MatchPlayer = {
+      userId: row.id,
+      seat: room.state.players.length,
+      name: row.displayName ?? row.handle ?? row.name ?? "Player",
+      handle: row.handle,
+      avatarId: row.avatarId ?? 0,
+      status: "active",
+      score: 0,
+      streak: 0,
+      lives: MATCH_CONFIG.phase1.startingLives,
+      bonuses: { ...MATCH_CONFIG.bonusInventory },
+      shieldArmed: false,
+      skipped: false,
+      lastScoreReachedAt: 0,
+      phase2Index: 0,
+      isShadow: false,
+    };
+    room.state.players.push(player);
+
+    if (room.state.players.length === 1) {
+      await persistMatchCreate(room.state).catch((err) =>
+        log.error(err, "persistMatchCreate failed"),
+      );
+    } else {
+      await db
+        .insert(matchPlayers)
+        .values({
+          matchId: room.state.matchId,
+          userId: player.userId,
+          seat: player.seat,
+          status: "active",
+          score: 0,
+        })
+        .catch((err) => log.error(err, "insert match_players failed"));
+    }
+  }
+}
+
+export const matchmaker = new Matchmaker();

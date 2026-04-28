@@ -1,0 +1,1130 @@
+import type { FastifyBaseLogger } from "fastify";
+import type {
+  BonusKind,
+  ClientMessage,
+  MatchPhase,
+  MatchStatus,
+  PublicPlayer,
+  PublicQuestion,
+  ServerMessage,
+} from "@quizelo/protocol";
+import type { WebSocket } from "ws";
+import { MATCH_CONFIG } from "./config";
+import {
+  flushAnswers,
+  persistMatchEnd,
+  persistMatchStatus,
+  persistPlayerUpdates,
+} from "./persistence";
+import { rngFromSeed } from "./random";
+import { registry } from "./registry";
+import { scorePhase1, scorePhase2 } from "./scoring";
+import { makeShadow, shadowAnswer } from "./shadow";
+import type {
+  AnswerRecord,
+  DbQuestion,
+  MatchPlayer,
+  MatchState,
+} from "./types";
+
+interface Connection {
+  socket: WebSocket;
+  userId: string;
+}
+
+/**
+ * MatchRoom owns one match's lifecycle:
+ *   - WS broadcast bus
+ *   - timer-driven phase progression
+ *   - server-authoritative scoring + elimination
+ *   - DB persistence at boundaries
+ */
+export class MatchRoom {
+  state: MatchState;
+  private readonly conns = new Map<string, Connection>();
+  private readonly log: FastifyBaseLogger;
+  private timer: NodeJS.Timeout | null = null;
+  private rand: () => number;
+  private cleanups: Array<() => void> = [];
+
+  constructor(state: MatchState, log: FastifyBaseLogger) {
+    this.state = state;
+    this.log = log.child({ matchId: state.matchId });
+    this.rand = rngFromSeed(state.seed);
+  }
+
+  // ─── WS ───────────────────────────────────────────────────────
+  attach(userId: string, socket: WebSocket): void {
+    const player = this.state.players.find((p) => p.userId === userId);
+    if (!player) {
+      this.send(socket, { type: "error", code: "NOT_IN_MATCH" });
+      socket.close(4002, "not in match");
+      return;
+    }
+
+    // Replace existing connection (e.g. tab refresh)
+    const prev = this.conns.get(userId);
+    if (prev) {
+      try {
+        prev.socket.close(4003, "superseded");
+      } catch {
+        /* noop */
+      }
+    }
+
+    this.conns.set(userId, { socket, userId });
+    this.log.info({ userId }, "ws attached");
+
+    socket.on("close", () => {
+      if (this.conns.get(userId)?.socket === socket) {
+        this.conns.delete(userId);
+      }
+    });
+    socket.on("message", (raw) => this.onMessage(userId, raw.toString()));
+
+    // Initial snapshot
+    this.send(socket, {
+      type: "hello",
+      matchId: this.state.matchId,
+      selfId: userId,
+      status: this.state.status,
+      mode: this.state.mode,
+      serverTime: Date.now(),
+      players: this.publicPlayers(userId),
+    });
+
+    if (this.state.status === "lobby") {
+      this.broadcastLobby();
+    } else {
+      // Re-emit current question if any so reconnect mid-question works.
+      const q = this.publicQuestion();
+      if (q) this.send(socket, { type: "question", question: q });
+    }
+  }
+
+  private onMessage(userId: string, raw: string) {
+    let msg: ClientMessage;
+    try {
+      msg = JSON.parse(raw) as ClientMessage;
+    } catch {
+      this.sendTo(userId, { type: "error", code: "BAD_PAYLOAD" });
+      return;
+    }
+
+    switch (msg.type) {
+      case "ping":
+        this.sendTo(userId, { type: "pong", ts: Date.now() });
+        return;
+      case "ready":
+        return;
+      case "answer":
+        if (this.state.currentPhase === "phase2") {
+          this.phase2HandleAnswer(userId, msg.questionIndex, msg.choiceId);
+        } else {
+          this.recordAnswer(userId, msg.questionIndex, msg.choiceId);
+        }
+        return;
+      case "pass":
+        this.phase2HandlePass(userId, msg.questionIndex);
+        return;
+      case "use_bonus":
+        this.useBonus(userId, msg.questionIndex, msg.bonus);
+        return;
+      case "leave":
+        this.markLeft(userId);
+        return;
+    }
+  }
+
+  // ─── Lobby ────────────────────────────────────────────────────
+  startLobby(): void {
+    this.clearTimer();
+    // Shadows trickle in over `silentFillMs` to feel like real users joining,
+    // rather than landing all at once. The user-visible 5s countdown only
+    // kicks in once the lobby reaches 10 players.
+    this.scheduleNextShadow(Date.now() + MATCH_CONFIG.lobby.silentFillMs);
+
+    // Start a low-frequency presence loop so connecting clients see updated rosters.
+    this.startLobbyTicker();
+  }
+
+  /**
+   * Plan the arrival of the next shadow. Spreads them stochastically across
+   * the remaining lobby window. Re-evaluates after each arrival so a real
+   * player joining mid-fill doesn't break the cadence.
+   */
+  private scheduleNextShadow(deadlineAt: number): void {
+    if (this.state.status !== "lobby") return;
+
+    if (this.state.players.length >= MATCH_CONFIG.size) {
+      this.armStartCountdown();
+      return;
+    }
+
+    const now = Date.now();
+    const remainingTime = deadlineAt - now;
+    const remainingSlots = MATCH_CONFIG.size - this.state.players.length;
+
+    // Past the lobby window — top up immediately so we don't keep folks
+    // waiting beyond their patience budget.
+    if (remainingTime <= 0) {
+      this.fillWithShadows();
+      this.broadcastLobby();
+      this.armStartCountdown();
+      return;
+    }
+
+    const avgInterval = remainingTime / remainingSlots;
+    // 0.5× to 1.5× of the average — keeps it spaced but unpredictable.
+    const jitter = 0.5 + this.rand();
+    const delay = Math.max(200, Math.round(avgInterval * jitter));
+
+    this.clearTimer();
+    this.timer = setTimeout(() => {
+      if (this.state.status !== "lobby") return;
+      if (this.state.players.length < MATCH_CONFIG.size) {
+        const seat = this.state.players.length;
+        this.state.players.push(makeShadow(seat, this.rand));
+        this.broadcastLobby();
+      }
+      if (this.state.players.length >= MATCH_CONFIG.size) {
+        this.armStartCountdown();
+      } else {
+        this.scheduleNextShadow(deadlineAt);
+      }
+    }, delay);
+  }
+
+  /** Schedule the visible 5s "starting" countdown then phase 1. */
+  private armStartCountdown(): void {
+    if (this.state.lobbyStartsAt !== null) return;
+    this.state.lobbyStartsAt = Date.now() + MATCH_CONFIG.lobby.startCountdownMs;
+    this.broadcastLobby();
+    this.clearTimer();
+    this.timer = setTimeout(
+      () => void this.startPhase("phase1"),
+      MATCH_CONFIG.lobby.startCountdownMs,
+    );
+  }
+
+  private startLobbyTicker(): void {
+    const id = setInterval(() => {
+      if (this.state.status !== "lobby") {
+        clearInterval(id);
+        return;
+      }
+      this.broadcastLobby();
+    }, MATCH_CONFIG.lobby.tickMs);
+    this.cleanups.push(() => clearInterval(id));
+  }
+
+  private fillWithShadows(): void {
+    const missing = MATCH_CONFIG.size - this.state.players.length;
+    for (let i = 0; i < missing; i++) {
+      const seat = this.state.players.length;
+      this.state.players.push(makeShadow(seat, this.rand));
+    }
+  }
+
+  /** Called by the matchmaker when a real player joins. */
+  onPlayerJoined(): void {
+    if (this.state.status !== "lobby") return;
+    this.broadcastLobby();
+    if (this.state.players.length >= MATCH_CONFIG.size) {
+      this.armStartCountdown();
+    }
+  }
+
+  // ─── Phase orchestration ──────────────────────────────────────
+  private async startPhase(phase: MatchPhase): Promise<void> {
+    this.state.status = phase;
+    this.state.currentPhase = phase;
+    this.state.lobbyStartsAt = null;
+
+    // Phase 3: reset lives for the 3 finalists.
+    if (phase === "phase3") {
+      for (const p of this.state.players) {
+        if (p.status === "finalist") {
+          p.lives = MATCH_CONFIG.phase3.startingLives;
+          p.status = "active";
+        }
+      }
+    }
+
+    if (phase === "phase2") {
+      // Each player progresses independently through the question pool.
+      for (const p of this.state.players) {
+        if (p.status === "active") {
+          p.score = 0;
+          p.streak = 0;
+          p.phase2Index = 0;
+          p.lastScoreReachedAt = Date.now();
+        }
+      }
+      this.state.phase2EndsAt = Date.now() + MATCH_CONFIG.phase2.totalMs;
+    }
+
+    await persistMatchStatus(this.state.matchId, phase).catch((err) =>
+      this.log.error(err, "persistMatchStatus failed"),
+    );
+
+    this.broadcast({
+      type: "phase_start",
+      phase,
+      players: this.publicPlayers(),
+      ...(phase === "phase2" ? { phaseEndsAt: this.state.phase2EndsAt } : {}),
+    });
+
+    if (phase === "phase2") {
+      // Send each player their first question privately + start shadow loops.
+      setTimeout(() => this.startPhase2Loops(), 600);
+      // Global 60s timer ends the phase regardless of progress.
+      this.clearTimer();
+      this.timer = setTimeout(
+        () => void this.endPhase("phase2"),
+        MATCH_CONFIG.phase2.totalMs,
+      );
+      // Periodic roster broadcast for the live leaderboard.
+      const rosterTick = setInterval(() => {
+        if (this.state.currentPhase !== "phase2") {
+          clearInterval(rosterTick);
+          return;
+        }
+        this.broadcastRoster();
+      }, 1_000);
+      this.cleanups.push(() => clearInterval(rosterTick));
+      return;
+    }
+
+    setTimeout(() => this.nextQuestion(), 800);
+  }
+
+  // ─── Phase 2 — per-player independent flow ────────────────────
+  private startPhase2Loops(): void {
+    if (this.state.currentPhase !== "phase2") return;
+    for (const p of this.state.players) {
+      if (p.status !== "active") continue;
+      this.sendPhase2Question(p.userId);
+      if (p.isShadow) this.scheduleShadowPhase2Step(p.userId);
+    }
+  }
+
+  private sendPhase2Question(userId: string): void {
+    if (this.state.currentPhase !== "phase2") return;
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p || p.status !== "active") return;
+
+    const idx = p.phase2Index;
+    if (idx >= this.state.questionPool.length) return;
+
+    const qid = this.state.questionPool[idx]!;
+    const dbq = this.state.questions.get(qid)!;
+
+    if (p.isShadow) return; // shadows don't need WS payloads
+
+    this.sendTo(userId, {
+      type: "question",
+      question: {
+        index: idx,
+        phase: "phase2",
+        category: dbq.category,
+        prompt: dbq.prompt,
+        choices: dbq.choices.map(({ id, label }) => ({ id, label })),
+        // Phase 2 has no per-question deadline — the global timer covers it.
+        // We still need a number; use the phase deadline so client clamps fine.
+        deadline: this.state.phase2EndsAt ?? Date.now() + 60_000,
+      },
+    });
+  }
+
+  private phase2HandleAnswer(
+    userId: string,
+    questionIndex: number,
+    choiceId: string,
+  ): void {
+    if (this.state.currentPhase !== "phase2") return;
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p || p.status !== "active") return;
+    if (p.phase2Index !== questionIndex) return; // stale answer
+
+    const qid = this.state.questionPool[p.phase2Index]!;
+    const dbq = this.state.questions.get(qid)!;
+    const isCorrect = choiceId === dbq.correctChoiceId;
+    const delta = isCorrect ? MATCH_CONFIG.score.phase2Correct : MATCH_CONFIG.score.phase2Wrong;
+
+    p.score += delta;
+    p.lastScoreReachedAt = Date.now();
+
+    this.state.answersBuffer.push({
+      userId,
+      questionId: qid,
+      questionIndex: p.phase2Index,
+      phase: "phase2",
+      chosenChoiceId: choiceId,
+      isCorrect,
+      responseMs: null,
+      scoreDelta: delta,
+      answeredAt: new Date(),
+    });
+
+    // Private reveal so the user sees the result of their click.
+    if (!p.isShadow) {
+      this.sendTo(userId, {
+        type: "reveal",
+        questionIndex: p.phase2Index,
+        correctChoiceId: dbq.correctChoiceId,
+        outcomes: [
+          {
+            userId,
+            chosenChoiceId: choiceId,
+            isCorrect,
+            skipped: false,
+            responseMs: null,
+            scoreDelta: delta,
+            score: p.score,
+            livesDelta: 0,
+            lives: p.lives,
+            shieldUsed: false,
+          },
+        ],
+      });
+    }
+
+    // Advance + ship next question after a brief reveal pause.
+    p.phase2Index += 1;
+    const delay = p.isShadow ? 0 : MATCH_CONFIG.phase2.revealMs;
+    setTimeout(() => {
+      if (this.state.currentPhase !== "phase2") return;
+      this.sendPhase2Question(userId);
+    }, delay);
+  }
+
+  private phase2HandlePass(userId: string, questionIndex: number): void {
+    if (this.state.currentPhase !== "phase2") return;
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p || p.status !== "active") return;
+    if (p.phase2Index !== questionIndex) return;
+
+    p.phase2Index += 1;
+    this.sendPhase2Question(userId);
+  }
+
+  private scheduleShadowPhase2Step(userId: string): void {
+    if (this.state.currentPhase !== "phase2") return;
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p || p.status !== "active" || !p.isShadow) return;
+
+    // Shadow profile: 2-5s per question, accuracy from existing profile.
+    const delay = 2000 + Math.floor(this.rand() * 3000);
+    const t = setTimeout(() => {
+      if (this.state.currentPhase !== "phase2") return;
+      const player = this.state.players.find((x) => x.userId === userId);
+      if (!player || player.status !== "active") return;
+
+      const idx = player.phase2Index;
+      if (idx >= this.state.questionPool.length) return;
+      const qid = this.state.questionPool[idx]!;
+      const dbq = this.state.questions.get(qid)!;
+      const correctIdx = dbq.choices.findIndex((c) => c.id === dbq.correctChoiceId);
+      // Reuse phase-1 shadow profile for accuracy.
+      const accuracy = 0.55 + (player.seat % 5) * 0.06;
+      const correct = this.rand() < accuracy;
+      const choiceIdx = correct
+        ? correctIdx
+        : pickWrongIdx(correctIdx, dbq.choices.length, this.rand);
+      const choiceId = dbq.choices[choiceIdx]!.id;
+
+      this.phase2HandleAnswer(userId, idx, choiceId);
+      // Schedule next shadow step.
+      this.scheduleShadowPhase2Step(userId);
+    }, delay);
+    this.cleanups.push(() => clearTimeout(t));
+  }
+
+  private broadcastRoster(): void {
+    this.broadcast({ type: "roster", players: this.publicPlayers() });
+  }
+
+  private nextQuestion(): void {
+    const phase = this.state.currentPhase;
+    if (!phase) return;
+
+    // Phase 2 — bail out if the global timer is up.
+    if (phase === "phase2" && this.state.phase2EndsAt && Date.now() >= this.state.phase2EndsAt) {
+      void this.endPhase(phase);
+      return;
+    }
+
+    const next =
+      this.state.currentQuestionIndex === undefined
+        ? 0
+        : this.state.currentQuestionIndex + 1;
+
+    if (next >= this.state.questionPool.length) {
+      // Pool depleted — end the match.
+      void this.endPhase(phase);
+      return;
+    }
+
+    this.state.currentQuestionIndex = next;
+    this.state.currentAnswers.clear();
+    for (const p of this.state.players) {
+      p.shieldArmed = false;
+      p.skipped = false;
+    }
+
+    const qid = this.state.questionPool[next]!;
+    const dbq = this.state.questions.get(qid)!;
+    const timeLimitMs = phaseQuestionMs(phase);
+    const now = Date.now();
+    this.state.currentQuestionStartedAt = now;
+    this.state.currentQuestionDeadline = now + timeLimitMs;
+
+    const publicQ: PublicQuestion = {
+      index: next,
+      phase,
+      category: dbq.category,
+      prompt: dbq.prompt,
+      choices: dbq.choices.map(({ id, label }) => ({ id, label })),
+      deadline: this.state.currentQuestionDeadline,
+    };
+
+    this.broadcast({ type: "question", question: publicQ });
+
+    this.scheduleShadowAnswers(dbq, timeLimitMs);
+    this.clearTimer();
+    this.timer = setTimeout(() => this.closeQuestion(next), timeLimitMs);
+  }
+
+  private scheduleShadowAnswers(q: DbQuestion, timeLimitMs: number): void {
+    const correctIdx = q.choices.findIndex((c) => c.id === q.correctChoiceId);
+    const choiceIds = q.choices.map((c) => c.id);
+    for (const p of this.state.players) {
+      if (!p.isShadow || p.status !== "active") continue;
+      const { choiceId, responseMs } = shadowAnswer(
+        p,
+        choiceIds,
+        correctIdx,
+        timeLimitMs,
+        this.rand,
+      );
+      const t = setTimeout(() => {
+        if (this.state.currentQuestionIndex !== undefined) {
+          this.recordAnswer(p.userId, this.state.currentQuestionIndex, choiceId, true, responseMs);
+        }
+      }, responseMs);
+      this.cleanups.push(() => clearTimeout(t));
+    }
+  }
+
+  private recordAnswer(
+    userId: string,
+    questionIndex: number,
+    choiceId: string,
+    fromShadow = false,
+    overrideResponseMs?: number,
+  ): void {
+    if (this.state.currentQuestionIndex !== questionIndex) {
+      if (!fromShadow)
+        this.log.warn(
+          { userId, expected: this.state.currentQuestionIndex, got: questionIndex },
+          "answer rejected: question index mismatch",
+        );
+      return;
+    }
+    const player = this.state.players.find((p) => p.userId === userId);
+    if (!player || player.status !== "active") {
+      if (!fromShadow)
+        this.log.warn(
+          { userId, status: player?.status },
+          "answer rejected: player not active",
+        );
+      return;
+    }
+    if (player.skipped) {
+      if (!fromShadow) this.log.warn({ userId }, "answer rejected: already skipped");
+      return;
+    }
+    if (this.state.currentAnswers.has(userId)) {
+      if (!fromShadow) this.log.warn({ userId }, "answer rejected: duplicate");
+      return;
+    }
+
+    const startedAt = this.state.currentQuestionStartedAt!;
+    const responseMs = overrideResponseMs ?? Math.max(0, Date.now() - startedAt);
+    this.state.currentAnswers.set(userId, {
+      choiceId,
+      responseMs,
+      receivedAt: Date.now(),
+    });
+    if (!fromShadow) {
+      const qid = this.state.questionPool[questionIndex]!;
+      const dbq = this.state.questions.get(qid)!;
+      this.log.info(
+        {
+          userId,
+          questionIndex,
+          chosen: choiceId,
+          correct: dbq.correctChoiceId,
+          isCorrect: choiceId === dbq.correctChoiceId,
+          responseMs,
+        },
+        "answer recorded",
+      );
+    }
+
+    if (!fromShadow) {
+      this.sendTo(userId, {
+        type: "answer_ack",
+        questionIndex,
+        locked: true,
+      });
+    }
+
+    // Cut short if all alive players have replied (or skipped).
+    const alive = this.state.players.filter((p) => p.status === "active");
+    const repliedCount =
+      this.state.currentAnswers.size + alive.filter((p) => p.skipped).length;
+    if (repliedCount >= alive.length) {
+      this.clearTimer();
+      this.closeQuestion(questionIndex);
+    }
+  }
+
+  private closeQuestion(questionIndex: number): void {
+    if (this.state.currentQuestionIndex !== questionIndex) return;
+    const phase = this.state.currentPhase!;
+    const qid = this.state.questionPool[questionIndex]!;
+    const dbq = this.state.questions.get(qid)!;
+
+    const outcomes = this.state.players
+      .filter((p) => p.status === "active")
+      .map((p) => this.scorePlayerAtClose(p, dbq, questionIndex, phase));
+
+    // Phase 3 special rule: all-correct → slowest correct loses 1 life.
+    if (phase === "phase3") {
+      this.applyPhase3LifeRules(outcomes);
+    }
+
+    // Apply life deltas (cap at 0) and elimination after rules above.
+    for (const o of outcomes) {
+      const p = this.state.players.find((x) => x.userId === o.userId)!;
+      if (o.livesDelta !== 0) {
+        p.lives = Math.max(0, p.lives + o.livesDelta);
+      }
+      if (p.lives <= 0) {
+        p.status =
+          phase === "phase1"
+            ? "eliminated_p1"
+            : phase === "phase3"
+              ? "eliminated_p3"
+              : p.status;
+      }
+    }
+
+    this.broadcast({
+      type: "reveal",
+      questionIndex,
+      correctChoiceId: dbq.correctChoiceId,
+      outcomes,
+    });
+
+    // Decide what to do next.
+    const revealMs = phaseRevealMs(phase);
+    this.clearTimer();
+
+    if (phase === "phase1") {
+      const aliveCount = this.state.players.filter((p) => p.status === "active").length;
+      if (aliveCount <= MATCH_CONFIG.phase1.survivorThreshold) {
+        this.timer = setTimeout(() => void this.endPhase(phase), revealMs);
+        return;
+      }
+    } else if (phase === "phase3") {
+      const aliveCount = this.state.players.filter((p) => p.status === "active").length;
+      if (aliveCount <= 1) {
+        this.timer = setTimeout(() => void this.endPhase(phase), revealMs);
+        return;
+      }
+    }
+
+    this.timer = setTimeout(() => this.nextQuestion(), revealMs);
+  }
+
+  private scorePlayerAtClose(
+    p: MatchPlayer,
+    dbq: DbQuestion,
+    questionIndex: number,
+    phase: MatchPhase,
+  ) {
+    const ans = this.state.currentAnswers.get(p.userId);
+    const skipped = p.skipped;
+    const hasAnswer = !!ans && !skipped;
+    const isCorrect = hasAnswer && ans!.choiceId === dbq.correctChoiceId;
+    const responseMs = ans?.responseMs ?? null;
+
+    if (!p.isShadow) {
+      this.log.info(
+        {
+          userId: p.userId,
+          questionIndex,
+          phase,
+          hasAnswer,
+          skipped,
+          chosen: ans?.choiceId ?? null,
+          correct: dbq.correctChoiceId,
+          isCorrect,
+          livesBefore: p.lives,
+        },
+        "scoring close",
+      );
+    }
+
+    let scoreDelta = 0;
+    let livesDelta = 0;
+    let shieldUsed = false;
+
+    if (skipped) {
+      // No score, no life change.
+    } else if (phase === "phase1") {
+      const r = scorePhase1({
+        isCorrect,
+        responseMs,
+        timeLimitMs: phaseQuestionMs(phase),
+        prevStreak: p.streak,
+      });
+      scoreDelta = r.delta;
+      p.streak = r.newStreak;
+      // Wrong = -1 life unless shield was armed.
+      if (!isCorrect) {
+        if (p.shieldArmed) {
+          shieldUsed = true;
+          p.shieldArmed = false;
+        } else {
+          livesDelta = -1;
+        }
+      }
+    } else if (phase === "phase2") {
+      const r = scorePhase2({ isCorrect, hasAnswer });
+      scoreDelta = r.delta;
+    } else {
+      // phase3 — no score points; lives handled in applyPhase3LifeRules.
+    }
+
+    p.score += scoreDelta;
+    if (scoreDelta !== 0) p.lastScoreReachedAt = Date.now();
+
+    this.state.answersBuffer.push({
+      userId: p.userId,
+      questionId: dbq.id,
+      questionIndex,
+      phase,
+      chosenChoiceId: hasAnswer ? ans!.choiceId : null,
+      isCorrect,
+      responseMs,
+      scoreDelta,
+      answeredAt: new Date(),
+    });
+
+    return {
+      userId: p.userId,
+      chosenChoiceId: hasAnswer ? ans!.choiceId : null,
+      isCorrect,
+      skipped,
+      responseMs,
+      scoreDelta,
+      score: p.score,
+      livesDelta,
+      lives: Math.max(0, p.lives + livesDelta),
+      shieldUsed,
+    };
+  }
+
+  /**
+   * Phase 3 life rules (applied AFTER per-player scoring above produced
+   * livesDelta = 0 for everyone):
+   *   - all wrong → no -1 life
+   *   - 1+ wrong → those players lose 1 life
+   *   - all correct → slowest of the correct loses 1 life
+   */
+  private applyPhase3LifeRules(
+    outcomes: ReturnType<MatchRoom["scorePlayerAtClose"]>[],
+  ): void {
+    if (outcomes.length === 0) return;
+
+    const corrects = outcomes.filter((o) => o.isCorrect);
+    const wrongs = outcomes.filter(
+      (o) => !o.isCorrect && !o.skipped && o.chosenChoiceId !== null,
+    );
+    const noAnswer = outcomes.filter(
+      (o) => o.chosenChoiceId === null && !o.skipped,
+    );
+
+    // No-answer also counts as wrong for the elimination rule.
+    const losers = [...wrongs, ...noAnswer];
+
+    if (corrects.length === outcomes.length) {
+      // All correct → slowest loses one.
+      let slowest = corrects[0]!;
+      for (const o of corrects) {
+        if ((o.responseMs ?? 0) > (slowest.responseMs ?? 0)) slowest = o;
+      }
+      this.applyLifeLoss(slowest);
+    } else if (losers.length === outcomes.length) {
+      // All wrong → no one loses a life.
+      // (intentionally no-op)
+    } else {
+      // Mixed — losers each lose one life.
+      for (const o of losers) {
+        this.applyLifeLoss(o);
+      }
+    }
+  }
+
+  private applyLifeLoss(o: ReturnType<MatchRoom["scorePlayerAtClose"]>): void {
+    const player = this.state.players.find((p) => p.userId === o.userId);
+    if (!player) return;
+    if (player.shieldArmed) {
+      o.shieldUsed = true;
+      player.shieldArmed = false;
+      return;
+    }
+    o.livesDelta = -1;
+    o.lives = Math.max(0, player.lives - 1);
+  }
+
+  // ─── Bonus handling ───────────────────────────────────────────
+  private useBonus(userId: string, questionIndex: number, bonus: BonusKind): void {
+    if (this.state.currentQuestionIndex !== questionIndex) {
+      this.log.warn(
+        { userId, bonus, expected: this.state.currentQuestionIndex, got: questionIndex },
+        "use_bonus rejected: question index mismatch",
+      );
+      return;
+    }
+    if (this.state.currentPhase !== "phase1") {
+      this.log.warn({ userId, bonus, phase: this.state.currentPhase }, "use_bonus rejected: not phase 1");
+      return;
+    }
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p || p.status !== "active") {
+      this.log.warn({ userId, bonus, status: p?.status }, "use_bonus rejected: player not active");
+      return;
+    }
+    if (p.bonuses[bonus] <= 0) {
+      this.log.warn({ userId, bonus, count: p.bonuses[bonus] }, "use_bonus rejected: out of stock");
+      return;
+    }
+    if (this.state.currentAnswers.has(userId) || p.skipped) {
+      this.log.warn({ userId, bonus }, "use_bonus rejected: already answered/skipped");
+      return;
+    }
+
+    this.log.info({ userId, bonus }, "use_bonus accepted");
+    p.bonuses[bonus] -= 1;
+
+    const qid = this.state.questionPool[questionIndex]!;
+    const dbq = this.state.questions.get(qid)!;
+
+    if (bonus === "fifty_fifty") {
+      const wrong = dbq.choices
+        .filter((c) => c.id !== dbq.correctChoiceId)
+        .map((c) => c.id);
+      // Hide 2 wrongs (or all but 1 if there are fewer than 3 wrongs total).
+      const hide = wrong.slice(0, Math.min(2, wrong.length));
+      this.sendTo(userId, {
+        type: "bonus_result",
+        bonus,
+        questionIndex,
+        hide,
+      });
+    } else if (bonus === "skip") {
+      p.skipped = true;
+      this.sendTo(userId, { type: "bonus_result", bonus, questionIndex });
+      this.maybeCloseEarly();
+    } else if (bonus === "shield") {
+      p.shieldArmed = true;
+      this.sendTo(userId, { type: "bonus_result", bonus, questionIndex });
+    }
+
+    // We intentionally don't re-broadcast the roster here — that would send
+    // a fresh phase_start and the client reducer would wipe `fiftyFiftyHide`,
+    // `questionDeadlineOverride`, etc. The local decrement on the client
+    // keeps the inventory in sync; the next reveal carries authoritative
+    // counts via player rows.
+  }
+
+  private maybeCloseEarly(): void {
+    const alive = this.state.players.filter((p) => p.status === "active");
+    const repliedCount =
+      this.state.currentAnswers.size + alive.filter((p) => p.skipped).length;
+    if (repliedCount >= alive.length) {
+      const idx = this.state.currentQuestionIndex;
+      if (idx !== undefined) {
+        this.clearTimer();
+        this.closeQuestion(idx);
+      }
+    }
+  }
+
+  // ─── Phase end ────────────────────────────────────────────────
+  private async endPhase(phase: MatchPhase): Promise<void> {
+    this.clearTimer();
+    this.state.currentQuestionIndex = undefined;
+    this.state.currentQuestionStartedAt = undefined;
+    this.state.currentQuestionDeadline = undefined;
+
+    const buffered = this.state.answersBuffer.splice(0, this.state.answersBuffer.length);
+    await flushAnswers(this.state, buffered).catch((err) =>
+      this.log.error(err, "flushAnswers failed"),
+    );
+
+    let survivors: MatchPlayer[];
+    let eliminated: MatchPlayer[];
+    let nextStatus: MatchStatus;
+
+    if (phase === "phase1") {
+      survivors = this.state.players.filter((p) => p.status === "active");
+      eliminated = this.state.players.filter((p) => p.status === "eliminated_p1");
+      nextStatus = "transition_p1_p2";
+    } else if (phase === "phase2") {
+      // Sort by score (desc), tiebreak: earlier lastScoreReachedAt wins.
+      const ranked = this.state.players
+        .filter((p) => p.status === "active")
+        .slice()
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return a.lastScoreReachedAt - b.lastScoreReachedAt;
+        });
+      const finalists = ranked.slice(0, MATCH_CONFIG.phase2.finalists);
+      const out = ranked.slice(MATCH_CONFIG.phase2.finalists);
+      for (const p of finalists) p.status = "finalist";
+      for (const p of out) p.status = "eliminated_p2";
+      survivors = finalists;
+      eliminated = out;
+      nextStatus = "transition_p2_p3";
+    } else {
+      // phase3 → results
+      return this.endMatch();
+    }
+
+    this.state.status = nextStatus;
+    await persistMatchStatus(this.state.matchId, nextStatus).catch(() => {});
+    await persistPlayerUpdates(this.state.matchId, this.state.players).catch(
+      (err) => this.log.error(err, "persistPlayerUpdates failed"),
+    );
+
+    const nextPhaseAt = Date.now() + MATCH_CONFIG.transitionMs;
+    this.broadcast({
+      type: "phase_end",
+      phase,
+      survivors: survivors.map((p) => p.userId),
+      eliminated: eliminated.map((p) => p.userId),
+      nextStatus,
+      nextPhaseAt,
+    });
+
+    this.timer = setTimeout(
+      () => void this.startPhase(phase === "phase1" ? "phase2" : "phase3"),
+      MATCH_CONFIG.transitionMs,
+    );
+  }
+
+  private async endMatch(): Promise<void> {
+    // Final ranking:
+    //   1. Whoever still has lives in phase 3 (winner)
+    //   2. Phase 3 eliminated, in reverse elimination order (= more lives lost later)
+    //   3. Phase 2 eliminated, by score
+    //   4. Phase 1 eliminated, by score
+    const phase3Active = this.state.players.filter((p) => p.status === "active");
+    const phase3Out = this.state.players.filter((p) => p.status === "eliminated_p3");
+    const phase2Out = this.state.players
+      .filter((p) => p.status === "eliminated_p2")
+      .slice()
+      .sort((a, b) => b.score - a.score);
+    const phase1Out = this.state.players
+      .filter((p) => p.status === "eliminated_p1")
+      .slice()
+      .sort((a, b) => b.score - a.score);
+
+    if (phase3Active[0]) phase3Active[0].status = "winner";
+
+    const ordered: MatchPlayer[] = [
+      ...phase3Active,
+      ...phase3Out,
+      ...phase2Out,
+      ...phase1Out,
+    ];
+    const podium = ordered.map((p, i) => ({
+      userId: p.userId,
+      rank: i + 1,
+      score: p.score,
+      eloDelta: eloDeltaForRank(i + 1),
+    }));
+
+    this.state.status = "results";
+    this.broadcast({ type: "match_end", podium });
+
+    await persistMatchEnd(this.state.matchId, podium).catch((err) =>
+      this.log.error(err, "persistMatchEnd failed"),
+    );
+
+    setTimeout(() => registry.delete(this.state.matchId, this.log), 30_000);
+  }
+
+  private markLeft(userId: string): void {
+    const p = this.state.players.find((x) => x.userId === userId);
+    if (!p) return;
+    if (p.status === "active" || p.status === "finalist") {
+      p.status = "left";
+    }
+    const conn = this.conns.get(userId);
+    if (conn) {
+      try {
+        conn.socket.close(1000, "leave");
+      } catch {
+        /* noop */
+      }
+      this.conns.delete(userId);
+    }
+  }
+
+  // ─── Broadcast helpers ────────────────────────────────────────
+  private broadcastLobby(): void {
+    this.broadcast({
+      type: "lobby",
+      players: this.publicPlayers(),
+      startsAt: this.state.lobbyStartsAt,
+    });
+  }
+
+  private broadcastPlayers(): void {
+    if (this.state.status === "lobby") {
+      this.broadcastLobby();
+    } else {
+      // Reuse phase_start as a fresh roster snapshot — clients only update player rows.
+      const phase = this.state.currentPhase;
+      if (!phase) return;
+      this.broadcast({
+        type: "phase_start",
+        phase,
+        players: this.publicPlayers(),
+        ...(phase === "phase2" && this.state.phase2EndsAt
+          ? { phaseEndsAt: this.state.phase2EndsAt }
+          : {}),
+      });
+    }
+  }
+
+  private broadcast(msg: ServerMessage): void {
+    for (const [, conn] of this.conns) this.send(conn.socket, msg);
+  }
+
+  private send(socket: WebSocket, msg: ServerMessage): void {
+    try {
+      socket.send(JSON.stringify(msg));
+    } catch (err) {
+      this.log.warn({ err }, "ws send failed");
+    }
+  }
+
+  private sendTo(userId: string, msg: ServerMessage): void {
+    const conn = this.conns.get(userId);
+    if (conn) this.send(conn.socket, msg);
+  }
+
+  private publicPlayers(selfId?: string): PublicPlayer[] {
+    return this.state.players.map((p) => ({
+      userId: p.userId,
+      seat: p.seat,
+      name: p.name,
+      handle: p.handle,
+      avatarId: p.avatarId,
+      status: p.status,
+      score: p.score,
+      streak: p.streak,
+      lives: p.lives,
+      bonuses: { ...p.bonuses },
+      isShadow: p.isShadow,
+      isSelf: selfId ? p.userId === selfId : undefined,
+    }));
+  }
+
+  private publicQuestion(): PublicQuestion | null {
+    if (
+      this.state.currentQuestionIndex === undefined ||
+      !this.state.currentPhase ||
+      !this.state.currentQuestionDeadline
+    )
+      return null;
+    const qid = this.state.questionPool[this.state.currentQuestionIndex];
+    if (!qid) return null;
+    const dbq = this.state.questions.get(qid);
+    if (!dbq) return null;
+    return {
+      index: this.state.currentQuestionIndex,
+      phase: this.state.currentPhase,
+      category: dbq.category,
+      prompt: dbq.prompt,
+      choices: dbq.choices.map(({ id, label }) => ({ id, label })),
+      deadline: this.state.currentQuestionDeadline,
+    };
+  }
+
+  // ─── Cleanup ──────────────────────────────────────────────────
+  private clearTimer(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  }
+
+  dispose(): void {
+    this.clearTimer();
+    for (const cb of this.cleanups) cb();
+    this.cleanups = [];
+    for (const [, conn] of this.conns) {
+      try {
+        conn.socket.close(1000, "match ended");
+      } catch {
+        /* noop */
+      }
+    }
+    this.conns.clear();
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────
+function phaseQuestionMs(phase: MatchPhase): number {
+  switch (phase) {
+    case "phase1":
+      return MATCH_CONFIG.phase1.questionMs;
+    case "phase2":
+      return MATCH_CONFIG.phase2.questionMs;
+    case "phase3":
+      return MATCH_CONFIG.phase3.questionMs;
+  }
+}
+function phaseRevealMs(phase: MatchPhase): number {
+  switch (phase) {
+    case "phase1":
+      return MATCH_CONFIG.phase1.revealMs;
+    case "phase2":
+      return MATCH_CONFIG.phase2.revealMs;
+    case "phase3":
+      return MATCH_CONFIG.phase3.revealMs;
+  }
+}
+function eloDeltaForRank(rank: number): number {
+  if (rank === 1) return MATCH_CONFIG.elo.rank1;
+  if (rank === 2) return MATCH_CONFIG.elo.rank2;
+  if (rank === 3) return MATCH_CONFIG.elo.rank3;
+  if (rank <= 5) return MATCH_CONFIG.elo.eliminatedP2;
+  return MATCH_CONFIG.elo.eliminatedP1;
+}
+
+function pickWrongIdx(correctIdx: number, total: number, rand: () => number): number {
+  if (total <= 1) return correctIdx;
+  let idx = Math.floor(rand() * (total - 1));
+  if (idx >= correctIdx) idx += 1;
+  return idx;
+}

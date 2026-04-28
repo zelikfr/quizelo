@@ -1,0 +1,1 @@
+ALTER TYPE "public"."player_status" ADD VALUE 'eliminated_p3' BEFORE 'finalist';

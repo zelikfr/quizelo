@@ -1,0 +1,802 @@
+{
+  "common": {
+    "appName": "QUIZELO",
+    "tagline": "Quiz multijoueur en temps réel",
+    "play": "Jouer",
+    "signIn": "Connexion",
+    "signUp": "S'inscrire",
+    "you": "Toi",
+    "submit": "Valider",
+    "skip": "Esquiver",
+    "cancel": "Annuler",
+    "normal": "Normal",
+    "ranked": "Classé",
+    "victory": "VICTOIRE",
+    "defeat": "ÉLIMINÉ",
+    "correct": "Bonne réponse",
+    "wrong": "Mauvaise",
+    "timeout": "Temps écoulé",
+    "rematch": "REJOUER",
+    "backHome": "ACCUEIL",
+    "signOut": "Se déconnecter"
+  },
+
+  "nav": {
+    "howItWorks": "Comment ça marche",
+    "categories": "Catégories",
+    "ranks": "Rangs",
+    "premium": "Premium",
+    "discord": "Discord"
+  },
+
+  "hero": {
+    "seasonBadge": "SAISON 03 · LIVE",
+    "line1": "10 joueurs.",
+    "line2": "3 phases.",
+    "line3": "1 survivant.",
+    "copy": "Quiz multijoueur compétitif. Questions inédites à chaque partie — aucun match identique. Grimpe au classement saisonnier.",
+    "copyShort": "Quiz multijoueur compétitif. Questions inédites à chaque partie.",
+    "ctaPlay": "JOUER MAINTENANT",
+    "stats": {
+      "playersOnline": "JOUEURS EN LIGNE",
+      "gamesDay": "PARTIES /JOUR",
+      "rating": "NOTE STORE"
+    },
+    "liveLabel": "LIVE · PHASE 1",
+    "question": "Quelle est la capitale de l'Australie ?"
+  },
+
+  "hiw": {
+    "badge": "COMMENT ÇA MARCHE",
+    "h2a": "Trois phases.",
+    "h2b": "Une seule",
+    "h2c": "couronne.",
+    "sub": "Chaque partie dure environ 5 minutes. Tu commences à 10, tu finis seul·e ou tu sors. Questions inédites à chaque match — aucun ne se ressemble.",
+    "subShort": "~5 min par partie. Questions inédites à chaque match.",
+    "flow": "PROGRESSION",
+    "start": "Départ",
+    "champion": "Champion",
+    "phases": [
+      {
+        "title": "Élimination",
+        "sub": "10 → 5 joueurs",
+        "text": "15 questions QCM. À chaque mauvaise réponse, tu perds une vie. À 0 vie, tu sors. Les 5 plus rapides survivent.",
+        "kpiLabel": "QUESTIONS",
+        "meta": "15s par question · 3 vies"
+      },
+      {
+        "title": "Sprint 60s",
+        "sub": "5 → 3 joueurs",
+        "text": "Une minute, autant de questions que tu peux. Bonne +1, mauvaise −1, esquive 0. Les 3 meilleurs scores filent en finale.",
+        "kpiLabel": "CHRONO",
+        "meta": "+1 / −1 / 0 · streak ×2"
+      },
+      {
+        "title": "Finale",
+        "sub": "Le dernier en vie l'emporte",
+        "text": "Trois joueurs, mort subite. Si tout le monde répond bien, le plus lent perd une vie. Premier à 0 vie : éliminé.",
+        "kpiLabel": "SURVIVANT",
+        "meta": "10s par question · 2 vies"
+      }
+    ]
+  },
+
+  "categories": {
+    "badge": "CATÉGORIES",
+    "h2a": "Huit terrains.",
+    "h2b": "Aucun favori",
+    "h2c": "n'y survit",
+    "h2d": ".",
+    "sub": "Chaque partie pioche dans une catégorie ou les mélange. Spécialiste ? Polyvalent·e ? Le classement se fiche de la différence.",
+    "daily": "+ 12 000 NOUVELLES QUESTIONS GÉNÉRÉES PAR JOUR",
+    "names": {
+      "Entertainment": "Divertissement",
+      "Geography": "Géographie",
+      "Web": "Culture web",
+      "Society": "Société",
+      "History": "Histoire",
+      "Sport": "Sport",
+      "Art": "Art & Littérature",
+      "Fun": "Insolite",
+      "geography": "Géographie",
+      "history": "Histoire",
+      "science": "Sciences",
+      "tech": "Tech & Web",
+      "sport": "Sport",
+      "art": "Art & Culture",
+      "cinema": "Cinéma",
+      "music": "Musique",
+      "literature": "Littérature",
+      "society": "Société",
+      "entertainment": "Divertissement",
+      "fun": "Insolite"
+    }
+  },
+
+  "ranks": {
+    "badge": "RANGS & SAISON",
+    "h2a": "De Bronze à",
+    "h2b": "Élite",
+    "h2c": ".",
+    "h2d": "Saison de 90 jours.",
+    "sub": "Six rangs, ELO partagé entre toutes les catégories. Plus tu grimpes, plus tu rencontres des joueurs forts.",
+    "eloLabel": "ÉCHELLE ELO",
+    "seasonBadge": "SAISON 03 EN COURS",
+    "seasonH": "Récompenses de fin de saison",
+    "seasonP": "À la fin de chaque saison, le podium repart avec du concret. Les meilleurs joueurs du classement saisonnier reçoivent leurs récompenses sous 14 jours.",
+    "days": "JOURS RESTANTS",
+    "seasonLbl": "SAISON",
+    "rewards": [
+      { "tier": "1ʳᵉ PLACE", "gift": "iPhone dernière génération",  "sub": "+ cadre Mythique animé · 1 an Premium", "glyph": "★" },
+      { "tier": "2ᵉ PLACE",  "gift": "AirPods Pro",                 "sub": "+ cadre exclusif · 6 mois Premium",     "glyph": "✦" },
+      { "tier": "3ᵉ PLACE",  "gift": "Abonnement Premium illimité", "sub": "+ bannière de profil saison",           "glyph": "◆" }
+    ]
+  },
+
+  "footer": {
+    "copy": "TOUS DROITS RÉSERVÉS"
+  },
+
+  "home": {
+    "nav": {
+      "home": "Accueil",
+      "leaderboard": "Classement",
+      "profile": "Profil",
+      "premium": "Premium",
+      "shop": "Boutique",
+      "play": "Jouer"
+    },
+    "userMenu": {
+      "ariaLabel": "Ouvrir le menu utilisateur",
+      "profile": "Profil",
+      "referral": "Parrainage",
+      "settings": "Paramètres"
+    },
+    "status": {
+      "yourElo": "TON ELO",
+      "daysShort": "j"
+    },
+    "hero": {
+      "badge": "SAISON 03 — EN COURS",
+      "line1": "Dix joueurs.",
+      "line2": "Un seul",
+      "line3": "survivant.",
+      "copy": "Questions inédites à chaque partie. Trois phases d'élimination. Aucun match identique."
+    },
+    "mobile": {
+      "chooseMode": "CHOISIS TON MODE",
+      "line1": "10 joueurs.",
+      "line2": "Un",
+      "line3": "survivant."
+    },
+    "modes": {
+      "quick": {
+        "title": "Partie rapide",
+        "free": "GRATUIT",
+        "description": "Difficulté modérée. Pas d'impact sur ton classement.",
+        "freeLeft": "parties restantes aujourd'hui",
+        "watchAd": "Regarde une pub pour gagner +1 partie"
+      },
+      "ranked": {
+        "title": "Match classé",
+        "description": "Difficulté adaptée à ton ELO. Saison 03 — 47 jours restants.",
+        "cta": "JOUER CLASSÉ"
+      }
+    }
+  },
+
+  "match": {
+    "phaseLabel": "PHASE",
+    "question": "QUESTION",
+    "shell": {
+      "connecting": "Connexion…",
+      "disconnected": "Reconnexion…",
+      "error": "Connexion perdue"
+    },
+    "lobby": {
+      "badge": "SALON D'ATTENTE",
+      "title": "On rassemble la salle",
+      "titleStarting": "Tout le monde est là.",
+      "waiting": "{remaining, plural, =0 {Démarrage imminent} =1 {On attend 1 joueur} other {On attend # joueurs}}",
+      "startsIn": "DÉMARRAGE DANS",
+      "seats": "{real} / {total} joueurs",
+      "leave": "Quitter"
+    },
+    "live": {
+      "loading": "On charge la prochaine question…",
+      "question": "QUESTION",
+      "passShort": "PASSER",
+      "phase2Total": "TEMPS RESTANT",
+      "phase2Rules": "+1 / −1 / 0 — top 3 passe en finale",
+      "phase2Score": "SCORE",
+      "phase3Rule": "Mauvaise réponse = −1 vie. Si tous bons, le plus lent perd −1 vie.",
+      "leaderboard": "CLASSEMENT EN DIRECT",
+      "you": "(toi)",
+      "bonuses": "BONUS",
+      "skippedNotice": "Question passée — pas de gain ni de perte.",
+      "nextSoon": "Prochaine question dans un instant…",
+      "bonus": {
+        "fifty_fifty": "50/50",
+        "skip": "PASSER",
+        "shield": "BOUCLIER"
+      }
+    },
+    "phase1": {
+      "subtitle": "Élimination",
+      "survivors": "SURVIVANTS",
+      "others": "AUTRES",
+      "eliminated": "ÉLIMINÉS",
+      "bonuses": "BONUS"
+    },
+    "phase2": {
+      "rules": "+1 / −1 / 0 · streak ×2",
+      "solo": "autonome — chacun pour soi",
+      "score": "TON SCORE",
+      "scoreShort": "SCORE",
+      "correct": "BONNES",
+      "wrong": "MAUVAISES",
+      "liveTop3": "CLASSEMENT EN DIRECT — TOP 3 PASSE",
+      "topAdvances": "TOP 3 PASSE",
+      "cutoff": "Coupure top 3"
+    },
+    "phase3": {
+      "rules": "Mort subite · 2 vies",
+      "warning": "Mauvaise réponse = −1 vie · Dernier à répondre si tous bons = −1 vie",
+      "warningShort": "Tous bons → le dernier à répondre perd 1 vie",
+      "lastBadge": "DERNIER · −1 VIE",
+      "lastBadgeShort": "DERNIER −1"
+    },
+    "results": {
+      "badge": "RÉSULTATS",
+      "title": "Match terminé.",
+      "computing": "Calcul du classement…",
+      "yourPlace": "Tu finis #{rank} · {eloDelta} ELO",
+      "pts": "PTS",
+      "playAgain": "REJOUER",
+      "backHome": "Retour à l'accueil",
+      "share": "PARTAGER",
+      "place": {
+        "first": {
+          "title": "1ʳᵉ PLACE",
+          "titleShort": "1ʳᵉ",
+          "tagline": "Champion. La couronne est à toi.",
+          "taglineShort": "Champion."
+        },
+        "second": {
+          "title": "2ÈME PLACE",
+          "titleShort": "2ÈME",
+          "tagline": "Belle remontée. Encore mieux la prochaine.",
+          "taglineShort": "Belle remontée"
+        },
+        "third": {
+          "title": "3ÈME PLACE",
+          "titleShort": "3ÈME",
+          "tagline": "Sur le podium. Continue à grimper.",
+          "taglineShort": "Sur le podium"
+        }
+      },
+      "stats": {
+        "eloChange": "VARIATION ELO",
+        "correct": "BONNES RÉPONSES",
+        "bonuses": "BONUS UTILISÉS",
+        "avgReact": "RÉACTION MOY.",
+        "correctShort": "BONNES",
+        "bonusesShort": "BONUS",
+        "avgReactShort": "RÉACT."
+      }
+    },
+    "transition": {
+      "brief": {
+        "phase1": {
+          "label": "PHASE 1 · ÉLIMINATION",
+          "title": "15 questions à choix multiple",
+          "rules": [
+            { "label": "Durée par question", "value": "15s" },
+            { "label": "Vies", "value": "3" },
+            { "label": "Mauvaise réponse", "value": "−1 vie" },
+            { "label": "Survivants", "value": "Les 5 plus rapides" }
+          ]
+        },
+        "phase2": {
+          "label": "PHASE 2 · SPRINT 60s",
+          "title": "Une minute. Autant de questions que possible.",
+          "rules": [
+            { "label": "Durée totale", "value": "60s" },
+            { "label": "Bonne réponse", "value": "+1" },
+            { "label": "Mauvaise réponse", "value": "−1" },
+            { "label": "Streak", "value": "×2" },
+            { "label": "Survivants", "value": "Les 3 meilleurs scores" }
+          ]
+        },
+        "phase3": {
+          "label": "PHASE 3 · FINALE",
+          "title": "Mort subite. Le plus lent perd une vie.",
+          "rules": [
+            { "label": "Durée par question", "value": "10s" },
+            { "label": "Vies", "value": "2" },
+            { "label": "Tout juste", "value": "Le plus lent perd 1 vie" },
+            { "label": "Premier à 0", "value": "Éliminé" }
+          ]
+        }
+      },
+      "start": {
+        "room": "ROOM #A4F2 · GÉOGRAPHIE",
+        "roomShort": "ROOM #A4F2",
+        "rankedRange": "PARTIE CLASSÉE · 1450–1700 ELO",
+        "badge": "LE MATCH COMMENCE",
+        "titleA": "10 joueurs.",
+        "titleB": "1 couronne.",
+        "you": "TOI",
+        "phase1In": "PHASE 1 DANS",
+        "tip": "CONSEIL · Bonne réponse rapide = bonus de tempo"
+      },
+      "p1ToP2": {
+        "phaseComplete": "PHASE 1 TERMINÉE",
+        "from": "ÉLIMINATION",
+        "to": "SPRINT 60s",
+        "survivorsLabel": "survivants",
+        "eliminatedLabel": "éliminés",
+        "advancing": "PASSENT EN PHASE 2",
+        "advancingShort": "PASSENT · 5/10",
+        "eliminatedHeading": "ÉLIMINÉS",
+        "eliminatedShort": "ÉLIMINÉS · 5/10",
+        "countdownLabel": "PHASE 2 DANS",
+        "stats": {
+          "correct": "CORRECTES",
+          "accuracy": "PRÉCISION",
+          "phaseRank": "RANG PHASE",
+          "livesLeft": "VIES RESTANTES"
+        }
+      },
+      "p2ToP3": {
+        "phaseComplete": "PHASE 2 TERMINÉE",
+        "finale": "FINALE",
+        "titleA": "3 finalistes.",
+        "titleB": "Une seule",
+        "titleBShort": "1",
+        "titleC": "couronne.",
+        "finalistsHeading": "FINALISTES",
+        "pts": "PTS",
+        "finishPositions": "TERMINENT 4ᵉ ET 5ᵉ",
+        "countdownLabel": "FINALE DANS"
+      },
+      "defeat": {
+        "gameOver": "PARTIE TERMINÉE",
+        "eliminatedHeading": "TU AS ÉTÉ ÉLIMINÉ",
+        "eliminatedShort": "ÉLIMINÉ",
+        "titleA": "Tu as fini",
+        "titleAShort": "Tu finis",
+        "titleB": ".",
+        "titleC": "Pas mal du tout.",
+        "placeOrdinal": "2ᵉ",
+        "placeLabel": "PLACE",
+        "matchLabel": "MATCH",
+        "eloGain": "GAIN ELO",
+        "watchFinale": "Voir le podium",
+        "leave": "Quitter",
+        "stillFighting": "ENCORE EN LICE",
+        "stats": {
+          "correct": "BONNES RÉPONSES",
+          "accuracy": "PRÉCISION",
+          "avgTime": "TEMPS MOYEN"
+        }
+      },
+      "live": {
+        "phaseDone": "PHASE TERMINÉE",
+        "phase1Done": "PHASE 1 TERMINÉE",
+        "phase2Done": "PHASE 2 TERMINÉE",
+        "phase3Done": "FINALE TERMINÉE",
+        "p1ToP2Title": "5 survivants. La pression monte.",
+        "p2ToP3Title": "3 finalistes. Une seule couronne.",
+        "survivors": "SURVIVANTS",
+        "eliminated": "ÉLIMINÉS",
+        "nextPhaseIn": "PHASE SUIVANTE DANS"
+      }
+    },
+    "interstitial": {
+      "correctBadge": "BONNE RÉPONSE",
+      "correctBadgeShort": "BONNE RÉPONSE",
+      "yourResult": "TON RÉSULTAT",
+      "correctText": "Bonne réponse",
+      "nextQuestion": "PROCHAINE QUESTION",
+      "perPlayerResults": "RÉSULTATS PAR JOUEUR",
+      "eliminatedBanner": "{name} ÉLIMINÉ — plus de vies",
+      "stats": {
+        "gotBy": "TROUVÉE PAR",
+        "livesLost": "VIES PERDUES",
+        "avgReact": "RÉACTION MOY.",
+        "you": "TOI",
+        "gotShort": "TROUVÉE",
+        "livesShort": "VIES −",
+        "outShort": "ÉLIMINÉ"
+      }
+    }
+  },
+
+  "referral": {
+    "badge": "PARRAINAGE",
+    "title": "Invite, joue, gagne des crédits.",
+    "titleMobileA": "Invite, gagne des",
+    "titleMobileB": "crédits",
+    "abuse": "Tout abus (faux comptes, auto-parrainage) entraîne la suspension du compte et l'annulation des crédits gagnés.",
+    "code": {
+      "title": "TON CODE UNIQUE",
+      "titleShort": "TON CODE",
+      "copy": "Copier",
+      "share": "PARTAGER"
+    },
+    "howItWorks": {
+      "title": "COMMENT ÇA MARCHE",
+      "step1": "Partage ton code à un·e ami·e",
+      "step2": "Iel s'inscrit avec ton code",
+      "step3": "Vous gagnez tous deux des crédits à chaque palier"
+    },
+    "milestones": {
+      "title": "PALIERS DE RÉCOMPENSE",
+      "titleShort": "PALIERS",
+      "referee": "filleul"
+    },
+    "milestoneLabels": {
+      "firstGame": "1ʳᵉ partie complétée",
+      "tenGames": "10 parties jouées",
+      "premium": "Souscription Premium"
+    },
+    "totals": {
+      "friends": "AMIS PARRAINÉS",
+      "earned": "CRÉDITS GAGNÉS",
+      "friendsShort": "PARRAINÉS",
+      "earnedShort": "GAGNÉS"
+    },
+    "friends": {
+      "title": "TES FILLEUL·E·S",
+      "joined": "rejoint le {date}"
+    }
+  },
+
+  "shop": {
+    "title": "Boutique",
+    "balanceLabel": "TON SOLDE",
+    "creditsLabel": "CRÉDITS",
+    "perCredit": "crédit",
+    "buy": "Acheter",
+    "tabs": {
+      "credits": "Crédits",
+      "cards": "Cartes"
+    },
+    "badges": {
+      "popular": "POPULAIRE",
+      "bestValue": "MEILLEURE VALEUR",
+      "top": "TOP"
+    },
+    "packs": {
+      "eyebrow": "PACKS DE CRÉDITS",
+      "title": "Recharge ton solde",
+      "subtitle": "Plus tu prends gros, plus le crédit est avantageux."
+    },
+    "boosts": {
+      "eyebrow": "CARTES — BOOSTS RANKED",
+      "eyebrowShort": "CARTES BOOST",
+      "title": "Joue tes parties classées plus fort",
+      "subtitle": "Aucun impact sur le déroulement des parties — uniquement sur la progression ELO."
+    },
+    "boost": {
+      "doubleElo": "Carte ×2 ELO — {count} parties",
+      "doubleEloDesc": "Double les gains ELO sur {count} victoires ranked",
+      "shield": "Protection ELO ×{count}",
+      "shieldDesc": "Annule la perte ELO sur {count} {count, plural, one {défaite} other {défaites}}"
+    }
+  },
+
+  "premium": {
+    "badge": "PREMIUM",
+    "titleA": "Débloque",
+    "titleB": "le mode classé",
+    "titleC": "",
+    "subtitle": "Parties classées illimitées · ELO + saisons · cosmétiques exclusifs · stats avancées.",
+    "plans": {
+      "monthly": {
+        "eyebrow": "MENSUEL",
+        "period": "mois",
+        "hint": "sans engagement",
+        "cta": "Choisir mensuel"
+      },
+      "yearly": {
+        "eyebrow": "ANNUEL",
+        "period": "an",
+        "hint": "soit 3,33 € / mois",
+        "cta": "Choisir annuel"
+      }
+    },
+    "features": [
+      "Parties classées illimitées · saisons & ELO",
+      "Cosmétiques exclusifs (avatars, effets de victoire)",
+      "Statistiques avancées par catégorie",
+      "Récompenses de fin de saison"
+    ],
+    "disclaimer": "Renouvellement automatique. Annulable à tout moment depuis ton compte.",
+    "notNow": "Plus tard",
+    "close": "Fermer"
+  },
+
+  "settings": {
+    "title": "Paramètres",
+    "back": "Retour",
+    "verified": "vérifié",
+    "sections": {
+      "account": "Compte",
+      "sub": "Abonnement",
+      "gameplay": "Gameplay",
+      "audio": "Audio & vibrations",
+      "notif": "Notifications",
+      "lang": "Langue",
+      "privacy": "Confidentialité",
+      "danger": "Zone sensible"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "change": "Changer",
+      "add": "Ajouter",
+      "configure": "Configurer",
+      "download": "Télécharger",
+      "manage": "Gérer"
+    },
+    "fields": {
+      "username": "Pseudo",
+      "email": "Email",
+      "password": "Mot de passe",
+      "phone": "Téléphone",
+      "country": "Pays / langue",
+      "avatar": "Avatar",
+      "notSet": "Non renseigné"
+    },
+    "identity": {
+      "changeAvatar": "Changer l'avatar"
+    },
+    "misc": {
+      "version": "VERSION"
+    },
+    "account": {
+      "title": "Identité & profil"
+    },
+    "subscription": {
+      "title": "Quizelo Premium",
+      "plan": "Plan annuel — 39,99 €/an",
+      "renewsLine": "Renouvellement le 14 mars 2027 · Apple Pay •• 4421",
+      "manage": "Gérer",
+      "cancel": "Annuler",
+      "currentPlan": "Plan actuel",
+      "planValue": "Annuel · 39,99 €",
+      "paymentMethod": "Mode de paiement",
+      "restore": "Restaurer un achat"
+    },
+    "language": {
+      "title": "Langue de l'application"
+    },
+    "gameplay": {
+      "title": "Préférences en partie",
+      "animations": {
+        "label": "Animations & effets",
+        "hint": "Désactive pour économiser la batterie"
+      },
+      "opponents": {
+        "label": "Aperçu des réponses adverses",
+        "hint": "Voir en direct ce que les autres répondent"
+      },
+      "autoSubmit": {
+        "label": "Auto-validation à la fin du timer",
+        "hint": "Valide ta réponse partielle si le temps expire"
+      },
+      "favoriteCategory": "Catégorie favorite",
+      "categoryFilter": {
+        "label": "Filtre de catégories",
+        "value": "7 sur 8 actives"
+      }
+    },
+    "audio": {
+      "title": "Ambiance",
+      "music": "Musique",
+      "sfx": "Effets sonores",
+      "haptics": "Vibrations (mobile)"
+    },
+    "notifications": {
+      "title": "Quand te prévenir",
+      "matchReady": {
+        "label": "Une partie est prête",
+        "hint": "Quand 10 joueurs sont réunis"
+      },
+      "seasonEnd": {
+        "label": "Fin de saison à venir",
+        "hint": "7 jours avant la clôture"
+      },
+      "referral": {
+        "label": "Filleul·e franchit un palier",
+        "hint": "Crédits de parrainage à récupérer"
+      },
+      "promos": "Promotions & cosmétiques",
+      "weeklyEmail": {
+        "label": "Email récap. hebdo",
+        "value": "Lundi · 9 h"
+      }
+    },
+    "privacy": {
+      "title": "Tes données",
+      "publicProfile": {
+        "label": "Profil public",
+        "hint": "Visible dans le leaderboard saisonnier"
+      },
+      "publicCategoryStats": "Mes stats par catégorie sont publiques",
+      "exportData": {
+        "label": "Exporter mes données",
+        "value": "Fichier .zip envoyé par mail"
+      },
+      "blocked": {
+        "label": "Bloquer un·e joueur·euse",
+        "value": "2 comptes bloqués"
+      }
+    },
+    "danger": {
+      "title": "Actions irréversibles",
+      "deleteTitle": "Supprimer mon compte",
+      "deleteSubtitle": "Toutes tes parties, stats et crédits seront effacés.",
+      "deleteAction": "Supprimer"
+    }
+  },
+
+  "profile": {
+    "settings": "PARAMÈTRES",
+    "joined": "Membre depuis {date}",
+    "stats": {
+      "matches": "PARTIES",
+      "winRate": "TAUX DE VICTOIRE",
+      "avgRank": "RANG MOYEN",
+      "thisSeason": "cette saison",
+      "outOf10": "sur 10"
+    },
+    "chart": {
+      "title": "PROGRESSION ELO — 30 JOURS",
+      "titleShort": "PROGRESSION ELO"
+    },
+    "categories": {
+      "title": "PRÉCISION PAR CATÉGORIE",
+      "titleShort": "PAR CATÉGORIE"
+    }
+  },
+
+  "leaderboard": {
+    "badge": "CLASSEMENT",
+    "season": "Saison",
+    "seasonEnds": "FIN DE SAISON",
+    "seasonEndsShort": "FIN",
+    "daysLeftShort": "jours",
+    "filters": {
+      "global": "Global",
+      "friends": "Amis",
+      "elite": "Élite",
+      "diamond": "Diamant",
+      "platinum": "Platine",
+      "gold": "Or"
+    },
+    "table": {
+      "rank": "RANG",
+      "player": "JOUEUR",
+      "change24h": "24H",
+      "tier": "TIER"
+    }
+  },
+
+  "lobby": {
+    "rankedTitle": "MATCHMAKING CLASSÉ",
+    "normalTitle": "PARTIE NORMALE",
+    "findingMatch": "Recherche d'un match",
+    "playersInRoom": "JOUEURS DANS LA ROOM",
+    "waiting": "EN ATTENTE",
+    "cancel": "ANNULER",
+    "stats": {
+      "players": "JOUEURS",
+      "waitTime": "TEMPS D'ATTENTE"
+    },
+    "activity": {
+      "title": "ACTIVITÉ",
+      "joined": "rejoint",
+      "you": "(toi)",
+      "starting": "Match imminent"
+    }
+  },
+
+  "auth": {
+    "orWith": "OU",
+    "fields": {
+      "email": "E-MAIL",
+      "password": "MOT DE PASSE",
+      "handle": "PSEUDO"
+    },
+    "login": {
+      "badge": "CONNEXION",
+      "title": "Bon retour.",
+      "noAccount": "Pas encore de compte ?",
+      "signupLink": "Inscris-toi",
+      "forgot": "Oublié ?",
+      "staySignedIn": "Rester connecté",
+      "submit": "SE CONNECTER",
+      "legalPrefix": "En continuant tu acceptes nos",
+      "legalTerms": "CGU",
+      "legalAnd": "et notre",
+      "legalPrivacy": "politique de confidentialité",
+      "brand": {
+        "badge": "SAISON 03 EN COURS",
+        "titleA": "Connecte-toi.",
+        "titleB": "Affronte",
+        "titleC": "dix joueurs.",
+        "subtitle": "Trois phases d'élimination. Questions inédites à chaque partie. Aucun match identique.",
+        "stats": {
+          "active": "JOUEURS ACTIFS",
+          "gamesDay": "PARTIES /JOUR",
+          "cats": "CATÉGORIES"
+        }
+      }
+    },
+    "signup": {
+      "title": "Inscription",
+      "subtitle": "Quelques infos et tu rejoins ta première room.",
+      "haveAccount": "Déjà inscrit ?",
+      "loginLink": "Connexion",
+      "orEmail": "OU EMAIL",
+      "handleHint": "3 à 16 caractères, lettres et chiffres",
+      "handleAvailable": "disponible",
+      "passwordStrength": {
+        "weak": "Faible",
+        "medium": "Moyen",
+        "strong": "Solide"
+      },
+      "dob": {
+        "label": "DATE DE NAISSANCE",
+        "dd": "JJ",
+        "mm": "MM",
+        "yyyy": "AAAA"
+      },
+      "consents": {
+        "termsPrefix": "J'accepte les",
+        "terms": "CGU",
+        "and": "et la",
+        "privacy": "politique de confidentialité",
+        "newsletter": "Recevoir les nouveautés et défis hebdomadaires."
+      },
+      "submit": "CRÉER MON COMPTE",
+      "brand": {
+        "badge": "CRÉE TON COMPTE",
+        "titleA": "Démarre à",
+        "titleB": "1000 ELO",
+        "titleC": ".",
+        "titleD": "Grimpe au sommet.",
+        "perks": [
+          "5 parties gratuites par jour",
+          "Historique illimité de tes parties",
+          "Classement saisonnier global",
+          "Mode classé inclus avec Premium"
+        ]
+      }
+    },
+    "forgot": {
+      "badge": "RÉCUPÉRATION",
+      "title": "Mot de passe oublié ?",
+      "subtitle": "Indique ton e-mail — on t'envoie un lien magique pour le réinitialiser.",
+      "submit": "ENVOYER LE LIEN",
+      "backToLogin": "Retour à la connexion"
+    },
+    "magicLink": {
+      "divider": "OU LIEN MAGIQUE",
+      "label": "E-MAIL",
+      "submit": "Recevoir un lien magique"
+    },
+    "verify": {
+      "badge": "VÉRIFIE TA BOÎTE",
+      "title": "Lien envoyé.",
+      "body": "On vient de t'envoyer un lien de connexion par email. Clique dessus pour finaliser ta connexion.",
+      "hint": "Pas de message ? Pense à vérifier les spams ou attends quelques secondes.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "errors": {
+      "generic": "Une erreur est survenue. Réessaie."
+    }
+  }
+}
