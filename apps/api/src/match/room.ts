@@ -14,6 +14,7 @@ import {
   flushAnswers,
   persistMatchEnd,
   persistMatchStatus,
+  persistPlayerRemove,
   persistPlayerUpdates,
 } from "./persistence";
 import { rngFromSeed } from "./random";
@@ -353,6 +354,7 @@ export class MatchRoom {
     const delta = isCorrect ? MATCH_CONFIG.score.phase2Correct : MATCH_CONFIG.score.phase2Wrong;
 
     p.score += delta;
+    if (p.score > p.peakScore) p.peakScore = p.score;
     p.lastScoreReachedAt = Date.now();
 
     this.state.answersBuffer.push({
@@ -612,13 +614,11 @@ export class MatchRoom {
       if (o.livesDelta !== 0) {
         p.lives = Math.max(0, p.lives + o.livesDelta);
       }
-      if (p.lives <= 0) {
-        p.status =
-          phase === "phase1"
-            ? "eliminated_p1"
-            : phase === "phase3"
-              ? "eliminated_p3"
-              : p.status;
+      if (p.lives <= 0 && (phase === "phase1" || phase === "phase3")) {
+        p.status = phase === "phase1" ? "eliminated_p1" : "eliminated_p3";
+        // Stamp the moment of death so we can rank by elimination order
+        // at match end (later death = higher placement).
+        if (p.eliminatedAt === null) p.eliminatedAt = Date.now();
       }
     }
 
@@ -711,6 +711,7 @@ export class MatchRoom {
     }
 
     p.score += scoreDelta;
+    if (p.score > p.peakScore) p.peakScore = p.score;
     if (scoreDelta !== 0) p.lastScoreReachedAt = Date.now();
 
     this.state.answersBuffer.push({
@@ -762,7 +763,9 @@ export class MatchRoom {
     // No-answer also counts as wrong for the elimination rule.
     const losers = [...wrongs, ...noAnswer];
 
+    let mode: "all_correct" | "all_wrong" | "mixed";
     if (corrects.length === outcomes.length) {
+      mode = "all_correct";
       // All correct → slowest loses one.
       let slowest = corrects[0]!;
       for (const o of corrects) {
@@ -770,14 +773,29 @@ export class MatchRoom {
       }
       this.applyLifeLoss(slowest);
     } else if (losers.length === outcomes.length) {
+      mode = "all_wrong";
       // All wrong → no one loses a life.
       // (intentionally no-op)
     } else {
+      mode = "mixed";
       // Mixed — losers each lose one life.
       for (const o of losers) {
         this.applyLifeLoss(o);
       }
     }
+
+    this.log.info(
+      {
+        mode,
+        corrects: corrects.length,
+        wrongs: wrongs.length,
+        noAnswer: noAnswer.length,
+        losers: losers.length,
+        outcomes: outcomes.length,
+        livesDeltas: outcomes.map((o) => ({ userId: o.userId, livesDelta: o.livesDelta })),
+      },
+      "phase3 life rules",
+    );
   }
 
   private applyLifeLoss(o: ReturnType<MatchRoom["scorePlayerAtClose"]>): void {
@@ -898,7 +916,11 @@ export class MatchRoom {
       const finalists = ranked.slice(0, MATCH_CONFIG.phase2.finalists);
       const out = ranked.slice(MATCH_CONFIG.phase2.finalists);
       for (const p of finalists) p.status = "finalist";
-      for (const p of out) p.status = "eliminated_p2";
+      const elimAt = Date.now();
+      for (const p of out) {
+        p.status = "eliminated_p2";
+        p.eliminatedAt = elimAt;
+      }
       survivors = finalists;
       eliminated = out;
       nextStatus = "transition_p2_p3";
@@ -930,21 +952,33 @@ export class MatchRoom {
   }
 
   private async endMatch(): Promise<void> {
-    // Final ranking:
-    //   1. Whoever still has lives in phase 3 (winner)
-    //   2. Phase 3 eliminated, in reverse elimination order (= more lives lost later)
-    //   3. Phase 2 eliminated, by score
-    //   4. Phase 1 eliminated, by score
+    // Final ranking — best (rank 1) to worst:
+    //   1. Whoever still has lives in phase 3 = winner
+    //   2. Phase 3 eliminated — later death = higher placement; peak score
+    //      only as tiebreaker for simultaneous deaths.
+    //   3. Phase 2 eliminated — all share an eliminatedAt at phase end so
+    //      this collapses to a peak-score tiebreak.
+    //   4. Phase 1 eliminated — same rule.
+    const byDeathThenScore = (a: MatchPlayer, b: MatchPlayer) => {
+      const ta = a.eliminatedAt ?? 0;
+      const tb = b.eliminatedAt ?? 0;
+      if (ta !== tb) return tb - ta;
+      return b.peakScore - a.peakScore;
+    };
+
     const phase3Active = this.state.players.filter((p) => p.status === "active");
-    const phase3Out = this.state.players.filter((p) => p.status === "eliminated_p3");
+    const phase3Out = this.state.players
+      .filter((p) => p.status === "eliminated_p3")
+      .slice()
+      .sort(byDeathThenScore);
     const phase2Out = this.state.players
       .filter((p) => p.status === "eliminated_p2")
       .slice()
-      .sort((a, b) => b.score - a.score);
+      .sort(byDeathThenScore);
     const phase1Out = this.state.players
       .filter((p) => p.status === "eliminated_p1")
       .slice()
-      .sort((a, b) => b.score - a.score);
+      .sort(byDeathThenScore);
 
     if (phase3Active[0]) phase3Active[0].status = "winner";
 
@@ -974,9 +1008,32 @@ export class MatchRoom {
   private markLeft(userId: string): void {
     const p = this.state.players.find((x) => x.userId === userId);
     if (!p) return;
-    if (p.status === "active" || p.status === "finalist") {
+
+    if (this.state.status === "lobby") {
+      // Free the seat entirely so re-clicking "Play" doesn't drop the user
+      // back into this exact lobby. Drop the DB row too — the unique
+      // constraint on (matchId, seat) would otherwise block re-allocation.
+      this.state.players = this.state.players.filter((x) => x.userId !== userId);
+      void persistPlayerRemove(this.state.matchId, userId).catch((err) =>
+        this.log.warn(err, "persistPlayerRemove failed"),
+      );
+      // If we were already counting down to phase 1, abort — the room is
+      // no longer full. Resume the shadow trickle so the lobby can refill.
+      if (
+        this.state.lobbyStartsAt !== null &&
+        this.state.players.length < MATCH_CONFIG.size
+      ) {
+        this.state.lobbyStartsAt = null;
+        this.clearTimer();
+        this.scheduleNextShadow(Date.now() + MATCH_CONFIG.lobby.silentFillMs);
+      }
+      this.broadcastLobby();
+    } else if (p.status === "active" || p.status === "finalist") {
+      // Mid-game leaver — keep their record so we can compute final ranks
+      // at match end, just flag them as gone.
       p.status = "left";
     }
+
     const conn = this.conns.get(userId);
     if (conn) {
       try {

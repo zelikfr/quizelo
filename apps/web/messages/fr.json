@@ -193,6 +193,12 @@
       "disconnected": "Reconnexion…",
       "error": "Connexion perdue"
     },
+    "finaleWaiting": {
+      "badge": "FINALE TERMINÉE POUR TOI",
+      "title": "Tu as fini {rank}.",
+      "message": "Les résultats vont s'afficher dès que la partie sera terminée.",
+      "liveBadge": "FINALE EN COURS"
+    },
     "lobby": {
       "badge": "SALON D'ATTENTE",
       "title": "On rassemble la salle",

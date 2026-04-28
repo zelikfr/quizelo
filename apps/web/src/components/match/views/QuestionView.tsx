@@ -53,9 +53,18 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
       ? new Set(state.fiftyFiftyHide.hidden)
       : new Set<string>();
 
-  const alive = state.players.filter((p) => p.status === "active");
+  // The reveal carries lives but not status — status only flips at the next
+  // phase_start/phase_end. Treat lives = 0 as already out so the survivor
+  // count updates instantly on the death blow.
+  const alive = state.players.filter(
+    (p) => p.status === "active" && p.lives > 0,
+  );
   const eliminated = state.players.filter(
-    (p) => p.status === "eliminated_p1" || p.status === "eliminated_p2" || p.status === "eliminated_p3",
+    (p) =>
+      p.status === "eliminated_p1" ||
+      p.status === "eliminated_p2" ||
+      p.status === "eliminated_p3" ||
+      (p.status === "active" && p.lives <= 0),
   );
   const aliveSorted = [...alive].sort((a, b) => b.score - a.score);
   const half = Math.ceil(aliveSorted.length / 2);

@@ -193,6 +193,12 @@
       "disconnected": "Reconnecting…",
       "error": "Connection lost"
     },
+    "finaleWaiting": {
+      "badge": "FINALE OVER FOR YOU",
+      "title": "You finished {rank}.",
+      "message": "Results will show as soon as the match wraps up.",
+      "liveBadge": "FINALE IN PROGRESS"
+    },
     "lobby": {
       "badge": "WAITING ROOM",
       "title": "Filling the table",

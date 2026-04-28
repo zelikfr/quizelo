@@ -53,9 +53,11 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onLeave}>
-              {t("leave")}
-            </Button>
+            {!isFull && (
+              <Button variant="ghost" size="sm" onClick={onLeave}>
+                {t("leave")}
+              </Button>
+            )}
             <span className="text-danger flex items-center gap-2 font-mono text-[10px] font-bold tracking-[0.25em]">
               <span
                 aria-hidden
@@ -137,13 +139,15 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
             ◆ {tStart("roomShort")}
           </span>
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={onLeave}
-              className="text-fg-3 hover:text-fg-1 cursor-pointer font-mono text-[9px] tracking-[0.15em]"
-            >
-              {t("leave")}
-            </button>
+            {!isFull && (
+              <button
+                type="button"
+                onClick={onLeave}
+                className="text-fg-3 hover:text-fg-1 cursor-pointer font-mono text-[9px] tracking-[0.15em]"
+              >
+                {t("leave")}
+              </button>
+            )}
             <span className="text-danger flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-[0.25em]">
               <span aria-hidden className="bg-danger h-[5px] w-[5px] rounded-full" />
               LIVE

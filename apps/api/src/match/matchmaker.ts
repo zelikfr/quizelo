@@ -42,8 +42,23 @@ class Matchmaker {
     }
 
     let pending = this.pendingByLocale.get(locale);
+
+    // Discard ghost lobbies — rooms whose only inhabitants left or are shadows.
     if (pending) {
-      const already = pending.room.state.players.some((p) => p.userId === userId);
+      const realActive = pending.room.state.players.filter(
+        (p) => !p.isShadow && p.status !== "left",
+      ).length;
+      if (realActive === 0) {
+        registry.delete(pending.matchId, log);
+        this.pendingByLocale.delete(locale);
+        pending = undefined;
+      }
+    }
+
+    if (pending) {
+      const already = pending.room.state.players.some(
+        (p) => p.userId === userId && p.status !== "left",
+      );
       if (!already) {
         await this.addPlayerToLobby(pending.room, userId, log);
         pending.room.onPlayerJoined();
@@ -113,9 +128,17 @@ class Matchmaker {
     });
     if (!row) throw new Error("USER_NOT_FOUND");
 
+    // Find the first free seat — leavers can have left holes in the seat
+    // numbering. Reusing `players.length` would collide with the unique
+    // constraint (matchId, seat) in the DB once seats start being recycled.
+    const usedSeats = new Set(room.state.players.map((p) => p.seat));
+    let seat = 0;
+    while (usedSeats.has(seat) && seat < MATCH_CONFIG.size) seat++;
+    if (seat >= MATCH_CONFIG.size) throw new Error("LOBBY_FULL");
+
     const player: MatchPlayer = {
       userId: row.id,
-      seat: room.state.players.length,
+      seat,
       name: row.displayName ?? row.handle ?? row.name ?? "Player",
       handle: row.handle,
       avatarId: row.avatarId ?? 0,
@@ -127,6 +150,8 @@ class Matchmaker {
       shieldArmed: false,
       skipped: false,
       lastScoreReachedAt: 0,
+      eliminatedAt: null,
+      peakScore: 0,
       phase2Index: 0,
       isShadow: false,
     };

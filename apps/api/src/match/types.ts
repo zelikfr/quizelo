@@ -37,6 +37,13 @@ export interface MatchPlayer {
   /** Server-recorded timestamp when score reached its current value
    *  (used as phase-2 tiebreaker). */
   lastScoreReachedAt: number;
+  /** Server epoch ms when the player was eliminated (status → eliminated_*).
+   *  Used to compute final ranks: later death = higher placement, score
+   *  is only a tiebreaker for simultaneous eliminations. */
+  eliminatedAt: number | null;
+  /** Highest score reached during the match — kept around for the score
+   *  tiebreaker even after phase 2 resets `score`. */
+  peakScore: number;
   /** Phase 2 — each player advances through the question pool independently. */
   phase2Index: number;
   /** Shadows are server-driven — no real WS connection. */

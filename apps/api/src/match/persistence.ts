@@ -74,6 +74,18 @@ export async function flushAnswers(
   );
 }
 
+export async function persistPlayerRemove(
+  matchId: string,
+  userId: string,
+): Promise<void> {
+  if (isShadowId(userId)) return;
+  await db
+    .delete(matchPlayers)
+    .where(
+      and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.userId, userId)),
+    );
+}
+
 export async function persistPlayerUpdates(
   matchId: string,
   players: MatchPlayer[],
