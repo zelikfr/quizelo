@@ -18,7 +18,7 @@ interface MatchScreenProps {
 export function MatchScreen({ matchId }: MatchScreenProps) {
   const t = useTranslations("match.shell");
   const router = useRouter();
-  const { state, connection, sendAnswer, sendBonus, sendPass, leave } =
+  const { state, connection, sendAnswer, sendPass, leave } =
     useMatchSocket(matchId);
 
   const self = state.selfId
@@ -103,7 +103,6 @@ export function MatchScreen({ matchId }: MatchScreenProps) {
               <QuestionView
                 state={state}
                 onAnswer={sendAnswer}
-                onBonus={sendBonus}
                 onPass={sendPass}
               />
             )}

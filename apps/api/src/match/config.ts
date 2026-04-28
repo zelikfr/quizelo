@@ -13,12 +13,12 @@ export const MATCH_CONFIG = {
   },
 
   phase1: {
+    /** Fixed 10-question qualification round. */
+    questionCount: 10,
     questionMs: 15_000,
     revealMs: 2_000,
-    /** Each player starts here. */
-    startingLives: 3,
-    /** Phase ends as soon as active players (lives>0) drops to this. */
-    survivorThreshold: 5,
+    /** Top N by score advance to phase 2. */
+    advancing: 5,
   },
 
   phase2: {
@@ -39,13 +39,6 @@ export const MATCH_CONFIG = {
   /** Pause between phases (transition screens). */
   transitionMs: 4_000,
 
-  /** Bonuses available — phase 1 only — granted at match start. */
-  bonusInventory: {
-    fifty_fifty: 1,
-    skip: 1,
-    shield: 1,
-  },
-
   /** Score (phase 1 — speed + streak; phase 2 — flat ±1; phase 3 — score not used). */
   score: {
     phase1Base: 100,
@@ -60,7 +53,7 @@ export const MATCH_CONFIG = {
     rank1: 30,
     rank2: 15,
     rank3: 5,
-    eliminatedP2: -5, // ranks 4-5
+    eliminatedP2: 0, // ranks 4-5 — making it to phase 2 is neutral
     eliminatedP1: -15, // ranks 6-10
   },
 } as const;

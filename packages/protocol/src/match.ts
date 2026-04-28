@@ -30,17 +30,6 @@ export const PlayerStatus = z.enum([
 ]);
 export type PlayerStatus = z.infer<typeof PlayerStatus>;
 
-// ─── Bonuses (phase 1 only) ──────────────────────────────────────────
-export const BonusKind = z.enum(["fifty_fifty", "skip", "shield"]);
-export type BonusKind = z.infer<typeof BonusKind>;
-
-export const BonusInventory = z.object({
-  fifty_fifty: z.number().int().min(0),
-  skip: z.number().int().min(0),
-  shield: z.number().int().min(0),
-});
-export type BonusInventory = z.infer<typeof BonusInventory>;
-
 // ─── Public DTOs ─────────────────────────────────────────────────────
 export const PublicPlayer = z.object({
   userId: z.string(),
@@ -52,7 +41,6 @@ export const PublicPlayer = z.object({
   score: z.number().int(),
   streak: z.number().int(),
   lives: z.number().int(),
-  bonuses: BonusInventory,
   isShadow: z.boolean(),
   isSelf: z.boolean().optional(),
 });
@@ -155,19 +143,6 @@ export const ServerMessage = z.discriminatedUnion("type", [
     ),
   }),
 
-  /**
-   * Bonus activation outcome.
-   *  - fifty_fifty: private to the activator, `hide` lists 2 wrong choiceIds
-   *  - skip: private ack, server records skip in the next reveal
-   *  - shield: private ack, server suppresses the next life loss
-   */
-  z.object({
-    type: z.literal("bonus_result"),
-    bonus: BonusKind,
-    questionIndex: z.number().int(),
-    hide: z.array(z.string()).optional(),
-  }),
-
   /** End of a phase — survivors continue, others marked eliminated. */
   z.object({
     type: z.literal("phase_end"),
@@ -215,12 +190,6 @@ export const ClientMessage = z.discriminatedUnion("type", [
   /** Phase 2 only — skip the current question without scoring. */
   z.object({
     type: z.literal("pass"),
-    questionIndex: z.number().int(),
-  }),
-
-  z.object({
-    type: z.literal("use_bonus"),
-    bonus: BonusKind,
     questionIndex: z.number().int(),
   }),
 

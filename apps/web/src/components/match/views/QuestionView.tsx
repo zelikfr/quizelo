@@ -1,13 +1,12 @@
 "use client";
 
-import type { BonusKind, PublicPlayer } from "@quizelo/protocol";
+import type { PublicPlayer } from "@quizelo/protocol";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { QAAvatar } from "@/components/shared/QAAvatar";
 import { QAChoice, type ChoiceState } from "@/components/shared/QAChoice";
 import { QALives } from "@/components/shared/QALives";
 import { QATimerRing } from "@/components/shared/QATimerRing";
-import { LiveBonusDock } from "@/components/match/LiveBonusDock";
 import { LiveCatChip } from "@/components/match/LiveCatChip";
 import { LivePlayerChip } from "@/components/match/LivePlayerChip";
 import { cn } from "@/lib/cn";
@@ -16,23 +15,22 @@ import type { MatchClientState } from "@/match/match-state";
 interface QuestionViewProps {
   state: MatchClientState;
   onAnswer: (questionIndex: number, choiceId: string) => void;
-  onBonus: (questionIndex: number, bonus: BonusKind) => void;
   onPass: (questionIndex: number) => void;
 }
 
 const LETTERS = ["A", "B", "C", "D", "E"] as const;
 
-export function QuestionView({ state, onAnswer, onBonus, onPass }: QuestionViewProps) {
+export function QuestionView({ state, onAnswer, onPass }: QuestionViewProps) {
   const phase = state.status as "phase1" | "phase2" | "phase3";
   if (phase === "phase1")
-    return <Phase1View state={state} onAnswer={onAnswer} onBonus={onBonus} onPass={onPass} />;
+    return <Phase1View state={state} onAnswer={onAnswer} onPass={onPass} />;
   if (phase === "phase2")
     return <Phase2View state={state} onAnswer={onAnswer} onPass={onPass} />;
   return <Phase3View state={state} onAnswer={onAnswer} />;
 }
 
 // ─── Phase 1 — 3-column desktop / mobile strip ──────────────────────
-function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
+function Phase1View({ state, onAnswer }: QuestionViewProps) {
   const t = useTranslations("match");
   const tPhase = useTranslations("match.phase1");
   const tLive = useTranslations("match.live");
@@ -45,13 +43,8 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
 
   const self = state.selfId ? state.players.find((p) => p.userId === state.selfId) : null;
   const isAnswered =
-    state.answer?.questionIndex === q.index &&
-    (state.answer.choiceId !== null || state.answer.skipped);
+    state.answer?.questionIndex === q.index && state.answer.choiceId !== null;
   const isReveal = reveal?.questionIndex === q.index;
-  const hidden =
-    state.fiftyFiftyHide?.questionIndex === q.index
-      ? new Set(state.fiftyFiftyHide.hidden)
-      : new Set<string>();
 
   // The reveal carries lives but not status — status only flips at the next
   // phase_start/phase_end. Treat lives = 0 as already out so the survivor
@@ -88,15 +81,14 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
       <div className="hidden md:flex md:min-h-screen md:flex-col">
         <PhaseHeader
           phase={1}
-          progress={`${t("question")} ${q.index + 1}`}
-          meta={`${tPhase("survivors")} ${alive.length}/${state.players.length}`}
+          progress={`${t("question")} ${q.index + 1} / 10`}
         />
 
         <div className="grid flex-1" style={{ gridTemplateColumns: "240px 1fr 240px" }}>
-          {/* Left — survivors */}
+          {/* Left — top half by score */}
           <aside className="flex flex-col gap-2 border-r border-white/[0.08] p-5">
             <p className="mb-1 font-mono text-[10px] tracking-[0.15em] text-fg-3">
-              {tPhase("survivors")}
+              ▦ {tLive("leaderboard")}
             </p>
             {aliveLeft.map((p) => (
               <LivePlayerChip
@@ -105,6 +97,7 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
                 compact
                 highlight={p.userId === state.selfId}
                 status={chipStatusFor(p, state, isReveal)}
+                showLives={false}
               />
             ))}
           </aside>
@@ -121,39 +114,20 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
-              {q.choices.map((c, i) =>
-                hidden.has(c.id) ? null : (
-                  <QAChoice
-                    key={c.id}
-                    letter={LETTERS[i] ?? "?"}
-                    text={c.label}
-                    state={choiceStateFor(c.id, state, q.index, hidden)}
-                    disabled={isAnswered || isReveal}
-                    onClick={() => handlePick(c.id)}
-                  />
-                ),
-              )}
-            </div>
-
-            {state.answer?.skipped && (
-              <p className="mt-4 rounded-md border border-violet/20 bg-violet/[0.06] px-4 py-2.5 text-[12px] text-violet-light">
-                {tLive("skippedNotice")}
-              </p>
-            )}
-
-            <div className="mt-auto pt-6">
-              {self && (
-                <LiveBonusDock
-                  bonuses={self.bonuses}
-                  onUse={
-                    isAnswered || isReveal ? undefined : (b) => onBonus(q.index, b)
-                  }
+              {q.choices.map((c, i) => (
+                <QAChoice
+                  key={c.id}
+                  letter={LETTERS[i] ?? "?"}
+                  text={c.label}
+                  state={choiceStateFor(c.id, state, q.index)}
+                  disabled={isAnswered || isReveal}
+                  onClick={() => handlePick(c.id)}
                 />
-              )}
+              ))}
             </div>
           </section>
 
-          {/* Right — others + eliminated */}
+          {/* Right — bottom half by score */}
           <aside className="flex flex-col gap-2 border-l border-white/[0.08] p-5">
             <p className="mb-1 font-mono text-[10px] tracking-[0.15em] text-fg-3">
               {tPhase("others")}
@@ -164,6 +138,7 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
                 player={p}
                 compact
                 status={chipStatusFor(p, state, isReveal)}
+                showLives={false}
               />
             ))}
 
@@ -190,32 +165,30 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
       <div className="flex min-h-screen flex-col md:hidden">
         <div className="flex items-center justify-between px-[18px] pt-3.5 pb-3">
           <span className="font-mono text-[10px] tracking-[0.18em] text-violet-light">
-            P1 · Q{q.index + 1}
+            P1 · Q{q.index + 1} / 10
           </span>
-          <span className="font-mono text-[10px] text-fg-3">
-            {tPhase("survivors")} {alive.length}/{state.players.length}
-          </span>
+          {self && (
+            <span className="font-mono text-[10px] text-fg-3 tabular-nums">
+              {self.score} pts
+            </span>
+          )}
         </div>
 
-        {/* Mini player strip */}
+        {/* Mini player strip — score-sorted */}
         <div className="no-scrollbar flex gap-1 overflow-x-auto px-3.5 pb-3">
-          {state.players.map((p) => {
-            const out =
-              p.status === "eliminated_p1" || p.status === "eliminated_p2" ||
-              p.status === "eliminated_p3" || p.status === "left";
-            return (
-              <div key={p.userId} className="flex shrink-0 flex-col items-center gap-[3px]">
-                <QAAvatar
-                  name={p.name}
-                  seed={p.avatarId}
-                  size={28}
-                  dim={out}
-                  ring={p.userId === state.selfId ? "#7C5CFF" : undefined}
-                />
-                <QALives count={out ? 0 : p.lives} max={3} size={4} gap={2} />
-              </div>
-            );
-          })}
+          {aliveSorted.map((p, i) => (
+            <div key={p.userId} className="flex shrink-0 flex-col items-center gap-[3px]">
+              <QAAvatar
+                name={p.name}
+                seed={p.avatarId}
+                size={28}
+                ring={p.userId === state.selfId ? "#7C5CFF" : undefined}
+              />
+              <span className="font-mono text-[8px] text-fg-3 tabular-nums">
+                #{i + 1}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div className="mt-1.5 flex items-center justify-between px-[18px]">
@@ -230,29 +203,19 @@ function Phase1View({ state, onAnswer, onBonus }: QuestionViewProps) {
         </div>
 
         <div className="flex flex-col gap-2 px-[18px] pt-5">
-          {q.choices.map((c, i) =>
-            hidden.has(c.id) ? null : (
-              <QAChoice
-                key={c.id}
-                letter={LETTERS[i] ?? "?"}
-                text={c.label}
-                state={choiceStateFor(c.id, state, q.index, hidden)}
-                disabled={isAnswered || isReveal}
-                onClick={() => handlePick(c.id)}
-              />
-            ),
-          )}
+          {q.choices.map((c, i) => (
+            <QAChoice
+              key={c.id}
+              letter={LETTERS[i] ?? "?"}
+              text={c.label}
+              state={choiceStateFor(c.id, state, q.index)}
+              disabled={isAnswered || isReveal}
+              onClick={() => handlePick(c.id)}
+            />
+          ))}
         </div>
 
         <div className="flex-1" />
-
-        {self && (
-          <LiveBonusDock
-            bonuses={self.bonuses}
-            onUse={isAnswered || isReveal ? undefined : (b) => onBonus(q.index, b)}
-            compact
-          />
-        )}
       </div>
     </main>
   );
@@ -343,7 +306,7 @@ function Phase2View({
                     key={c.id}
                     letter={LETTERS[i] ?? "?"}
                     text={c.label}
-                    state={choiceStateFor(c.id, state, q.index, new Set())}
+                    state={choiceStateFor(c.id, state, q.index)}
                     disabled={isAnswered || isReveal}
                     onClick={() => handlePick(c.id)}
                   />
@@ -471,7 +434,7 @@ function Phase2View({
                 key={c.id}
                 letter={LETTERS[i] ?? "?"}
                 text={c.label}
-                state={choiceStateFor(c.id, state, q.index, new Set())}
+                state={choiceStateFor(c.id, state, q.index)}
                 disabled={isAnswered || isReveal}
                 onClick={() => handlePick(c.id)}
               />
@@ -531,7 +494,7 @@ function Phase2View({
 function Phase3View({
   state,
   onAnswer,
-}: Omit<QuestionViewProps, "onBonus"> & { onAnswer: QuestionViewProps["onAnswer"] }) {
+}: Omit<QuestionViewProps, "onPass">) {
   const tPhase = useTranslations("match.phase3");
 
   const q = state.question;
@@ -608,7 +571,7 @@ function Phase3View({
                 key={c.id}
                 letter={LETTERS[i] ?? "?"}
                 text={c.label}
-                state={choiceStateFor(c.id, state, q.index, new Set())}
+                state={choiceStateFor(c.id, state, q.index)}
                 disabled={isAnswered || isReveal}
                 onClick={() => handlePick(c.id)}
               />
@@ -659,7 +622,7 @@ function Phase3View({
                 key={c.id}
                 letter={LETTERS[i] ?? "?"}
                 text={c.label}
-                state={choiceStateFor(c.id, state, q.index, new Set())}
+                state={choiceStateFor(c.id, state, q.index)}
                 disabled={isAnswered || isReveal}
                 onClick={() => handlePick(c.id)}
               />
@@ -869,10 +832,7 @@ function choiceStateFor(
   choiceId: string,
   state: MatchClientState,
   questionIndex: number,
-  hidden: Set<string>,
 ): ChoiceState {
-  if (hidden.has(choiceId)) return "dimmed";
-
   if (state.reveal && state.reveal.questionIndex === questionIndex) {
     if (choiceId === state.reveal.correctChoiceId) return "correct";
     if (state.answer?.choiceId === choiceId) return "wrong";

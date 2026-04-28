@@ -33,8 +33,6 @@ export interface MatchClientState {
     skipped: boolean;
     locked: boolean;
   } | null;
-  /** 50/50 hides — choiceIds the local player should treat as removed. */
-  fiftyFiftyHide: { questionIndex: number; hidden: string[] } | null;
   /** Last reveal payload — used for highlight + score deltas display. */
   reveal: {
     questionIndex: number;
@@ -74,7 +72,6 @@ export const initialMatchState: MatchClientState = {
   lastPhaseEnd: null,
   question: null,
   answer: null,
-  fiftyFiftyHide: null,
   reveal: null,
   podium: null,
   phase2Stats: { correct: 0, wrong: 0 },
@@ -86,8 +83,6 @@ export type MatchAction =
       questionIndex: number;
       choiceId: string;
     }
-  | { type: "_local/skip"; questionIndex: number }
-  | { type: "_local/use_bonus"; bonus: import("@quizelo/protocol").BonusKind }
   | { type: "_local/reset" }
   | { type: "server"; msg: ServerMessage };
 
@@ -107,29 +102,6 @@ export function matchReducer(
       },
     };
   }
-  if (action.type === "_local/skip") {
-    return {
-      ...state,
-      answer: {
-        questionIndex: action.questionIndex,
-        choiceId: null,
-        skipped: true,
-        locked: false,
-      },
-    };
-  }
-  if (action.type === "_local/use_bonus") {
-    if (!state.selfId) return state;
-    return {
-      ...state,
-      players: state.players.map((p) => {
-        if (p.userId !== state.selfId) return p;
-        const next = Math.max(0, p.bonuses[action.bonus] - 1);
-        return { ...p, bonuses: { ...p.bonuses, [action.bonus]: next } };
-      }),
-    };
-  }
-
   const m = action.msg;
   switch (m.type) {
     case "hello":
@@ -170,7 +142,6 @@ export function matchReducer(
         question: null,
         answer: null,
         reveal: null,
-        fiftyFiftyHide: null,
         nextPhaseAt: null,
         phase2EndsAt: m.phaseEndsAt ?? state.phase2EndsAt,
         // Reset phase-2 stats when entering phase 2.
@@ -184,7 +155,6 @@ export function matchReducer(
         question: m.question,
         answer: null,
         reveal: null,
-        fiftyFiftyHide: null,
       };
 
     case "answer_ack":
@@ -219,15 +189,6 @@ export function matchReducer(
         }),
       };
     }
-
-    case "bonus_result":
-      if (m.bonus === "fifty_fifty" && m.hide) {
-        return {
-          ...state,
-          fiftyFiftyHide: { questionIndex: m.questionIndex, hidden: m.hide },
-        };
-      }
-      return state;
 
     case "phase_end":
       return {

@@ -1,5 +1,4 @@
 import type {
-  BonusInventory,
   MatchMode,
   MatchPhase,
   MatchStatus,
@@ -29,10 +28,7 @@ export interface MatchPlayer {
   score: number;
   streak: number;
   lives: number;
-  bonuses: BonusInventory;
-  /** Pending shield to consume on next wrong answer this question. */
-  shieldArmed: boolean;
-  /** True if the player invoked `skip` for the current question. */
+  /** True if the player passed (phase 2) the current question. */
   skipped: boolean;
   /** Server-recorded timestamp when score reached its current value
    *  (used as phase-2 tiebreaker). */

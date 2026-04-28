@@ -33,17 +33,17 @@ export function DefeatView({ state, onLeave }: DefeatViewProps) {
       p.userId !== state.selfId &&
       ((p.status === "active" && p.lives > 0) || p.status === "finalist"),
   ).length;
-  // Phase 2 ties: the two eliminated_p2 players go down together at phase
-  // end. Break the tie with score so 4th and 5th are distinct.
-  const peersAhead =
-    self && self.status === "eliminated_p2"
-      ? state.players.filter(
-          (p) =>
-            p.userId !== self.userId &&
-            p.status === "eliminated_p2" &&
-            p.score > self.score,
-        ).length
-      : 0;
+  // Phase 1 / 2 ties: every player in the same elimination group shares
+  // their `eliminatedAt` (they all go down at the phase boundary). Break
+  // ties by current score so ranks within the bucket are distinct.
+  const peersAhead = self
+    ? state.players.filter(
+        (p) =>
+          p.userId !== self.userId &&
+          p.status === self.status &&
+          p.score > self.score,
+      ).length
+    : 0;
   const myRank = stillIn + peersAhead + 1;
   const placeOrdinal = ordinal(myRank);
 

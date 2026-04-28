@@ -1,6 +1,5 @@
 import type { FastifyBaseLogger } from "fastify";
 import type {
-  BonusKind,
   ClientMessage,
   MatchPhase,
   MatchStatus,
@@ -127,9 +126,6 @@ export class MatchRoom {
         return;
       case "pass":
         this.phase2HandlePass(userId, msg.questionIndex);
-        return;
-      case "use_bonus":
-        this.useBonus(userId, msg.questionIndex, msg.bonus);
         return;
       case "leave":
         this.markLeft(userId);
@@ -471,7 +467,6 @@ export class MatchRoom {
     this.state.currentQuestionIndex = next;
     this.state.currentAnswers.clear();
     for (const p of this.state.players) {
-      p.shieldArmed = false;
       p.skipped = false;
     }
 
@@ -634,8 +629,9 @@ export class MatchRoom {
     this.clearTimer();
 
     if (phase === "phase1") {
-      const aliveCount = this.state.players.filter((p) => p.status === "active").length;
-      if (aliveCount <= MATCH_CONFIG.phase1.survivorThreshold) {
+      // Phase 1 = fixed-length qualifier. End after the configured count.
+      const askedSoFar = (this.state.currentQuestionIndex ?? 0) + 1;
+      if (askedSoFar >= MATCH_CONFIG.phase1.questionCount) {
         this.timer = setTimeout(() => void this.endPhase(phase), revealMs);
         return;
       }
@@ -694,15 +690,8 @@ export class MatchRoom {
       });
       scoreDelta = r.delta;
       p.streak = r.newStreak;
-      // Wrong = -1 life unless shield was armed.
-      if (!isCorrect) {
-        if (p.shieldArmed) {
-          shieldUsed = true;
-          p.shieldArmed = false;
-        } else {
-          livesDelta = -1;
-        }
-      }
+      // Phase 1 no longer has lives — pure score qualification round.
+      // Top 5 advance at the end. Speed bonus already breaks ties via score.
     } else if (phase === "phase2") {
       const r = scorePhase2({ isCorrect, hasAnswer });
       scoreDelta = r.delta;
@@ -801,74 +790,8 @@ export class MatchRoom {
   private applyLifeLoss(o: ReturnType<MatchRoom["scorePlayerAtClose"]>): void {
     const player = this.state.players.find((p) => p.userId === o.userId);
     if (!player) return;
-    if (player.shieldArmed) {
-      o.shieldUsed = true;
-      player.shieldArmed = false;
-      return;
-    }
     o.livesDelta = -1;
     o.lives = Math.max(0, player.lives - 1);
-  }
-
-  // ─── Bonus handling ───────────────────────────────────────────
-  private useBonus(userId: string, questionIndex: number, bonus: BonusKind): void {
-    if (this.state.currentQuestionIndex !== questionIndex) {
-      this.log.warn(
-        { userId, bonus, expected: this.state.currentQuestionIndex, got: questionIndex },
-        "use_bonus rejected: question index mismatch",
-      );
-      return;
-    }
-    if (this.state.currentPhase !== "phase1") {
-      this.log.warn({ userId, bonus, phase: this.state.currentPhase }, "use_bonus rejected: not phase 1");
-      return;
-    }
-    const p = this.state.players.find((x) => x.userId === userId);
-    if (!p || p.status !== "active") {
-      this.log.warn({ userId, bonus, status: p?.status }, "use_bonus rejected: player not active");
-      return;
-    }
-    if (p.bonuses[bonus] <= 0) {
-      this.log.warn({ userId, bonus, count: p.bonuses[bonus] }, "use_bonus rejected: out of stock");
-      return;
-    }
-    if (this.state.currentAnswers.has(userId) || p.skipped) {
-      this.log.warn({ userId, bonus }, "use_bonus rejected: already answered/skipped");
-      return;
-    }
-
-    this.log.info({ userId, bonus }, "use_bonus accepted");
-    p.bonuses[bonus] -= 1;
-
-    const qid = this.state.questionPool[questionIndex]!;
-    const dbq = this.state.questions.get(qid)!;
-
-    if (bonus === "fifty_fifty") {
-      const wrong = dbq.choices
-        .filter((c) => c.id !== dbq.correctChoiceId)
-        .map((c) => c.id);
-      // Hide 2 wrongs (or all but 1 if there are fewer than 3 wrongs total).
-      const hide = wrong.slice(0, Math.min(2, wrong.length));
-      this.sendTo(userId, {
-        type: "bonus_result",
-        bonus,
-        questionIndex,
-        hide,
-      });
-    } else if (bonus === "skip") {
-      p.skipped = true;
-      this.sendTo(userId, { type: "bonus_result", bonus, questionIndex });
-      this.maybeCloseEarly();
-    } else if (bonus === "shield") {
-      p.shieldArmed = true;
-      this.sendTo(userId, { type: "bonus_result", bonus, questionIndex });
-    }
-
-    // We intentionally don't re-broadcast the roster here — that would send
-    // a fresh phase_start and the client reducer would wipe `fiftyFiftyHide`,
-    // `questionDeadlineOverride`, etc. The local decrement on the client
-    // keeps the inventory in sync; the next reveal carries authoritative
-    // counts via player rows.
   }
 
   private maybeCloseEarly(): void {
@@ -901,8 +824,24 @@ export class MatchRoom {
     let nextStatus: MatchStatus;
 
     if (phase === "phase1") {
-      survivors = this.state.players.filter((p) => p.status === "active");
-      eliminated = this.state.players.filter((p) => p.status === "eliminated_p1");
+      // Top N by peak score advance; the rest are eliminated.
+      const elimAt = Date.now();
+      const ranked = this.state.players
+        .filter((p) => p.status === "active")
+        .slice()
+        .sort((a, b) => {
+          if (b.peakScore !== a.peakScore) return b.peakScore - a.peakScore;
+          // Tie on score → earlier reach wins (rewarding speed).
+          return a.lastScoreReachedAt - b.lastScoreReachedAt;
+        });
+      const advancing = ranked.slice(0, MATCH_CONFIG.phase1.advancing);
+      const dropped = ranked.slice(MATCH_CONFIG.phase1.advancing);
+      for (const p of dropped) {
+        p.status = "eliminated_p1";
+        p.eliminatedAt = elimAt;
+      }
+      survivors = advancing;
+      eliminated = dropped;
       nextStatus = "transition_p1_p2";
     } else if (phase === "phase2") {
       // Sort by score (desc), tiebreak: earlier lastScoreReachedAt wins.

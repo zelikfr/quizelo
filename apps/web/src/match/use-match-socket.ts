@@ -1,6 +1,6 @@
 "use client";
 
-import { ServerMessage, type BonusKind, type ClientMessage } from "@quizelo/protocol";
+import { ServerMessage, type ClientMessage } from "@quizelo/protocol";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   initialMatchState,
@@ -16,7 +16,6 @@ export interface UseMatchSocketResult {
   state: MatchClientState;
   connection: ConnectionStatus;
   sendAnswer: (questionIndex: number, choiceId: string) => void;
-  sendBonus: (questionIndex: number, bonus: BonusKind) => void;
   sendPass: (questionIndex: number) => void;
   leave: () => void;
 }
@@ -148,22 +147,6 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
     );
   }, []);
 
-  const sendBonus = useCallback((questionIndex: number, bonus: BonusKind) => {
-    dispatch({ type: "_local/use_bonus", bonus });
-    if (bonus === "skip") {
-      dispatch({ type: "_local/skip", questionIndex });
-    }
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(
-      JSON.stringify({
-        type: "use_bonus",
-        bonus,
-        questionIndex,
-      } satisfies ClientMessage),
-    );
-  }, []);
-
   const sendPass = useCallback((questionIndex: number) => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -194,5 +177,5 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
     }
   }, []);
 
-  return { state, connection, sendAnswer, sendBonus, sendPass, leave };
+  return { state, connection, sendAnswer, sendPass, leave };
 }

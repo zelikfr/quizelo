@@ -103,19 +103,6 @@ export function ResultsView({ state }: ResultsViewProps) {
           )}
         </div>
 
-        {/* Stats */}
-        {me && (
-          <div className="relative mb-5 grid grid-cols-3 gap-3.5">
-            <StatCell
-              label={t("stats.eloChange")}
-              value={`${me.eloDelta >= 0 ? "+" : ""}${me.eloDelta}`}
-              color={me.eloDelta >= 0 ? "#4ADE80" : "#FF4D6D"}
-            />
-            <StatCell label={t("pts")} value={me.score.toString()} />
-            <StatCell label={t("stats.correct")} value={`#${me.rank}`} color="#FFD166" />
-          </div>
-        )}
-
         {/* Rest of the field */}
         {rest.length > 0 && (
           <div className="relative mb-5 flex flex-col gap-1.5">
@@ -224,19 +211,6 @@ export function ResultsView({ state }: ResultsViewProps) {
           )}
         </div>
 
-        {me && (
-          <div className="relative grid grid-cols-3 gap-2 px-[18px]">
-            <StatCell
-              label={t("stats.eloChange")}
-              value={`${me.eloDelta >= 0 ? "+" : ""}${me.eloDelta}`}
-              color={me.eloDelta >= 0 ? "#4ADE80" : "#FF4D6D"}
-              small
-            />
-            <StatCell label={t("pts")} value={me.score.toString()} small />
-            <StatCell label={t("stats.correct")} value={`#${me.rank}`} color="#FFD166" small />
-          </div>
-        )}
-
         <div className="flex-1" />
 
         <div className="relative flex flex-col gap-2 px-[18px] pb-[18px] pt-4">
@@ -274,45 +248,6 @@ function RematchSubmit({
     >
       {pending ? "…" : label}
     </Button>
-  );
-}
-
-function StatCell({
-  label,
-  value,
-  color = "#fff",
-  small = false,
-}: {
-  label: string;
-  value: string;
-  color?: string;
-  small?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border border-white/[0.08] bg-gradient-surface",
-        small ? "p-3" : "p-4",
-      )}
-    >
-      <div
-        className={cn(
-          "font-mono tracking-[0.15em] text-fg-3",
-          small ? "text-[9px]" : "text-[10px]",
-        )}
-      >
-        {label}
-      </div>
-      <div
-        className={cn(
-          "font-display font-mono font-bold",
-          small ? "text-[22px]" : "mt-1 text-[32px]",
-        )}
-        style={{ color }}
-      >
-        {value}
-      </div>
-    </div>
   );
 }
 
