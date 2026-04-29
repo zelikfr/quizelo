@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { PlayButton } from "@/components/home/PlayButton";
+import { Paywall } from "@/components/premium/Paywall";
+import { PaywallContent } from "@/components/premium/PaywallContent";
 import { QATimerBar } from "@/components/shared/QATimerBar";
 import { auth } from "@/auth";
 import { enqueueAndRedirectAction } from "@/lib/match-actions";
@@ -17,6 +19,7 @@ interface QuickPlayCardProps {
 export async function QuickPlayCard({ compact = false, className }: QuickPlayCardProps) {
   const t = await getTranslations("home.modes.quick");
   const tCommon = await getTranslations("common");
+  const tPremium = await getTranslations("premium");
 
   // Logged-out users see the static card (the Play button still works
   // because the action redirects to /auth/login if the session is missing).
@@ -86,28 +89,13 @@ export async function QuickPlayCard({ compact = false, className }: QuickPlayCar
         </div>
       )}
 
-      {/* Rewarded video CTA — only when the daily counter is exhausted */}
-      {showCounter && blocked && (
-        <form action={awardQuickBonusAction} className="mb-3">
-          <button
-            type="submit"
-            className={cn(
-              "flex w-full items-center gap-2 rounded-md border border-dashed border-success/30 bg-success/[0.06] px-2.5 py-2 text-left transition-colors",
-              "hover:border-success/50 hover:bg-success/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-success/40",
-            )}
-          >
-            <span aria-hidden className="text-sm text-success">
-              ▸
-            </span>
-            <span className="flex-1 text-[11px] text-fg-2">{t("watchAd")}</span>
-            {!compact && (
-              <span className="font-mono text-[10px] text-success">+1</span>
-            )}
-          </button>
-        </form>
-      )}
-
-      <form action={enqueueAndRedirectAction} className="mt-auto">
+      {/* Play button — first so the user immediately sees the "Quota
+       *  atteint" state before the unblock options. `mt-auto` is dropped
+       *  in this order; the card naturally fills via flex-col. */}
+      <form
+        action={enqueueAndRedirectAction}
+        className={blocked ? "mb-3" : "mt-auto"}
+      >
         <PlayButton
           label={tCommon("play")}
           variant="primary"
@@ -115,6 +103,56 @@ export async function QuickPlayCard({ compact = false, className }: QuickPlayCar
           disabledLabel={t("blocked")}
         />
       </form>
+
+      {/* Quota exhausted: Premium upsell + ad fallback. Below the disabled
+       *  Play button so the order reads as "you're blocked → here's how
+       *  to unblock yourself". */}
+      {showCounter && blocked && (
+        <div className="flex flex-col gap-2">
+          {/* Premium upsell — primary CTA when quota is gone */}
+          <div className="rounded-lg border border-gold/40 bg-gold/[0.08] p-3">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span aria-hidden className="text-base text-gold">
+                ★
+              </span>
+              <span className="font-display text-[12px] font-bold text-fg-1">
+                {t("upsellTitle")}
+              </span>
+            </div>
+            <p className="m-0 mb-2.5 text-[11px] leading-relaxed text-fg-2">
+              {t("upsellLine")}
+            </p>
+            <Paywall
+              triggerLabel={t("upsellCta")}
+              triggerVariant="gold"
+              closeLabel={tPremium("close")}
+            >
+              <PaywallContent />
+            </Paywall>
+          </div>
+
+          {/* Rewarded video CTA — secondary fallback */}
+          <form action={awardQuickBonusAction}>
+            <button
+              type="submit"
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md border border-dashed border-success/30 bg-success/[0.06] px-2.5 py-2 text-left transition-colors",
+                "hover:border-success/50 hover:bg-success/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-success/40",
+              )}
+            >
+              <span aria-hidden className="text-sm text-success">
+                ▸
+              </span>
+              <span className="flex-1 text-[11px] text-fg-2">
+                {t("watchAd")}
+              </span>
+              {!compact && (
+                <span className="font-mono text-[10px] text-success">+1</span>
+              )}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

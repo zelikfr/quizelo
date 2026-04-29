@@ -164,7 +164,10 @@
         "description": "Difficulté modérée. Pas d'impact sur ton classement.",
         "freeLeft": "parties restantes aujourd'hui",
         "watchAd": "Regarde une pub pour gagner +1 partie",
-        "blocked": "Quota atteint — reviens demain"
+        "blocked": "Quota atteint — reviens demain",
+        "upsellTitle": "Joue en illimité",
+        "upsellLine": "Premium = parties illimitées, mode classé et cosmétiques exclusifs.",
+        "upsellCta": "PASSER PREMIUM ▸"
       },
       "ranked": {
         "title": "Match classé",
