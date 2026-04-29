@@ -16,6 +16,12 @@ export interface CurrentUser {
   isPremium: boolean;
   premiumUntil: Date | null;
   locale: string;
+  // Contact + address — all optional, edited from /settings.
+  phone: string | null;
+  addressLine: string | null;
+  city: string | null;
+  postalCode: string | null;
+  country: string | null;
 }
 
 const FALLBACK_AVATAR_ID = 0;
@@ -48,6 +54,11 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     isPremium: row.isPremium,
     premiumUntil: row.premiumUntil,
     locale: row.locale,
+    phone: row.phone,
+    addressLine: row.addressLine,
+    city: row.city,
+    postalCode: row.postalCode,
+    country: row.country,
   };
 }
 

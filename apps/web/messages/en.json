@@ -191,7 +191,11 @@
     "shell": {
       "connecting": "Connecting…",
       "disconnected": "Reconnecting…",
-      "error": "Connection lost"
+      "error": "Connection lost",
+      "musicMute": "Mute music",
+      "musicUnmute": "Unmute music",
+      "sfxMute": "Mute sound effects",
+      "sfxUnmute": "Unmute sound effects"
     },
     "finaleWaiting": {
       "badge": "FINALE OVER FOR YOU",
@@ -530,9 +534,10 @@
     "verified": "verified",
     "sections": {
       "account": "Account",
+      "contact": "Contact & address",
       "sub": "Subscription",
       "gameplay": "Gameplay",
-      "audio": "Audio & haptics",
+      "audio": "Audio",
       "notif": "Notifications",
       "lang": "Language",
       "privacy": "Privacy",
@@ -544,19 +549,32 @@
       "add": "Add",
       "configure": "Configure",
       "download": "Download",
-      "manage": "Manage"
+      "manage": "Manage",
+      "save": "Save",
+      "saving": "…",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "unknown": "Something went wrong."
     },
     "fields": {
       "username": "Username",
+      "displayName": "Display name",
+      "handleLocked": "can't be changed",
       "email": "Email",
       "password": "Password",
       "phone": "Phone",
-      "country": "Country / language",
+      "addressLine": "Address",
+      "addressLinePlaceholder": "12 Main Street",
+      "city": "City",
+      "postalCode": "Postal code",
+      "country": "Country",
       "avatar": "Avatar",
       "notSet": "Not set"
     },
     "identity": {
-      "changeAvatar": "Change avatar"
+      "changeAvatar": "Change avatar",
+      "changeAvatarSoon": "Coming soon"
     },
     "misc": {
       "version": "VERSION"
@@ -564,10 +582,19 @@
     "account": {
       "title": "Identity & profile"
     },
+    "contact": {
+      "title": "Contact info"
+    },
     "subscription": {
       "title": "Quizelo Premium",
-      "plan": "Yearly plan — €39.99/yr",
-      "renewsLine": "Renews March 14, 2027 · Apple Pay •• 4421",
+      "plan": "Premium active",
+      "freePlan": "Free account",
+      "upsellLine": "Go Premium for cosmetics, modes, and advanced stats.",
+      "upgrade": "Go Premium",
+      "comingSoon": "Coming soon",
+      "renewsOn": "Active until {date}",
+      "activeNoExpiry": "Subscription active",
+      "renewsLine": "Renews March 14, 2027",
       "manage": "Manage",
       "cancel": "Cancel",
       "currentPlan": "Current plan",
@@ -601,7 +628,9 @@
     "audio": {
       "title": "Ambience",
       "music": "Music",
+      "musicHint": "Synthwave loop in lobby + match",
       "sfx": "Sound effects",
+      "sfxHint": "Click, right/wrong, phase end…",
       "haptics": "Haptics (mobile)"
     },
     "notifications": {
@@ -644,7 +673,10 @@
       "title": "Irreversible actions",
       "deleteTitle": "Delete my account",
       "deleteSubtitle": "All your matches, stats and credits will be wiped.",
-      "deleteAction": "Delete"
+      "deleteAction": "Delete",
+      "comingSoon": "Coming soon",
+      "signOutTitle": "Sign out",
+      "signOutSubtitle": "Come back any time, your data stays."
     }
   },
 
@@ -686,7 +718,8 @@
       "rank": "RANK",
       "player": "PLAYER",
       "change24h": "24H",
-      "tier": "TIER"
+      "tier": "TIER",
+      "empty": "No ranked players yet."
     }
   },
 

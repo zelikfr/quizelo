@@ -2,21 +2,29 @@ import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
 import { QAAvatar } from "@/components/shared/QAAvatar";
 import { QARankBadge } from "@/components/shared/QARankBadge";
-import { LEADERS, MY_LEADERBOARD_ROW } from "@/lib/leaderboard-data";
+import type { LeaderboardEntry } from "@/lib/leaderboard-actions";
 import { cn } from "@/lib/cn";
 
 interface LeaderboardTableProps {
   locale: Locale;
+  rows: LeaderboardEntry[];
+  me: LeaderboardEntry | null;
 }
 
 const COLS = "60px 1fr 120px 100px 80px";
 
-export async function LeaderboardTable({ locale }: LeaderboardTableProps) {
+export async function LeaderboardTable({
+  locale,
+  rows,
+  me,
+}: LeaderboardTableProps) {
   const t = await getTranslations("leaderboard.table");
   const tCommon = await getTranslations("common");
 
-  // Skip the top 3 (shown as cards above) — render rows 4+.
-  const rows = LEADERS.filter((l) => l.rank > 3);
+  // If the current user is already in the visible top, no need to repeat them
+  // at the bottom — but we still highlight their row inline.
+  const meInRows =
+    me !== null && rows.some((r) => r.userId === me.userId);
 
   return (
     <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
@@ -33,60 +41,88 @@ export async function LeaderboardTable({ locale }: LeaderboardTableProps) {
       </div>
 
       {/* Rows */}
-      {rows.map((p, i) => (
+      {rows.length === 0 ? (
+        <div className="px-[18px] py-10 text-center font-mono text-[11px] tracking-[0.15em] text-fg-3">
+          {t("empty")}
+        </div>
+      ) : (
+        rows.map((p, i) => {
+          const isMe = me !== null && p.userId === me.userId;
+          return (
+            <div
+              key={p.userId}
+              className={cn(
+                "grid items-center px-[18px] py-3",
+                i < rows.length - 1 && "border-b border-white/[0.08]",
+                isMe && "bg-violet/[0.06]",
+              )}
+              style={{ gridTemplateColumns: COLS }}
+            >
+              <div
+                className={cn(
+                  "font-display font-mono text-sm font-bold",
+                  isMe ? "text-gold" : "text-fg-2",
+                )}
+              >
+                {p.rank}
+              </div>
+              <div className="flex items-center gap-2.5">
+                <QAAvatar
+                  name={p.name}
+                  seed={p.avatarId}
+                  size={32}
+                  ring={isMe ? "#FFD166" : undefined}
+                />
+                <span className="font-display text-sm font-semibold">
+                  {isMe ? tCommon("you") : p.name}
+                </span>
+              </div>
+              <div className="font-display font-mono text-base font-bold">
+                {p.elo}
+              </div>
+              <ChangeCell change={p.change24h} />
+              <div className="flex justify-end">
+                <QARankBadge elo={p.elo} locale={locale} />
+              </div>
+            </div>
+          );
+        })
+      )}
+
+      {/* My row pinned at bottom — only when I'm not already in the visible page */}
+      {me !== null && !meInRows && (
         <div
-          key={p.name}
-          className={cn(
-            "grid items-center px-[18px] py-3",
-            i < rows.length - 1 && "border-b border-white/[0.08]",
-          )}
-          style={{ gridTemplateColumns: COLS }}
+          className="grid items-center border-t px-[18px] py-3.5"
+          style={{
+            gridTemplateColumns: COLS,
+            background:
+              "linear-gradient(90deg, rgba(124,92,255,0.18), rgba(124,92,255,0.04))",
+            borderTopColor: "rgba(124,92,255,0.4)",
+          }}
         >
-          <div className="font-display font-mono text-sm font-bold text-fg-2">
-            {p.rank}
+          <div className="font-display font-mono text-base font-bold text-gold">
+            #{me.rank}
           </div>
           <div className="flex items-center gap-2.5">
-            <QAAvatar name={p.name} seed={p.seed} size={32} />
-            <span className="font-display text-sm font-semibold">{p.name}</span>
+            <QAAvatar
+              name={me.name}
+              seed={me.avatarId}
+              size={32}
+              ring="#FFD166"
+            />
+            <span className="font-display text-sm font-bold">
+              {tCommon("you")}
+            </span>
           </div>
-          <div className="font-display font-mono text-base font-bold">{p.elo}</div>
-          <ChangeCell change={p.change} />
+          <div className="font-display font-mono text-base font-bold">
+            {me.elo}
+          </div>
+          <ChangeCell change={me.change24h} />
           <div className="flex justify-end">
-            <QARankBadge elo={p.elo} locale={locale} />
+            <QARankBadge elo={me.elo} locale={locale} />
           </div>
         </div>
-      ))}
-
-      {/* My row — sticky highlight at bottom */}
-      <div
-        className="grid items-center border-t px-[18px] py-3.5"
-        style={{
-          gridTemplateColumns: COLS,
-          background:
-            "linear-gradient(90deg, rgba(124,92,255,0.18), rgba(124,92,255,0.04))",
-          borderTopColor: "rgba(124,92,255,0.4)",
-        }}
-      >
-        <div className="font-display font-mono text-base font-bold text-gold">
-          #{MY_LEADERBOARD_ROW.rank}
-        </div>
-        <div className="flex items-center gap-2.5">
-          <QAAvatar
-            name={MY_LEADERBOARD_ROW.name}
-            seed={MY_LEADERBOARD_ROW.seed}
-            size={32}
-            ring="#FFD166"
-          />
-          <span className="font-display text-sm font-bold">{tCommon("you")}</span>
-        </div>
-        <div className="font-display font-mono text-base font-bold">
-          {MY_LEADERBOARD_ROW.elo}
-        </div>
-        <ChangeCell change={MY_LEADERBOARD_ROW.change} />
-        <div className="flex justify-end">
-          <QARankBadge elo={MY_LEADERBOARD_ROW.elo} locale={locale} />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,26 +1,22 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
+import { Link, type Locale } from "@/i18n/routing";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
+import { AudioMuteToggle } from "@/components/settings/AudioMuteToggle";
 import { DangerCard } from "@/components/settings/DangerCard";
+import { EditableField } from "@/components/settings/EditableField";
 import { IdentityCard } from "@/components/settings/IdentityCard";
 import { SectionHeader } from "@/components/settings/SectionHeader";
 import { SettingRow } from "@/components/settings/SettingRow";
-import { SettingSlider } from "@/components/settings/SettingSlider";
-import { SettingToggle } from "@/components/settings/SettingToggle";
 import { SettingsLangPicker } from "@/components/settings/SettingsLangPicker";
 import { SettingsSidebar } from "@/components/settings/SettingsSidebar";
 import { SubscriptionCard } from "@/components/settings/SubscriptionCard";
+import { getCurrentUser } from "@/lib/current-user";
+import { rankFromElo, rankLabel } from "@/lib/ranks";
 
 interface SettingsPageProps {
   params: Promise<{ locale: string }>;
 }
-
-const ME = {
-  handle: "nyra.fr",
-  email: "nyra@protonmail.com",
-  tier: "OR · 1487 ELO",
-} as const;
 
 const TOP_AMBIENT =
   "radial-gradient(ellipse at 20% -10%, rgba(124,92,255,0.14), transparent 55%)";
@@ -28,11 +24,21 @@ const TOP_AMBIENT_MOBILE =
   "radial-gradient(ellipse at 50% 0%, rgba(124,92,255,0.18), transparent 50%)";
 
 export default async function SettingsPage({ params }: SettingsPageProps) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+  const { locale: rawLocale } = await params;
+  setRequestLocale(rawLocale);
+  const locale = rawLocale as Locale;
+
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/auth/login?from=/settings");
+  }
 
   const t = await getTranslations("settings");
-  const tCommon = await getTranslations("common");
+
+  const tier = `${rankLabel(rankFromElo(user.elo), locale).toUpperCase()} · ${user.elo} ELO`;
+  const tierShort = `${rankLabel(rankFromElo(user.elo), locale).toUpperCase()} · ${user.elo}`;
+  const handleLabel = user.handle ?? user.id.slice(0, 8);
+  const emailLabel = user.email ?? t("fields.notSet");
 
   return (
     <main className="relative isolate min-h-screen overflow-x-clip bg-surface-1 qa-scan">
@@ -65,38 +71,73 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                 title={t("account.title")}
               />
               <IdentityCard
-                handle={ME.handle}
-                email={ME.email}
-                tier={ME.tier}
+                name={user.name}
+                email={emailLabel}
+                tier={tier}
+                avatarSeed={user.avatarId}
+                isPremium={user.isPremium}
               />
               <div className="mt-[18px] overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
+                <EditableField
+                  field="displayName"
+                  label={t("fields.displayName")}
+                  initialValue={user.name}
+                  required
+                />
                 <SettingRow
                   label={t("fields.username")}
-                  value={ME.handle}
-                  action={t("actions.edit")}
+                  value={handleLabel}
+                  meta={t("fields.handleLocked")}
+                  metaColor="#9AA3B2"
                 />
                 <SettingRow
                   label={t("fields.email")}
-                  value={ME.email}
-                  action={t("actions.edit")}
-                  meta={`✓ ${t("verified")}`}
+                  value={emailLabel}
+                  meta={user.email ? `✓ ${t("verified")}` : undefined}
                   metaColor="#4ADE80"
                 />
-                <SettingRow
-                  label={t("fields.password")}
-                  value="••••••••••"
-                  action={t("actions.change")}
-                />
-                <SettingRow
+              </div>
+            </section>
+
+            {/* Contact + address */}
+            <section id="contact">
+              <SectionHeader
+                glyph="✉"
+                eyebrow={t("sections.contact").toUpperCase()}
+                title={t("contact.title")}
+              />
+              <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
+                <EditableField
+                  field="phone"
                   label={t("fields.phone")}
-                  value={t("fields.notSet")}
-                  action={t("actions.add")}
-                  muted
+                  initialValue={user.phone}
+                  inputMode="tel"
+                  placeholder="+33 6 12 34 56 78"
                 />
-                <SettingRow
+                <EditableField
+                  field="addressLine"
+                  label={t("fields.addressLine")}
+                  initialValue={user.addressLine}
+                  placeholder={t("fields.addressLinePlaceholder")}
+                />
+                <EditableField
+                  field="postalCode"
+                  label={t("fields.postalCode")}
+                  initialValue={user.postalCode}
+                  inputMode="numeric"
+                  placeholder="75001"
+                />
+                <EditableField
+                  field="city"
+                  label={t("fields.city")}
+                  initialValue={user.city}
+                  placeholder="Paris"
+                />
+                <EditableField
+                  field="country"
                   label={t("fields.country")}
-                  value="France"
-                  action={t("actions.edit")}
+                  initialValue={user.country}
+                  placeholder="France"
                 />
               </div>
             </section>
@@ -109,7 +150,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                 title={t("subscription.title")}
                 tone="gold"
               />
-              <SubscriptionCard />
+              <SubscriptionCard
+                isPremium={user.isPremium}
+                premiumUntil={user.premiumUntil}
+              />
             </section>
 
             {/* Language */}
@@ -122,116 +166,28 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
               <SettingsLangPicker />
             </section>
 
-            {/* Gameplay */}
-            <section id="gameplay">
-              <SectionHeader
-                glyph="◆"
-                eyebrow={t("sections.gameplay").toUpperCase()}
-                title={t("gameplay.title")}
-              />
-              <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
-                <SettingToggle
-                  label={t("gameplay.animations.label")}
-                  hint={t("gameplay.animations.hint")}
-                  defaultOn
-                />
-                <SettingToggle
-                  label={t("gameplay.opponents.label")}
-                  hint={t("gameplay.opponents.hint")}
-                  defaultOn
-                />
-                <SettingToggle
-                  label={t("gameplay.autoSubmit.label")}
-                  hint={t("gameplay.autoSubmit.hint")}
-                />
-                <SettingRow
-                  label={t("gameplay.favoriteCategory")}
-                  value="Géographie"
-                  action={t("actions.edit")}
-                />
-                <SettingRow
-                  label={t("gameplay.categoryFilter.label")}
-                  value={t("gameplay.categoryFilter.value")}
-                  action={t("actions.configure")}
-                />
-              </div>
-            </section>
-
-            {/* Audio */}
+            {/* Audio — fully wired */}
             <section id="audio">
               <SectionHeader
                 glyph="♪"
                 eyebrow={t("sections.audio").toUpperCase()}
                 title={t("audio.title")}
               />
-              <div className="rounded-lg border border-white/[0.08] bg-gradient-surface p-[18px]">
-                <SettingSlider label={t("audio.music")} value={0.62} />
-                <SettingSlider label={t("audio.sfx")} value={0.85} />
-                <div className="my-3.5 h-px bg-white/[0.08]" />
-                <SettingToggle label={t("audio.haptics")} defaultOn inline />
-              </div>
-            </section>
-
-            {/* Notifications */}
-            <section id="notif">
-              <SectionHeader
-                glyph="◈"
-                eyebrow={t("sections.notif").toUpperCase()}
-                title={t("notifications.title")}
-              />
               <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
-                <SettingToggle
-                  label={t("notifications.matchReady.label")}
-                  hint={t("notifications.matchReady.hint")}
-                  defaultOn
+                <AudioMuteToggle
+                  scope="music"
+                  label={t("audio.music")}
+                  hint={t("audio.musicHint")}
                 />
-                <SettingToggle
-                  label={t("notifications.seasonEnd.label")}
-                  hint={t("notifications.seasonEnd.hint")}
-                  defaultOn
-                />
-                <SettingToggle
-                  label={t("notifications.referral.label")}
-                  hint={t("notifications.referral.hint")}
-                  defaultOn
-                />
-                <SettingToggle label={t("notifications.promos")} />
-                <SettingRow
-                  label={t("notifications.weeklyEmail.label")}
-                  value={t("notifications.weeklyEmail.value")}
-                  action={t("actions.edit")}
+                <AudioMuteToggle
+                  scope="sfx"
+                  label={t("audio.sfx")}
+                  hint={t("audio.sfxHint")}
                 />
               </div>
             </section>
 
-            {/* Privacy */}
-            <section id="privacy">
-              <SectionHeader
-                glyph="⌾"
-                eyebrow={t("sections.privacy").toUpperCase()}
-                title={t("privacy.title")}
-              />
-              <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-gradient-surface">
-                <SettingToggle
-                  label={t("privacy.publicProfile.label")}
-                  hint={t("privacy.publicProfile.hint")}
-                  defaultOn
-                />
-                <SettingToggle label={t("privacy.publicCategoryStats")} />
-                <SettingRow
-                  label={t("privacy.exportData.label")}
-                  value={t("privacy.exportData.value")}
-                  action={t("actions.download")}
-                />
-                <SettingRow
-                  label={t("privacy.blocked.label")}
-                  value={t("privacy.blocked.value")}
-                  action={t("actions.manage")}
-                />
-              </div>
-            </section>
-
-            {/* Danger zone */}
+            {/* Danger zone — sign out wired, delete still disabled */}
             <section id="danger">
               <SectionHeader
                 glyph="⚠"
@@ -271,106 +227,90 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         {/* Identity */}
         <div className="px-[18px] pt-3">
           <IdentityCard
-            handle={ME.handle}
-            email={ME.email}
-            tier="OR · 1487"
+            name={user.name}
+            email={emailLabel}
+            tier={tierShort}
+            avatarSeed={user.avatarId}
+            isPremium={user.isPremium}
             compact
           />
         </div>
 
         {/* Account group */}
         <MobileGroup title={t("sections.account").toUpperCase()}>
-          <SettingRow
-            label={t("fields.username")}
-            value={ME.handle}
+          <EditableField
+            field="displayName"
+            label={t("fields.displayName")}
+            initialValue={user.name}
+            required
             compact
           />
+          <SettingRow label={t("fields.username")} value={handleLabel} compact />
           <SettingRow
             label={t("fields.email")}
-            value={ME.email}
+            value={emailLabel}
             compact
-            meta="✓"
+            meta={user.email ? "✓" : undefined}
             metaColor="#4ADE80"
           />
-          <SettingRow
-            label={t("fields.password")}
-            value="•••••••"
+        </MobileGroup>
+
+        {/* Contact group */}
+        <MobileGroup title={t("sections.contact").toUpperCase()}>
+          <EditableField
+            field="phone"
+            label={t("fields.phone")}
+            initialValue={user.phone}
+            inputMode="tel"
+            placeholder="+33 6 12 34 56 78"
             compact
           />
-          <SettingRow
-            label={t("fields.avatar")}
-            value={t("actions.edit")}
+          <EditableField
+            field="addressLine"
+            label={t("fields.addressLine")}
+            initialValue={user.addressLine}
+            placeholder={t("fields.addressLinePlaceholder")}
+            compact
+          />
+          <EditableField
+            field="postalCode"
+            label={t("fields.postalCode")}
+            initialValue={user.postalCode}
+            inputMode="numeric"
+            placeholder="75001"
+            compact
+          />
+          <EditableField
+            field="city"
+            label={t("fields.city")}
+            initialValue={user.city}
+            placeholder="Paris"
+            compact
+          />
+          <EditableField
+            field="country"
+            label={t("fields.country")}
+            initialValue={user.country}
+            placeholder="France"
             compact
           />
         </MobileGroup>
 
         {/* Subscription group */}
-        <MobileGroup title={t("sections.sub").toUpperCase()}>
-          <SettingRow
-            label={t("subscription.currentPlan")}
-            value={t("subscription.planValue")}
-            badge="PRO"
-            compact
+        <div className="px-[18px] pt-3.5">
+          <div className="px-1 pb-1.5 font-mono text-[9px] tracking-[0.18em] text-fg-3">
+            {t("sections.sub").toUpperCase()}
+          </div>
+          <SubscriptionCard
+            isPremium={user.isPremium}
+            premiumUntil={user.premiumUntil}
           />
-          <SettingRow
-            label={t("subscription.paymentMethod")}
-            value="Apple Pay •• 4421"
-            compact
-          />
-          <SettingRow
-            label={t("subscription.restore")}
-            value=""
-            compact
-          />
-        </MobileGroup>
+        </div>
 
-        {/* Gameplay group */}
-        <MobileGroup title={t("sections.gameplay").toUpperCase()}>
-          <SettingToggle
-            label={t("gameplay.animations.label")}
-            defaultOn
-            compact
-          />
-          <SettingToggle
-            label={t("gameplay.opponents.label")}
-            defaultOn
-            compact
-          />
-          <SettingToggle
-            label={t("gameplay.autoSubmit.label")}
-            compact
-          />
-          <SettingRow
-            label={t("gameplay.favoriteCategory")}
-            value="Géographie"
-            compact
-          />
-        </MobileGroup>
-
-        {/* Audio group */}
+        {/* Audio group — wired */}
         <MobileGroup title={t("sections.audio").toUpperCase()}>
-          <SettingSlider label={t("audio.music")} value={0.62} compact />
-          <SettingSlider label={t("audio.sfx")} value={0.85} compact />
-          <SettingToggle
-            label={t("audio.haptics")}
-            defaultOn
-            compact
-          />
-        </MobileGroup>
-
-        {/* Notifications group */}
-        <MobileGroup title={t("sections.notif").toUpperCase()}>
-          <SettingToggle
-            label={t("notifications.matchReady.label")}
-            defaultOn
-            compact
-          />
-          <SettingToggle
-            label={t("notifications.seasonEnd.label")}
-            defaultOn
-            compact
-          />
-          <SettingToggle label={t("notifications.promos")} compact />
+          <AudioMuteToggle scope="music" label={t("audio.music")} compact />
+          <AudioMuteToggle scope="sfx" label={t("audio.sfx")} compact />
         </MobileGroup>
 
         {/* Language */}
@@ -381,19 +321,15 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           <SettingsLangPicker compact />
         </div>
 
-        {/* Danger / sign out */}
+        {/* Delete (mobile) — disabled for now */}
         <div className="flex flex-col gap-1.5 px-[18px] pt-5">
-          <Button
-            variant="ghost"
-            size="full"
-            className="justify-center py-3 text-xs text-danger"
-            style={{ borderColor: "rgba(255,77,109,0.4)" }}
+          <button
+            type="button"
+            disabled
+            className="rounded-pill border border-danger/40 bg-transparent px-3 py-3 text-xs text-danger opacity-50 disabled:cursor-not-allowed"
           >
             {t("danger.deleteTitle")}
-          </Button>
-          <Button variant="ghost" size="full" className="justify-center py-3 text-xs">
-            {tCommon("signOut")}
-          </Button>
+          </button>
         </div>
 
         <div className="px-[18px] pb-6 pt-5 text-center font-mono text-[9px] tracking-[0.15em] text-fg-3">

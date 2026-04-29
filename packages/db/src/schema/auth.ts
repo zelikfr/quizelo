@@ -34,6 +34,14 @@ export const users = pgTable("users", {
   premiumUntil: timestamp("premium_until", { withTimezone: true }),
   elo: integer("elo").default(1000).notNull(),
   coins: integer("coins").default(0).notNull(),
+
+  // ── Contact + address (all optional, edited from /settings)
+  phone: text("phone"),
+  addressLine: text("address_line"),
+  city: text("city"),
+  postalCode: text("postal_code"),
+  country: text("country"),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

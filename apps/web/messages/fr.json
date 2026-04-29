@@ -191,7 +191,11 @@
     "shell": {
       "connecting": "Connexion…",
       "disconnected": "Reconnexion…",
-      "error": "Connexion perdue"
+      "error": "Connexion perdue",
+      "musicMute": "Couper la musique",
+      "musicUnmute": "Activer la musique",
+      "sfxMute": "Couper les effets sonores",
+      "sfxUnmute": "Activer les effets sonores"
     },
     "finaleWaiting": {
       "badge": "FINALE TERMINÉE POUR TOI",
@@ -530,9 +534,10 @@
     "verified": "vérifié",
     "sections": {
       "account": "Compte",
+      "contact": "Contact & adresse",
       "sub": "Abonnement",
       "gameplay": "Gameplay",
-      "audio": "Audio & vibrations",
+      "audio": "Audio",
       "notif": "Notifications",
       "lang": "Langue",
       "privacy": "Confidentialité",
@@ -544,19 +549,32 @@
       "add": "Ajouter",
       "configure": "Configurer",
       "download": "Télécharger",
-      "manage": "Gérer"
+      "manage": "Gérer",
+      "save": "Enregistrer",
+      "saving": "…",
+      "cancel": "Annuler"
+    },
+    "errors": {
+      "unknown": "Une erreur est survenue."
     },
     "fields": {
       "username": "Pseudo",
+      "displayName": "Nom affiché",
+      "handleLocked": "non modifiable",
       "email": "Email",
       "password": "Mot de passe",
       "phone": "Téléphone",
-      "country": "Pays / langue",
+      "addressLine": "Adresse",
+      "addressLinePlaceholder": "12 rue de la Paix",
+      "city": "Ville",
+      "postalCode": "Code postal",
+      "country": "Pays",
       "avatar": "Avatar",
       "notSet": "Non renseigné"
     },
     "identity": {
-      "changeAvatar": "Changer l'avatar"
+      "changeAvatar": "Changer l'avatar",
+      "changeAvatarSoon": "Bientôt disponible"
     },
     "misc": {
       "version": "VERSION"
@@ -564,10 +582,19 @@
     "account": {
       "title": "Identité & profil"
     },
+    "contact": {
+      "title": "Coordonnées"
+    },
     "subscription": {
       "title": "Quizelo Premium",
-      "plan": "Plan annuel — 39,99 €/an",
-      "renewsLine": "Renouvellement le 14 mars 2027 · Apple Pay •• 4421",
+      "plan": "Premium actif",
+      "freePlan": "Compte gratuit",
+      "upsellLine": "Passe Premium pour débloquer cosmétiques, modes et statistiques avancées.",
+      "upgrade": "Passer Premium",
+      "comingSoon": "Bientôt disponible",
+      "renewsOn": "Actif jusqu'au {date}",
+      "activeNoExpiry": "Abonnement actif",
+      "renewsLine": "Renouvellement le 14 mars 2027",
       "manage": "Gérer",
       "cancel": "Annuler",
       "currentPlan": "Plan actuel",
@@ -601,7 +628,9 @@
     "audio": {
       "title": "Ambiance",
       "music": "Musique",
+      "musicHint": "Boucle synthwave en lobby + match",
       "sfx": "Effets sonores",
+      "sfxHint": "Click, bonne/mauvaise réponse, fin de phase…",
       "haptics": "Vibrations (mobile)"
     },
     "notifications": {
@@ -644,7 +673,10 @@
       "title": "Actions irréversibles",
       "deleteTitle": "Supprimer mon compte",
       "deleteSubtitle": "Toutes tes parties, stats et crédits seront effacés.",
-      "deleteAction": "Supprimer"
+      "deleteAction": "Supprimer",
+      "comingSoon": "Bientôt disponible",
+      "signOutTitle": "Se déconnecter",
+      "signOutSubtitle": "Reviens quand tu veux, tes données restent."
     }
   },
 
@@ -686,7 +718,8 @@
       "rank": "RANG",
       "player": "JOUEUR",
       "change24h": "24H",
-      "tier": "TIER"
+      "tier": "TIER",
+      "empty": "Aucun joueur classé pour le moment."
     }
   },
 

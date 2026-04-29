@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 import { env } from "./env";
+import { registerLeaderboardRoutes } from "./leaderboard/routes";
 import { registerMatchRoutes } from "./match/routes";
 import { tryRedis } from "./redis";
 
@@ -35,6 +36,9 @@ app.get("/health", async () => {
 
 // ─── Match runtime (HTTP + WS) ──────────────────────────────────
 await registerMatchRoutes(app);
+
+// ─── Leaderboard ────────────────────────────────────────────────
+await registerLeaderboardRoutes(app);
 
 const start = async () => {
   try {

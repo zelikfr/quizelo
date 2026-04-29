@@ -1,9 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "@/i18n/routing";
+import { playSfx } from "@/lib/sound/engine";
+import { useMatchSound } from "@/lib/sound/use-match-sound";
 import { useMatchSocket } from "@/match/use-match-socket";
+import { SoundControls } from "./SoundControls";
 import { DefeatView } from "./views/DefeatView";
 import { FinaleWaitingView } from "./views/FinaleWaitingView";
 import { LobbyView } from "./views/LobbyView";
@@ -20,6 +23,25 @@ export function MatchScreen({ matchId }: MatchScreenProps) {
   const router = useRouter();
   const { state, connection, sendAnswer, sendPass, leave } =
     useMatchSocket(matchId);
+
+  // Drive the music + reveal/transition/match-end SFX from match state.
+  useMatchSound(state);
+
+  // Click feedback when picking an answer or pressing pass.
+  const handleAnswer = useCallback(
+    (questionIndex: number, choiceId: string) => {
+      playSfx("click");
+      sendAnswer(questionIndex, choiceId);
+    },
+    [sendAnswer],
+  );
+  const handlePass = useCallback(
+    (questionIndex: number) => {
+      playSfx("click");
+      sendPass(questionIndex);
+    },
+    [sendPass],
+  );
 
   const self = state.selfId
     ? state.players.find((p) => p.userId === state.selfId)
@@ -75,6 +97,8 @@ export function MatchScreen({ matchId }: MatchScreenProps) {
     <main className="bg-surface-1 qa-scan relative isolate min-h-screen overflow-x-clip">
       <div className="qa-grid-bg" aria-hidden />
 
+      <SoundControls className="absolute top-3 right-3 z-50" />
+
       {connection !== "open" &&
         !wsFrozenRef.current &&
         !showDefeat &&
@@ -102,8 +126,8 @@ export function MatchScreen({ matchId }: MatchScreenProps) {
               state.status === "phase3") && (
               <QuestionView
                 state={state}
-                onAnswer={sendAnswer}
-                onPass={sendPass}
+                onAnswer={handleAnswer}
+                onPass={handlePass}
               />
             )}
             {(state.status === "transition_p1_p2" ||

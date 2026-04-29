@@ -26,6 +26,8 @@ export async function DangerCard() {
         size="sm"
         className="px-3.5 py-2 text-[11px] text-danger"
         style={{ borderColor: "rgba(255,77,109,0.4)" }}
+        disabled
+        title={t("comingSoon")}
       >
         {t("deleteAction")}
       </Button>

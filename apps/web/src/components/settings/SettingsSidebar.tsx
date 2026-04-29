@@ -2,14 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/cn";
 
 const SECTIONS = [
-  { id: "account",  glyph: "◉", premium: false, danger: false },
-  { id: "sub",      glyph: "★", premium: true,  danger: false },
-  { id: "gameplay", glyph: "◆", premium: false, danger: false },
-  { id: "audio",    glyph: "♪", premium: false, danger: false },
-  { id: "notif",    glyph: "◈", premium: false, danger: false },
-  { id: "lang",     glyph: "◈", premium: false, danger: false },
-  { id: "privacy",  glyph: "⌾", premium: false, danger: false },
-  { id: "danger",   glyph: "⚠", premium: false, danger: true  },
+  { id: "account", glyph: "◉", premium: false, danger: false },
+  { id: "contact", glyph: "✉", premium: false, danger: false },
+  { id: "sub",     glyph: "★", premium: true,  danger: false },
+  { id: "lang",    glyph: "◈", premium: false, danger: false },
+  { id: "audio",   glyph: "♪", premium: false, danger: false },
+  { id: "danger",  glyph: "⚠", premium: false, danger: true  },
 ] as const;
 
 const VERSION = "Quizelo 0.1.0 · build dev";

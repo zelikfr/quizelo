@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { SoundUnlock } from "@/components/SoundUnlock";
 import { IntlProvider } from "@/i18n/IntlProvider";
 import { routing, type Locale } from "@/i18n/routing";
 import "../globals.css";
@@ -65,6 +66,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       >
         <IntlProvider locale={locale} messages={messages}>
+          <SoundUnlock />
           {children}
         </IntlProvider>
       </body>

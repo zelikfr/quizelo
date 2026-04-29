@@ -5,7 +5,7 @@ import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { LeaderboardTable } from "@/components/leaderboard/LeaderboardTable";
 import { Top3Cards } from "@/components/leaderboard/Top3Cards";
 import { QAAvatar } from "@/components/shared/QAAvatar";
-import { LEADERS, MY_LEADERBOARD_ROW } from "@/lib/leaderboard-data";
+import { fetchLeaderboard } from "@/lib/leaderboard-actions";
 import { cn } from "@/lib/cn";
 
 interface LeaderboardPageProps {
@@ -26,8 +26,10 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
   const t = await getTranslations("leaderboard");
   const tCommon = await getTranslations("common");
 
-  const top3 = LEADERS.slice(0, 3);
-  const otherRows = LEADERS.filter((l) => l.rank > 3);
+  const { top, me } = await fetchLeaderboard(50);
+
+  const top3 = top.slice(0, 3);
+  const tableRows = top.slice(3);
 
   return (
     <main className="relative isolate min-h-screen overflow-x-clip bg-surface-1 qa-scan">
@@ -60,10 +62,10 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
           </div>
 
           <div className="mb-6">
-            <Top3Cards locale={loc} />
+            <Top3Cards locale={loc} entries={top3} />
           </div>
 
-          <LeaderboardTable locale={loc} />
+          <LeaderboardTable locale={loc} rows={tableRows} me={me} />
         </div>
       </div>
 
@@ -84,93 +86,151 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
           </div>
         </div>
 
-        {/* Top 3 row */}
+        {/* Top 3 row — visual stair (2nd, 1st, 3rd). Padded with placeholders. */}
         <div className="flex items-end justify-around gap-2 px-3.5 py-5">
-          {[top3[1], top3[0], top3[2]].map((p, idx) => {
-            const place = (idx === 0 ? 2 : idx === 1 ? 1 : 3) as 1 | 2 | 3;
-            const color = PLACE_COLOR[place];
+          {[top3[1] ?? null, top3[0] ?? null, top3[2] ?? null].map(
+            (p, idx) => {
+              const place = (idx === 0 ? 2 : idx === 1 ? 1 : 3) as 1 | 2 | 3;
+              const color = PLACE_COLOR[place];
+              if (!p) {
+                return (
+                  <div
+                    key={`empty-${place}`}
+                    className="flex flex-col items-center gap-1 opacity-40"
+                  >
+                    <div
+                      className="rounded-full bg-white/[0.04]"
+                      style={{
+                        width: place === 1 ? 52 : 40,
+                        height: place === 1 ? 52 : 40,
+                      }}
+                    />
+                    <div
+                      className="font-mono text-[10px] font-bold"
+                      style={{ color }}
+                    >
+                      #{place}
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  key={p.userId}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <QAAvatar
+                    name={p.name}
+                    seed={p.avatarId}
+                    size={place === 1 ? 52 : 40}
+                    ring={color}
+                  />
+                  <div className="font-display text-xs font-bold">{p.name}</div>
+                  <div
+                    className="font-mono text-[10px] font-bold"
+                    style={{ color }}
+                  >
+                    #{place} · {p.elo}
+                  </div>
+                </div>
+              );
+            },
+          )}
+        </div>
+
+        {/* Mobile list (rows 4+ — first 4 of them) */}
+        <div className="flex-1 overflow-hidden px-3.5">
+          {tableRows.slice(0, 4).map((p) => {
+            const isMe = me !== null && p.userId === me.userId;
             return (
-              <div key={p.name} className="flex flex-col items-center gap-1">
+              <div
+                key={p.userId}
+                className={cn(
+                  "mb-1.5 flex items-center gap-2.5 rounded-lg border px-3 py-2.5",
+                  isMe
+                    ? "border-violet/40 bg-violet/[0.08]"
+                    : "border-white/[0.08] bg-white/[0.025]",
+                )}
+              >
+                <span
+                  className={cn(
+                    "w-6 font-display font-mono text-[13px] font-bold",
+                    isMe ? "text-gold" : "text-fg-3",
+                  )}
+                >
+                  {p.rank}
+                </span>
                 <QAAvatar
                   name={p.name}
-                  seed={p.seed}
-                  size={place === 1 ? 52 : 40}
-                  ring={color}
+                  seed={p.avatarId}
+                  size={28}
+                  ring={isMe ? "#FFD166" : undefined}
                 />
-                <div className="font-display text-xs font-bold">{p.name}</div>
-                <div
-                  className="font-mono text-[10px] font-bold"
-                  style={{ color }}
+                <span className="flex-1 font-display text-xs font-semibold">
+                  {isMe ? tCommon("you") : p.name}
+                </span>
+                <span className="font-display font-mono text-[13px] font-bold">
+                  {p.elo}
+                </span>
+                <span
+                  className={cn(
+                    "w-7 text-right font-mono text-[10px]",
+                    p.change24h > 0
+                      ? "text-success"
+                      : p.change24h < 0
+                        ? "text-danger"
+                        : "text-fg-3",
+                  )}
                 >
-                  #{place} · {p.elo}
-                </div>
+                  {p.change24h > 0 ? "+" : ""}
+                  {p.change24h}
+                </span>
               </div>
             );
           })}
         </div>
 
-        {/* List rows 4+ */}
-        <div className="flex-1 overflow-hidden px-3.5">
-          {otherRows.slice(0, 4).map((p) => (
+        {/* Sticky my row — only when I'm not already in the visible top */}
+        {me !== null &&
+          !top.some((r) => r.userId === me.userId) && (
             <div
-              key={p.name}
-              className="mb-1.5 flex items-center gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-2.5"
+              className="flex items-center gap-2.5 border-t px-3.5 py-3"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(124,92,255,0.18), rgba(124,92,255,0.04))",
+                borderTopColor: "rgba(124,92,255,0.4)",
+              }}
             >
-              <span className="w-6 font-display font-mono text-[13px] font-bold text-fg-3">
-                {p.rank}
+              <span className="font-display font-mono text-[13px] font-bold text-gold">
+                #{me.rank}
               </span>
-              <QAAvatar name={p.name} seed={p.seed} size={28} />
-              <span className="flex-1 font-display text-xs font-semibold">
-                {p.name}
+              <QAAvatar
+                name={me.name}
+                seed={me.avatarId}
+                size={28}
+                ring="#FFD166"
+              />
+              <span className="flex-1 font-display text-xs font-bold">
+                {tCommon("you")}
               </span>
               <span className="font-display font-mono text-[13px] font-bold">
-                {p.elo}
+                {me.elo}
               </span>
               <span
                 className={cn(
                   "w-7 text-right font-mono text-[10px]",
-                  p.change > 0
+                  me.change24h > 0
                     ? "text-success"
-                    : p.change < 0
+                    : me.change24h < 0
                       ? "text-danger"
                       : "text-fg-3",
                 )}
               >
-                {p.change > 0 ? "+" : ""}
-                {p.change}
+                {me.change24h > 0 ? "+" : ""}
+                {me.change24h}
               </span>
             </div>
-          ))}
-        </div>
-
-        {/* Sticky my row */}
-        <div
-          className="flex items-center gap-2.5 border-t px-3.5 py-3"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(124,92,255,0.18), rgba(124,92,255,0.04))",
-            borderTopColor: "rgba(124,92,255,0.4)",
-          }}
-        >
-          <span className="font-display font-mono text-[13px] font-bold text-gold">
-            #{MY_LEADERBOARD_ROW.rank}
-          </span>
-          <QAAvatar
-            name={MY_LEADERBOARD_ROW.name}
-            seed={MY_LEADERBOARD_ROW.seed}
-            size={28}
-            ring="#FFD166"
-          />
-          <span className="flex-1 font-display text-xs font-bold">
-            {tCommon("you")}
-          </span>
-          <span className="font-display font-mono text-[13px] font-bold">
-            {MY_LEADERBOARD_ROW.elo}
-          </span>
-          <span className="w-7 text-right font-mono text-[10px] text-success">
-            +{MY_LEADERBOARD_ROW.change}
-          </span>
-        </div>
+          )}
 
         <HomeMobileBottomNav active="leaderboard" />
       </div>
