@@ -17,31 +17,31 @@ export default async function HomePage({ params }: HomePageProps) {
   const t = await getTranslations("home");
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-surface-1 qa-scan">
+    <main className="bg-surface-1 qa-scan relative isolate min-h-screen overflow-hidden">
       <div className="qa-ambient" aria-hidden />
       <div className="qa-grid-bg" aria-hidden />
 
       {/* ── Desktop ──────────────────────────────────────────── */}
-      <div className="hidden md:flex md:flex-col md:min-h-screen">
+      <div className="hidden md:flex md:min-h-screen md:flex-col">
         <HomeTopBar />
         <div className="flex flex-1 items-center gap-8 px-14 py-10">
           {/* Left: hero */}
           <section className="flex max-w-[560px] flex-1 flex-col">
-            <p className="mb-4 font-mono text-[11px] tracking-[0.2em] text-violet-light">
+            <p className="text-violet-light mb-4 font-mono text-[11px] tracking-[0.2em]">
               ◆ {t("hero.badge")}
             </p>
-            <h1 className="m-0 font-display text-[64px] font-bold leading-[0.95] tracking-[-0.03em]">
+            <h1 className="font-display m-0 text-[64px] font-bold leading-[0.95] tracking-[-0.03em]">
               {t("hero.line1")}
               <br />
               <span className="text-gold">{t("hero.line2")}</span> {t("hero.line3")}
             </h1>
-            <p className="mt-5 max-w-[480px] text-base leading-relaxed text-fg-2">
+            <p className="text-fg-2 mt-5 max-w-[480px] text-base leading-relaxed">
               {t("hero.copy")}
             </p>
           </section>
 
           {/* Right: mode cards — stacked on md, side-by-side on lg+ */}
-          <section className="ml-auto flex w-[480px] flex-col gap-4 xl:w-auto xl:flex-1 xl:flex-row">
+          <section className="ml-auto flex w-[480px] flex-col items-start gap-4 xl:w-auto xl:flex-1 xl:flex-row">
             <QuickPlayCard className="xl:flex-1" />
             <RankedCard className="xl:flex-1" />
           </section>
@@ -54,10 +54,10 @@ export default async function HomePage({ params }: HomePageProps) {
         <PlayerStatusCard />
 
         <div className="px-[18px] pb-4 pt-7">
-          <p className="mb-2 font-mono text-[10px] tracking-[0.18em] text-violet-light">
+          <p className="text-violet-light mb-2 font-mono text-[10px] tracking-[0.18em]">
             ◆ {t("mobile.chooseMode")}
           </p>
-          <h1 className="m-0 font-display text-[32px] font-bold leading-[0.95] tracking-[-0.025em]">
+          <h1 className="font-display m-0 text-[32px] font-bold leading-[0.95] tracking-[-0.025em]">
             {t("mobile.line1")}
             <br />
             <span className="text-gold">{t("mobile.line2")}</span> {t("mobile.line3")}

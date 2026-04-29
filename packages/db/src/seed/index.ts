@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "../client";
 import { questions } from "../schema/game";
 import { QUESTIONS } from "./questions";
+import { defaultEloForDifficulty } from "./elo";
 
 const main = async () => {
   console.log(`→ seeding ${QUESTIONS.length} questions…`);
@@ -18,6 +19,7 @@ const main = async () => {
       locale: q.locale,
       category: q.category,
       difficulty: q.difficulty,
+      eloTarget: q.eloTarget ?? defaultEloForDifficulty(q.difficulty),
       prompt: q.prompt,
       choices,
       correctChoiceId: choices[q.correctIndex]!.id,
@@ -38,6 +40,7 @@ const main = async () => {
         locale: sql.raw(`excluded.${questions.locale.name}`),
         category: sql.raw(`excluded.${questions.category.name}`),
         difficulty: sql.raw(`excluded.${questions.difficulty.name}`),
+        eloTarget: sql.raw(`excluded.${questions.eloTarget.name}`),
         prompt: sql.raw(`excluded.${questions.prompt.name}`),
         choices: sql.raw(`excluded.${questions.choices.name}`),
         correctChoiceId: sql.raw(`excluded.${questions.correctChoiceId.name}`),

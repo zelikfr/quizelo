@@ -17,6 +17,7 @@ import {
   persistPlayerRemove,
   persistPlayerUpdates,
 } from "./persistence";
+import { computeLobbyEloAvg, narrowPoolByElo } from "./questions";
 import { rngFromSeed } from "./random";
 import { registry } from "./registry";
 import { scorePhase1, scorePhase2 } from "./scoring";
@@ -256,6 +257,29 @@ export class MatchRoom {
         await consumeQuickQuotaForUsers(userIds).catch((err) =>
           this.log.error(err, "consumeQuickQuotaForUsers failed"),
         );
+      }
+    }
+
+    // Narrow the wide initial question pool to the questions whose ELO
+    // target lies closest to the lobby's average ELO. Done once at
+    // phase 1 start when the player roster is final.
+    if (wasInLobby && phase === "phase1") {
+      const realIds = this.state.players
+        .filter((p) => !p.isShadow && p.status !== "left")
+        .map((p) => p.userId);
+      try {
+        const eloAvg = await computeLobbyEloAvg(realIds);
+        narrowPoolByElo(this.state, eloAvg);
+        this.log.info(
+          {
+            matchId: this.state.matchId,
+            eloAvg,
+            poolSize: this.state.questionPool.length,
+          },
+          "narrowed question pool by lobby ELO",
+        );
+      } catch (err) {
+        this.log.error(err, "narrowPoolByElo failed (using wide pool)");
       }
     }
 

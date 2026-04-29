@@ -49,6 +49,13 @@ export const questions = pgTable("questions", {
   locale: text("locale").notNull(),
   category: text("category").notNull(),
   difficulty: questionDifficultyEnum("difficulty").notNull(),
+  /**
+   * Target ELO for this question. The match question picker uses this
+   * to serve questions calibrated to the lobby's average ELO. Bands:
+   *   <800 Bronze · 800-1199 Argent · 1200-1599 Or · 1600-1999 Platine ·
+   *   2000-2399 Diamant · ≥2400 Élite.
+   */
+  eloTarget: integer("elo_target"),
   prompt: text("prompt").notNull(),
   /** array of { id, label } */
   choices: jsonb("choices").$type<Array<{ id: string; label: string }>>().notNull(),

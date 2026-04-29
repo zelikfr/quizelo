@@ -1,0 +1,252 @@
+import { buildCuratedCategory, type CuratedFact } from "./_builder";
+
+/* ── Easy (Argent · 1000 ELO) ─────────────────────────────────────── */
+const easy: CuratedFact[] = [
+  // Peintres / tableaux célèbres (10)
+  ["Qui a peint la Joconde ?", "Who painted the Mona Lisa?", "Léonard de Vinci", "Leonardo da Vinci", ["Michel-Ange", "Raphaël", "Botticelli"], ["Michelangelo", "Raphael", "Botticelli"]],
+  ["Qui a peint Les Tournesols ?", "Who painted Sunflowers?", "Vincent van Gogh", "Vincent van Gogh", ["Claude Monet", "Paul Gauguin", "Henri Matisse"], ["Claude Monet", "Paul Gauguin", "Henri Matisse"]],
+  ["Qui a peint La Nuit étoilée ?", "Who painted The Starry Night?", "Vincent van Gogh", "Vincent van Gogh", ["Claude Monet", "Paul Cézanne", "Edvard Munch"], ["Claude Monet", "Paul Cézanne", "Edvard Munch"]],
+  ["Qui a peint Le Cri ?", "Who painted The Scream?", "Edvard Munch", "Edvard Munch", ["Vincent van Gogh", "Egon Schiele", "James Ensor"], ["Vincent van Gogh", "Egon Schiele", "James Ensor"]],
+  ["Qui a peint Guernica ?", "Who painted Guernica?", "Pablo Picasso", "Pablo Picasso", ["Salvador Dalí", "Joan Miró", "Henri Matisse"], ["Salvador Dalí", "Joan Miró", "Henri Matisse"]],
+  ["Qui a peint Les Demoiselles d'Avignon ?", "Who painted Les Demoiselles d'Avignon?", "Pablo Picasso", "Pablo Picasso", ["Henri Matisse", "Paul Cézanne", "Georges Braque"], ["Henri Matisse", "Paul Cézanne", "Georges Braque"]],
+  ["Qui a peint La Création d'Adam ?", "Who painted The Creation of Adam?", "Michel-Ange", "Michelangelo", ["Léonard de Vinci", "Raphaël", "Botticelli"], ["Leonardo da Vinci", "Raphael", "Botticelli"]],
+  ["Qui a peint La Cène ?", "Who painted The Last Supper?", "Léonard de Vinci", "Leonardo da Vinci", ["Michel-Ange", "Raphaël", "Le Caravage"], ["Michelangelo", "Raphael", "Caravaggio"]],
+  ["Qui a peint La Liberté guidant le peuple ?", "Who painted Liberty Leading the People?", "Eugène Delacroix", "Eugène Delacroix", ["Théodore Géricault", "Jacques-Louis David", "Gustave Courbet"], ["Théodore Géricault", "Jacques-Louis David", "Gustave Courbet"]],
+  ["Qui a peint Le Persistance de la mémoire (les montres molles) ?", "Who painted The Persistence of Memory (melting clocks)?", "Salvador Dalí", "Salvador Dalí", ["René Magritte", "Max Ernst", "Joan Miró"], ["René Magritte", "Max Ernst", "Joan Miró"]],
+  // Sculpteurs (5)
+  ["Qui a sculpté Le Penseur ?", "Who sculpted The Thinker?", "Auguste Rodin", "Auguste Rodin", ["Camille Claudel", "Aristide Maillol", "Antoine Bourdelle"], ["Camille Claudel", "Aristide Maillol", "Antoine Bourdelle"]],
+  ["Qui a sculpté le David (Florence) ?", "Who sculpted the David (Florence)?", "Michel-Ange", "Michelangelo", ["Donatello", "Verrocchio", "Bernin"], ["Donatello", "Verrocchio", "Bernini"]],
+  ["Qui a sculpté la Statue de la Liberté ?", "Who sculpted the Statue of Liberty?", "Auguste Bartholdi", "Frédéric Auguste Bartholdi", ["Gustave Eiffel", "Auguste Rodin", "Antoine Bourdelle"], ["Gustave Eiffel", "Auguste Rodin", "Antoine Bourdelle"]],
+  ["Qui a sculpté Les Bourgeois de Calais ?", "Who sculpted The Burghers of Calais?", "Auguste Rodin", "Auguste Rodin", ["Camille Claudel", "Henri Matisse", "Aristide Maillol"], ["Camille Claudel", "Henri Matisse", "Aristide Maillol"]],
+  ["Quelle nationalité avait Auguste Rodin ?", "What was Auguste Rodin's nationality?", "Française", "French", ["Italienne", "Belge", "Suisse"], ["Italian", "Belgian", "Swiss"]],
+  // Architectes / monuments (5)
+  ["Qui a conçu la tour Eiffel ?", "Who designed the Eiffel Tower?", "Gustave Eiffel", "Gustave Eiffel", ["Le Corbusier", "Auguste Perret", "Eugène Viollet-le-Duc"], ["Le Corbusier", "Auguste Perret", "Eugène Viollet-le-Duc"]],
+  ["Qui a conçu la Sagrada Família ?", "Who designed the Sagrada Família?", "Antoni Gaudí", "Antoni Gaudí", ["Lluís Domènech", "Josep Puig", "Pablo Picasso"], ["Lluís Domènech", "Josep Puig", "Pablo Picasso"]],
+  ["Quel architecte a conçu la pyramide du Louvre ?", "Who designed the Louvre Pyramid?", "Ieoh Ming Pei", "I. M. Pei", ["Norman Foster", "Renzo Piano", "Frank Gehry"], ["Norman Foster", "Renzo Piano", "Frank Gehry"]],
+  ["Dans quelle ville se trouve la Sagrada Família ?", "Which city has the Sagrada Família?", "Barcelone", "Barcelona", ["Valence", "Madrid", "Bilbao"], ["Valencia", "Madrid", "Bilbao"]],
+  ["Dans quelle ville se trouve l'opéra dessiné par Jørn Utzon ?", "Which city has the opera house by Jørn Utzon?", "Sydney", "Sydney", ["Melbourne", "Auckland", "Brisbane"], ["Melbourne", "Auckland", "Brisbane"]],
+  // Auteurs (10)
+  ["Qui a écrit Les Misérables ?", "Who wrote Les Misérables?", "Victor Hugo", "Victor Hugo", ["Honoré de Balzac", "Émile Zola", "Alexandre Dumas"], ["Honoré de Balzac", "Émile Zola", "Alexandre Dumas"]],
+  ["Qui a écrit Les Trois Mousquetaires ?", "Who wrote The Three Musketeers?", "Alexandre Dumas", "Alexandre Dumas", ["Victor Hugo", "Théophile Gautier", "Alfred de Vigny"], ["Victor Hugo", "Théophile Gautier", "Alfred de Vigny"]],
+  ["Qui a écrit Vingt mille lieues sous les mers ?", "Who wrote Twenty Thousand Leagues Under the Seas?", "Jules Verne", "Jules Verne", ["H. G. Wells", "Edgar Allan Poe", "Pierre Loti"], ["H. G. Wells", "Edgar Allan Poe", "Pierre Loti"]],
+  ["Qui a écrit Candide ?", "Who wrote Candide?", "Voltaire", "Voltaire", ["Rousseau", "Diderot", "Montesquieu"], ["Rousseau", "Diderot", "Montesquieu"]],
+  ["Qui a écrit L'Avare ?", "Who wrote The Miser?", "Molière", "Molière", ["Racine", "Corneille", "Marivaux"], ["Racine", "Corneille", "Marivaux"]],
+  ["Qui a écrit Le Petit Prince ?", "Who wrote The Little Prince?", "Antoine de Saint-Exupéry", "Antoine de Saint-Exupéry", ["Albert Camus", "Jean Giono", "André Malraux"], ["Albert Camus", "Jean Giono", "André Malraux"]],
+  ["Qui a écrit L'Étranger ?", "Who wrote The Stranger?", "Albert Camus", "Albert Camus", ["Jean-Paul Sartre", "André Gide", "Marcel Aymé"], ["Jean-Paul Sartre", "André Gide", "Marcel Aymé"]],
+  ["Qui a écrit Germinal ?", "Who wrote Germinal?", "Émile Zola", "Émile Zola", ["Honoré de Balzac", "Guy de Maupassant", "Gustave Flaubert"], ["Honoré de Balzac", "Guy de Maupassant", "Gustave Flaubert"]],
+  ["Qui a écrit Le Père Goriot ?", "Who wrote Old Goriot?", "Honoré de Balzac", "Honoré de Balzac", ["Stendhal", "Émile Zola", "Gustave Flaubert"], ["Stendhal", "Émile Zola", "Gustave Flaubert"]],
+  ["Qui a écrit Hamlet ?", "Who wrote Hamlet?", "William Shakespeare", "William Shakespeare", ["Christopher Marlowe", "Ben Jonson", "John Webster"], ["Christopher Marlowe", "Ben Jonson", "John Webster"]],
+  // Mouvements artistiques (5)
+  ["Quel mouvement est associé à Claude Monet ?", "Which movement is associated with Monet?", "Impressionnisme", "Impressionism", ["Cubisme", "Surréalisme", "Réalisme"], ["Cubism", "Surrealism", "Realism"]],
+  ["Quel mouvement est associé à Pablo Picasso ?", "Which movement is associated with Picasso?", "Cubisme", "Cubism", ["Impressionnisme", "Surréalisme", "Fauvisme"], ["Impressionism", "Surrealism", "Fauvism"]],
+  ["Quel mouvement est associé à Salvador Dalí ?", "Which movement is associated with Dalí?", "Surréalisme", "Surrealism", ["Cubisme", "Impressionnisme", "Pop Art"], ["Cubism", "Impressionism", "Pop Art"]],
+  ["Quel mouvement est associé à Andy Warhol ?", "Which movement is associated with Warhol?", "Pop Art", "Pop Art", ["Cubisme", "Surréalisme", "Expressionnisme"], ["Cubism", "Surrealism", "Expressionism"]],
+  ["Quel mouvement est associé à Jackson Pollock ?", "Which movement is associated with Pollock?", "Expressionnisme abstrait", "Abstract Expressionism", ["Cubisme", "Pop Art", "Fauvisme"], ["Cubism", "Pop Art", "Fauvism"]],
+  // Musées / lieux (5)
+  ["Dans quel musée se trouve la Joconde ?", "Which museum holds the Mona Lisa?", "Louvre", "Louvre", ["Orsay", "Centre Pompidou", "Prado"], ["Orsay", "Pompidou Centre", "Prado"]],
+  ["Dans quel musée se trouve Guernica ?", "Which museum holds Guernica?", "Reina Sofía (Madrid)", "Reina Sofía (Madrid)", ["Prado", "MoMA", "Tate Modern"], ["Prado", "MoMA", "Tate Modern"]],
+  ["Dans quelle ville se trouve Le Cri d'Edvard Munch (musée principal) ?", "Which city houses Munch's The Scream (main museum)?", "Oslo", "Oslo", ["Stockholm", "Copenhague", "Bergen"], ["Stockholm", "Copenhagen", "Bergen"]],
+  ["Dans quelle chapelle Michel-Ange a-t-il peint la Création d'Adam ?", "In which chapel did Michelangelo paint the Creation of Adam?", "Chapelle Sixtine", "Sistine Chapel", ["Chapelle Pauline", "Chapelle Médicis", "Chapelle des Scrovegni"], ["Pauline Chapel", "Medici Chapel", "Scrovegni Chapel"]],
+  ["Dans quel musée parisien sont exposés les Nymphéas de Monet ?", "Which Paris museum displays Monet's Water Lilies?", "Orangerie", "Orangerie", ["Louvre", "Orsay", "Petit Palais"], ["Louvre", "Orsay", "Petit Palais"]],
+  // Compositeurs / autres (10)
+  ["Quelle est la nationalité de Mozart ?", "What was Mozart's nationality?", "Autrichienne", "Austrian", ["Allemande", "Italienne", "Hongroise"], ["German", "Italian", "Hungarian"]],
+  ["Quelle est la nationalité de Bach ?", "What was Bach's nationality?", "Allemande", "German", ["Autrichienne", "Italienne", "Hollandaise"], ["Austrian", "Italian", "Dutch"]],
+  ["Quelle est la nationalité de Chopin ?", "What was Chopin's nationality?", "Polonaise", "Polish", ["Hongroise", "Russe", "Française"], ["Hungarian", "Russian", "French"]],
+  ["Quelle est la nationalité de Frida Kahlo ?", "What was Frida Kahlo's nationality?", "Mexicaine", "Mexican", ["Espagnole", "Argentine", "Cubaine"], ["Spanish", "Argentine", "Cuban"]],
+  ["Quelle est la nationalité de Pablo Picasso ?", "What was Picasso's nationality?", "Espagnole", "Spanish", ["Italienne", "Française", "Mexicaine"], ["Italian", "French", "Mexican"]],
+  ["Quelle est la nationalité de Salvador Dalí ?", "What was Dalí's nationality?", "Espagnole", "Spanish", ["Italienne", "Portugaise", "Argentine"], ["Italian", "Portuguese", "Argentine"]],
+  ["Quelle est la nationalité de Vincent van Gogh ?", "What was Van Gogh's nationality?", "Néerlandaise", "Dutch", ["Belge", "Allemande", "Française"], ["Belgian", "German", "French"]],
+  ["Dans quelle ville se trouve le musée Van Gogh ?", "In which city is the Van Gogh Museum?", "Amsterdam", "Amsterdam", ["La Haye", "Bruxelles", "Rotterdam"], ["The Hague", "Brussels", "Rotterdam"]],
+  ["Quel mouvement Frida Kahlo est-elle associée à ?", "Which movement is Frida Kahlo linked to?", "Surréalisme / Mexicanidad", "Surrealism / Mexicanidad", ["Cubisme", "Impressionnisme", "Fauvisme"], ["Cubism", "Impressionism", "Fauvism"]],
+  ["Combien de temps a-t-il fallu à Michel-Ange pour peindre la Sixtine (env.) ?", "How many years did Michelangelo take to paint the Sistine Chapel?", "4 ans (1508-1512)", "4 years (1508-1512)", ["10 ans", "2 ans", "20 ans"], ["10 years", "2 years", "20 years"]],
+];
+
+/* ── Medium (Or · 1400 ELO) ───────────────────────────────────────── */
+const medium: CuratedFact[] = [
+  // Peintres / tableaux (10)
+  ["Qui a peint Le Bal du moulin de la Galette ?", "Who painted Bal du moulin de la Galette?", "Auguste Renoir", "Auguste Renoir", ["Claude Monet", "Édouard Manet", "Edgar Degas"], ["Claude Monet", "Édouard Manet", "Edgar Degas"]],
+  ["Qui a peint Impression, soleil levant ?", "Who painted Impression, Sunrise?", "Claude Monet", "Claude Monet", ["Édouard Manet", "Auguste Renoir", "Camille Pissarro"], ["Édouard Manet", "Auguste Renoir", "Camille Pissarro"]],
+  ["Qui a peint Le Déjeuner sur l'herbe ?", "Who painted The Luncheon on the Grass?", "Édouard Manet", "Édouard Manet", ["Claude Monet", "Gustave Courbet", "Camille Corot"], ["Claude Monet", "Gustave Courbet", "Camille Corot"]],
+  ["Qui a peint Un dimanche après-midi à La Grande Jatte ?", "Who painted A Sunday Afternoon on La Grande Jatte?", "Georges Seurat", "Georges Seurat", ["Paul Signac", "Camille Pissarro", "Henri-Edmond Cross"], ["Paul Signac", "Camille Pissarro", "Henri-Edmond Cross"]],
+  ["Qui a peint Le Baiser (1907-1908) ?", "Who painted The Kiss (1907-1908)?", "Gustav Klimt", "Gustav Klimt", ["Egon Schiele", "Oskar Kokoschka", "Edvard Munch"], ["Egon Schiele", "Oskar Kokoschka", "Edvard Munch"]],
+  ["Qui a peint La Naissance de Vénus ?", "Who painted The Birth of Venus?", "Sandro Botticelli", "Sandro Botticelli", ["Léonard de Vinci", "Titien", "Raphaël"], ["Leonardo da Vinci", "Titian", "Raphael"]],
+  ["Qui a peint Le Jugement dernier (Sixtine) ?", "Who painted the Last Judgment (Sistine Chapel)?", "Michel-Ange", "Michelangelo", ["Léonard de Vinci", "Raphaël", "Le Pérugin"], ["Leonardo da Vinci", "Raphael", "Perugino"]],
+  ["Qui a peint Composition VIII (1923) ?", "Who painted Composition VIII (1923)?", "Wassily Kandinsky", "Wassily Kandinsky", ["Piet Mondrian", "Paul Klee", "Kasimir Malevitch"], ["Piet Mondrian", "Paul Klee", "Kazimir Malevich"]],
+  ["Qui a peint La Chambre à Arles ?", "Who painted The Bedroom in Arles?", "Vincent van Gogh", "Vincent van Gogh", ["Paul Gauguin", "Paul Cézanne", "Henri de Toulouse-Lautrec"], ["Paul Gauguin", "Paul Cézanne", "Henri de Toulouse-Lautrec"]],
+  ["Qui a peint Le Repas des canotiers ?", "Who painted Luncheon of the Boating Party?", "Auguste Renoir", "Auguste Renoir", ["Claude Monet", "Édouard Manet", "Edgar Degas"], ["Claude Monet", "Édouard Manet", "Edgar Degas"]],
+  // Auteurs (10)
+  ["Qui a écrit Madame Bovary ?", "Who wrote Madame Bovary?", "Gustave Flaubert", "Gustave Flaubert", ["Émile Zola", "Honoré de Balzac", "Stendhal"], ["Émile Zola", "Honoré de Balzac", "Stendhal"]],
+  ["Qui a écrit Notre-Dame de Paris ?", "Who wrote The Hunchback of Notre-Dame?", "Victor Hugo", "Victor Hugo", ["Alexandre Dumas", "Théophile Gautier", "Honoré de Balzac"], ["Alexandre Dumas", "Théophile Gautier", "Honoré de Balzac"]],
+  ["Qui a écrit Bel-Ami ?", "Who wrote Bel-Ami?", "Guy de Maupassant", "Guy de Maupassant", ["Émile Zola", "Gustave Flaubert", "Alphonse Daudet"], ["Émile Zola", "Gustave Flaubert", "Alphonse Daudet"]],
+  ["Qui a écrit Le Rouge et le Noir ?", "Who wrote The Red and the Black?", "Stendhal", "Stendhal", ["Honoré de Balzac", "Victor Hugo", "Gustave Flaubert"], ["Honoré de Balzac", "Victor Hugo", "Gustave Flaubert"]],
+  ["Qui a écrit Le Vieil Homme et la Mer ?", "Who wrote The Old Man and the Sea?", "Ernest Hemingway", "Ernest Hemingway", ["John Steinbeck", "William Faulkner", "F. Scott Fitzgerald"], ["John Steinbeck", "William Faulkner", "F. Scott Fitzgerald"]],
+  ["Qui a écrit Anna Karénine ?", "Who wrote Anna Karenina?", "Léon Tolstoï", "Leo Tolstoy", ["Fiodor Dostoïevski", "Anton Tchekhov", "Ivan Tourgueniev"], ["Fyodor Dostoyevsky", "Anton Chekhov", "Ivan Turgenev"]],
+  ["Qui a écrit Crime et Châtiment ?", "Who wrote Crime and Punishment?", "Fiodor Dostoïevski", "Fyodor Dostoyevsky", ["Léon Tolstoï", "Anton Tchekhov", "Maxime Gorki"], ["Leo Tolstoy", "Anton Chekhov", "Maxim Gorky"]],
+  ["Qui a écrit Le Procès ?", "Who wrote The Trial?", "Franz Kafka", "Franz Kafka", ["Thomas Mann", "Hermann Hesse", "Robert Musil"], ["Thomas Mann", "Hermann Hesse", "Robert Musil"]],
+  ["Qui a écrit Don Quichotte ?", "Who wrote Don Quixote?", "Miguel de Cervantes", "Miguel de Cervantes", ["Lope de Vega", "Calderón de la Barca", "Tirso de Molina"], ["Lope de Vega", "Calderón de la Barca", "Tirso de Molina"]],
+  ["Qui a écrit La Chartreuse de Parme ?", "Who wrote The Charterhouse of Parma?", "Stendhal", "Stendhal", ["Honoré de Balzac", "Alfred de Vigny", "Alphonse de Lamartine"], ["Honoré de Balzac", "Alfred de Vigny", "Alphonse de Lamartine"]],
+  // Compositeurs (5)
+  ["Qui a composé Don Giovanni ?", "Who composed Don Giovanni?", "Mozart", "Mozart", ["Beethoven", "Haydn", "Salieri"], ["Beethoven", "Haydn", "Salieri"]],
+  ["Qui a composé La Flûte enchantée ?", "Who composed The Magic Flute?", "Mozart", "Mozart", ["Beethoven", "Gluck", "Weber"], ["Beethoven", "Gluck", "Weber"]],
+  ["Qui a composé Les Quatre Saisons ?", "Who composed The Four Seasons?", "Antonio Vivaldi", "Antonio Vivaldi", ["Tomaso Albinoni", "Arcangelo Corelli", "Domenico Scarlatti"], ["Tomaso Albinoni", "Arcangelo Corelli", "Domenico Scarlatti"]],
+  ["Qui a composé les Concertos brandebourgeois ?", "Who composed the Brandenburg Concertos?", "Johann Sebastian Bach", "Johann Sebastian Bach", ["Georg Friedrich Haendel", "Georg Philipp Telemann", "Heinrich Schütz"], ["George Frideric Handel", "Georg Philipp Telemann", "Heinrich Schütz"]],
+  ["Qui a composé l'opéra Aïda ?", "Who composed the opera Aida?", "Giuseppe Verdi", "Giuseppe Verdi", ["Giacomo Puccini", "Vincenzo Bellini", "Gaetano Donizetti"], ["Giacomo Puccini", "Vincenzo Bellini", "Gaetano Donizetti"]],
+  // Sculpteurs / architectes (8)
+  ["Qui a sculpté la Pietà du Vatican ?", "Who sculpted the Vatican Pietà?", "Michel-Ange", "Michelangelo", ["Donatello", "Bernin", "Verrocchio"], ["Donatello", "Bernini", "Verrocchio"]],
+  ["Qui a sculpté Les Trois Grâces (1813-1816) ?", "Who sculpted The Three Graces (1813-1816)?", "Antonio Canova", "Antonio Canova", ["Bertel Thorvaldsen", "Jean-Antoine Houdon", "Antoine-Louis Barye"], ["Bertel Thorvaldsen", "Jean-Antoine Houdon", "Antoine-Louis Barye"]],
+  ["Qui a sculpté Le Discobole (original grec) ?", "Who sculpted the Discobolus (Greek original)?", "Myron", "Myron", ["Phidias", "Polyclète", "Praxitèle"], ["Phidias", "Polykleitos", "Praxiteles"]],
+  ["Qui a conçu la Villa Savoye ?", "Who designed the Villa Savoye?", "Le Corbusier", "Le Corbusier", ["Frank Lloyd Wright", "Mies van der Rohe", "Walter Gropius"], ["Frank Lloyd Wright", "Mies van der Rohe", "Walter Gropius"]],
+  ["Qui a conçu la Maison sur la cascade (Fallingwater) ?", "Who designed Fallingwater?", "Frank Lloyd Wright", "Frank Lloyd Wright", ["Le Corbusier", "Louis Kahn", "Philip Johnson"], ["Le Corbusier", "Louis Kahn", "Philip Johnson"]],
+  ["Qui a conçu le Guggenheim de Bilbao ?", "Who designed the Bilbao Guggenheim?", "Frank Gehry", "Frank Gehry", ["Norman Foster", "Renzo Piano", "Zaha Hadid"], ["Norman Foster", "Renzo Piano", "Zaha Hadid"]],
+  ["Qui a conçu le Gherkin (30 St Mary Axe) à Londres ?", "Who designed the Gherkin in London?", "Norman Foster", "Norman Foster", ["Richard Rogers", "Zaha Hadid", "Renzo Piano"], ["Richard Rogers", "Zaha Hadid", "Renzo Piano"]],
+  ["Qui a conçu la Tour CN à Toronto ?", "Who designed the CN Tower in Toronto?", "John Andrews", "John Andrews", ["Frank Gehry", "I. M. Pei", "Norman Foster"], ["Frank Gehry", "I. M. Pei", "Norman Foster"]],
+  // Mouvements / dates (8)
+  ["En quelle année débute officiellement l'Impressionnisme ?", "When did Impressionism officially start?", "1874", "1874", ["1860", "1880", "1890"], ["1860", "1880", "1890"]],
+  ["Quelle période chez Picasso précède la période rose ?", "Which Picasso period precedes the Rose Period?", "Période bleue", "Blue Period", ["Période cubiste", "Période classique", "Période surréaliste"], ["Cubist Period", "Classical Period", "Surrealist Period"]],
+  ["En quelle année Picasso peint-il Les Demoiselles d'Avignon (début du cubisme) ?", "When did Picasso paint Les Demoiselles d'Avignon?", "1907", "1907", ["1900", "1912", "1921"], ["1900", "1912", "1921"]],
+  ["En quelle année est fondé le Bauhaus ?", "When was the Bauhaus founded?", "1919", "1919", ["1907", "1925", "1933"], ["1907", "1925", "1933"]],
+  ["Dans quel pays est né le Romantisme ?", "Where did Romanticism originate?", "Allemagne", "Germany", ["France", "Italie", "Royaume-Uni"], ["France", "Italy", "United Kingdom"]],
+  ["Dans quel pays a éclos l'Art nouveau (Mucha) ?", "In which country did Art Nouveau develop with Mucha?", "Tchécoslovaquie / Belgique", "Czechoslovakia / Belgium", ["France", "Allemagne", "Espagne"], ["France", "Germany", "Spain"]],
+  ["Dans quel pays a éclos le Futurisme ?", "Where did Futurism emerge?", "Italie", "Italy", ["France", "Russie", "Allemagne"], ["France", "Russia", "Germany"]],
+  ["Quel mouvement Henri Matisse représente-t-il ?", "Which movement does Matisse represent?", "Fauvisme", "Fauvism", ["Cubisme", "Impressionnisme", "Pointillisme"], ["Cubism", "Impressionism", "Pointillism"]],
+  // Photographie / divers (4)
+  ["Qui a réalisé Le Baiser de l'Hôtel de Ville (1950) ?", "Who took The Kiss by the Hôtel de Ville (1950)?", "Robert Doisneau", "Robert Doisneau", ["Henri Cartier-Bresson", "Brassaï", "Willy Ronis"], ["Henri Cartier-Bresson", "Brassaï", "Willy Ronis"]],
+  ["Quel photographe a inventé le concept d'instant décisif ?", "Which photographer coined 'the decisive moment'?", "Henri Cartier-Bresson", "Henri Cartier-Bresson", ["Robert Capa", "Robert Doisneau", "Helmut Newton"], ["Robert Capa", "Robert Doisneau", "Helmut Newton"]],
+  ["Qui est célèbre pour ses photos en noir et blanc du Yosemite ?", "Who is famous for B&W photos of Yosemite?", "Ansel Adams", "Ansel Adams", ["Edward Weston", "Walker Evans", "Dorothea Lange"], ["Edward Weston", "Walker Evans", "Dorothea Lange"]],
+  ["Quel photographe juif hongrois a couvert de nombreuses guerres ?", "Which Hungarian-born photojournalist covered many wars?", "Robert Capa", "Robert Capa", ["André Kertész", "Brassaï", "Lucien Hervé"], ["André Kertész", "Brassaï", "Lucien Hervé"]],
+  // Compléments medium (5)
+  ["Qui a peint Le Cri (1893) ?", "Who painted The Scream (1893)?", "Edvard Munch", "Edvard Munch", ["Egon Schiele", "Vincent van Gogh", "James Ensor"], ["Egon Schiele", "Vincent van Gogh", "James Ensor"]],
+  ["Qui a peint la série des Meules (Monet) ?", "Who painted the Haystacks series?", "Claude Monet", "Claude Monet", ["Camille Pissarro", "Auguste Renoir", "Alfred Sisley"], ["Camille Pissarro", "Auguste Renoir", "Alfred Sisley"]],
+  ["Qui a écrit La Comédie humaine ?", "Who wrote The Human Comedy?", "Honoré de Balzac", "Honoré de Balzac", ["Victor Hugo", "Émile Zola", "Stendhal"], ["Victor Hugo", "Émile Zola", "Stendhal"]],
+  ["Qui a écrit Cyrano de Bergerac (pièce) ?", "Who wrote Cyrano de Bergerac (play)?", "Edmond Rostand", "Edmond Rostand", ["Alfred de Musset", "Eugène Labiche", "Alexandre Dumas"], ["Alfred de Musset", "Eugène Labiche", "Alexandre Dumas"]],
+  ["Qui a composé La Symphonie inachevée (n°8) ?", "Who composed the Unfinished Symphony (No. 8)?", "Franz Schubert", "Franz Schubert", ["Felix Mendelssohn", "Robert Schumann", "Anton Bruckner"], ["Felix Mendelssohn", "Robert Schumann", "Anton Bruckner"]],
+];
+
+/* ── Hard (Platine · 1800 ELO) ────────────────────────────────────── */
+const hard: CuratedFact[] = [
+  // Peintres (10)
+  ["Qui a peint Las Meninas ?", "Who painted Las Meninas?", "Diego Vélasquez", "Diego Velázquez", ["Francisco Goya", "El Greco", "Bartolomé Murillo"], ["Francisco Goya", "El Greco", "Bartolomé Murillo"]],
+  ["Qui a peint Le Tres de Mayo ?", "Who painted The Third of May 1808?", "Francisco Goya", "Francisco Goya", ["Diego Vélasquez", "El Greco", "Joaquín Sorolla"], ["Diego Velázquez", "El Greco", "Joaquín Sorolla"]],
+  ["Qui a peint Saturne dévorant ses enfants ?", "Who painted Saturn Devouring His Son?", "Francisco Goya", "Francisco Goya", ["Pieter Bruegel l'Ancien", "Diego Vélasquez", "Caravage"], ["Pieter Bruegel the Elder", "Diego Velázquez", "Caravaggio"]],
+  ["Qui a peint La Ronde de nuit ?", "Who painted The Night Watch?", "Rembrandt", "Rembrandt", ["Vermeer", "Frans Hals", "Jan Steen"], ["Vermeer", "Frans Hals", "Jan Steen"]],
+  ["Qui a peint La Jeune Fille à la perle ?", "Who painted Girl with a Pearl Earring?", "Johannes Vermeer", "Johannes Vermeer", ["Rembrandt", "Frans Hals", "Pieter de Hooch"], ["Rembrandt", "Frans Hals", "Pieter de Hooch"]],
+  ["Qui a peint Le Radeau de la Méduse ?", "Who painted The Raft of the Medusa?", "Théodore Géricault", "Théodore Géricault", ["Eugène Delacroix", "Jacques-Louis David", "Antoine-Jean Gros"], ["Eugène Delacroix", "Jacques-Louis David", "Antoine-Jean Gros"]],
+  ["Qui a peint Le Verrou ?", "Who painted The Bolt?", "Jean-Honoré Fragonard", "Jean-Honoré Fragonard", ["François Boucher", "Antoine Watteau", "Hubert Robert"], ["François Boucher", "Antoine Watteau", "Hubert Robert"]],
+  ["Qui a peint Le Chant du retour des Hébreux (Le Cantique) ?", "Who painted The Return of the Hebrews?", "Francesco Hayez", "Francesco Hayez", ["Eugène Delacroix", "Théodore Géricault", "Caspar David Friedrich"], ["Eugène Delacroix", "Théodore Géricault", "Caspar David Friedrich"]],
+  ["Qui a peint Le Voyageur contemplant une mer de nuages ?", "Who painted Wanderer above the Sea of Fog?", "Caspar David Friedrich", "Caspar David Friedrich", ["Philipp Otto Runge", "William Turner", "John Constable"], ["Philipp Otto Runge", "William Turner", "John Constable"]],
+  ["Qui a peint Olympia (1863) ?", "Who painted Olympia (1863)?", "Édouard Manet", "Édouard Manet", ["Gustave Courbet", "Edgar Degas", "Auguste Renoir"], ["Gustave Courbet", "Edgar Degas", "Auguste Renoir"]],
+  // Auteurs (10)
+  ["Qui a écrit Faust ?", "Who wrote Faust?", "Johann Wolfgang von Goethe", "Johann Wolfgang von Goethe", ["Friedrich Schiller", "Heinrich Heine", "Thomas Mann"], ["Friedrich Schiller", "Heinrich Heine", "Thomas Mann"]],
+  ["Qui a écrit La Divine Comédie ?", "Who wrote the Divine Comedy?", "Dante Alighieri", "Dante Alighieri", ["Pétrarque", "Boccace", "Le Tasse"], ["Petrarch", "Boccaccio", "Tasso"]],
+  ["Qui a écrit L'Iliade et l'Odyssée selon la tradition ?", "Traditional author of the Iliad and the Odyssey?", "Homère", "Homer", ["Hésiode", "Sophocle", "Pindare"], ["Hesiod", "Sophocles", "Pindar"]],
+  ["Qui a écrit Les Frères Karamazov ?", "Who wrote The Brothers Karamazov?", "Fiodor Dostoïevski", "Fyodor Dostoyevsky", ["Léon Tolstoï", "Anton Tchekhov", "Ivan Tourgueniev"], ["Leo Tolstoy", "Anton Chekhov", "Ivan Turgenev"]],
+  ["Qui a écrit Le Tambour ?", "Who wrote The Tin Drum?", "Günter Grass", "Günter Grass", ["Heinrich Böll", "Thomas Mann", "Hermann Hesse"], ["Heinrich Böll", "Thomas Mann", "Hermann Hesse"]],
+  ["Qui a écrit La Recherche du temps perdu ?", "Who wrote In Search of Lost Time?", "Marcel Proust", "Marcel Proust", ["André Gide", "Romain Rolland", "François Mauriac"], ["André Gide", "Romain Rolland", "François Mauriac"]],
+  ["Qui a écrit Le Loup des steppes ?", "Who wrote Steppenwolf?", "Hermann Hesse", "Hermann Hesse", ["Thomas Mann", "Robert Musil", "Günter Grass"], ["Thomas Mann", "Robert Musil", "Günter Grass"]],
+  ["Qui a écrit Les Bienveillantes (Goncourt 2006) ?", "Who wrote The Kindly Ones (2006 Goncourt)?", "Jonathan Littell", "Jonathan Littell", ["Michel Houellebecq", "Patrick Modiano", "Jean-Christophe Rufin"], ["Michel Houellebecq", "Patrick Modiano", "Jean-Christophe Rufin"]],
+  ["Qui a écrit La Peste (1947) ?", "Who wrote The Plague (1947)?", "Albert Camus", "Albert Camus", ["Jean-Paul Sartre", "André Malraux", "Romain Gary"], ["Jean-Paul Sartre", "André Malraux", "Romain Gary"]],
+  ["Qui a écrit Voyage au bout de la nuit (1932) ?", "Who wrote Journey to the End of the Night (1932)?", "Louis-Ferdinand Céline", "Louis-Ferdinand Céline", ["Marcel Aymé", "André Malraux", "Henri de Montherlant"], ["Marcel Aymé", "André Malraux", "Henri de Montherlant"]],
+  // Compositeurs (5)
+  ["Qui a composé Le Messie (oratorio) ?", "Who composed Messiah (oratorio)?", "Georg Friedrich Haendel", "George Frideric Handel", ["Jean-Sébastien Bach", "Heinrich Schütz", "Henry Purcell"], ["Johann Sebastian Bach", "Heinrich Schütz", "Henry Purcell"]],
+  ["Qui a composé La Symphonie du Nouveau Monde ?", "Who composed the New World Symphony?", "Antonín Dvořák", "Antonín Dvořák", ["Bedřich Smetana", "Leoš Janáček", "Béla Bartók"], ["Bedřich Smetana", "Leoš Janáček", "Béla Bartók"]],
+  ["Qui a composé La Mer (1905) ?", "Who composed La Mer (1905)?", "Claude Debussy", "Claude Debussy", ["Maurice Ravel", "Erik Satie", "Albert Roussel"], ["Maurice Ravel", "Erik Satie", "Albert Roussel"]],
+  ["Qui a composé Pierre et le Loup ?", "Who composed Peter and the Wolf?", "Sergueï Prokofiev", "Sergei Prokofiev", ["Dmitri Chostakovitch", "Aram Khatchatourian", "Nikolaï Rimsky-Korsakov"], ["Dmitri Shostakovich", "Aram Khachaturian", "Nikolai Rimsky-Korsakov"]],
+  ["Qui a composé l'opéra La Bohème ?", "Who composed La Bohème?", "Giacomo Puccini", "Giacomo Puccini", ["Giuseppe Verdi", "Pietro Mascagni", "Ruggero Leoncavallo"], ["Giuseppe Verdi", "Pietro Mascagni", "Ruggero Leoncavallo"]],
+  // Sculpteurs (5)
+  ["Qui a sculpté la fontaine de Trevi (programme du Bernin) ?", "Who designed the Trevi Fountain program?", "Nicola Salvi", "Nicola Salvi", ["Bernin", "Borromini", "Carlo Maderno"], ["Bernini", "Borromini", "Carlo Maderno"]],
+  ["Qui a sculpté L'Extase de sainte Thérèse ?", "Who sculpted The Ecstasy of Saint Teresa?", "Le Bernin", "Bernini", ["Borromini", "Algardi", "Du Quesnoy"], ["Borromini", "Algardi", "Du Quesnoy"]],
+  ["Qui a sculpté Le Baiser (1907-1908, marbre roumain) ?", "Who sculpted The Kiss (1907-1908)?", "Constantin Brâncuși", "Constantin Brâncuși", ["Auguste Rodin", "Henry Moore", "Alberto Giacometti"], ["Auguste Rodin", "Henry Moore", "Alberto Giacometti"]],
+  ["Quelle sculptrice française a été l'élève et compagne de Rodin ?", "Which French sculptress was Rodin's student and partner?", "Camille Claudel", "Camille Claudel", ["Niki de Saint Phalle", "Germaine Richier", "Louise Bourgeois"], ["Niki de Saint Phalle", "Germaine Richier", "Louise Bourgeois"]],
+  ["Qui a inventé les sculptures suspendues appelées « mobiles » ?", "Who invented the hanging sculptures called 'mobiles'?", "Alexander Calder", "Alexander Calder", ["David Smith", "Mark di Suvero", "Tony Smith"], ["David Smith", "Mark di Suvero", "Tony Smith"]],
+  // Architectes (5)
+  ["Qui a conçu le Seagram Building (1958) ?", "Who designed the Seagram Building (1958)?", "Mies van der Rohe", "Mies van der Rohe", ["Philip Johnson", "Louis Kahn", "Eero Saarinen"], ["Philip Johnson", "Louis Kahn", "Eero Saarinen"]],
+  ["Quel architecte japonais utilise massivement le béton brut et la lumière ?", "Which Japanese architect uses raw concrete and light?", "Tadao Andō", "Tadao Andō", ["Kenzō Tange", "Toyo Ito", "Kengo Kuma"], ["Kenzō Tange", "Toyo Ito", "Kengo Kuma"]],
+  ["Quelle architecte iraq-britannique a marqué le déconstructivisme ?", "Which Iraqi-British architect led deconstructivism?", "Zaha Hadid", "Zaha Hadid", ["Frank Gehry", "Daniel Libeskind", "Bernard Tschumi"], ["Frank Gehry", "Daniel Libeskind", "Bernard Tschumi"]],
+  ["Qui a co-conçu le Centre Pompidou ?", "Who co-designed the Centre Pompidou?", "Renzo Piano et Richard Rogers", "Renzo Piano and Richard Rogers", ["Frank Gehry et Norman Foster", "I. M. Pei et Henry Cobb", "Mario Botta seul"], ["Frank Gehry and Norman Foster", "I. M. Pei and Henry Cobb", "Mario Botta alone"]],
+  ["Quelle ville indienne fut planifiée par Le Corbusier ?", "Which Indian city was planned by Le Corbusier?", "Chandigarh", "Chandigarh", ["New Delhi", "Mumbai", "Pondichéry"], ["New Delhi", "Mumbai", "Pondicherry"]],
+  // Mouvements (5)
+  ["Quel mouvement précède le Maniérisme dans l'art italien ?", "Which movement preceded Mannerism in Italy?", "Haute Renaissance", "High Renaissance", ["Baroque", "Rococo", "Néoclassicisme"], ["Baroque", "Rococo", "Neoclassicism"]],
+  ["Quel mouvement britannique du XIXe rappelle les peintres avant Raphaël ?", "Which 19th-c. British movement evoked pre-Raphael painters?", "Préraphaélites", "Pre-Raphaelite Brotherhood", ["Esthétisme", "Arts & Crafts", "Bloomsbury"], ["Aestheticism", "Arts & Crafts", "Bloomsbury"]],
+  ["Quel mouvement précède les Fauves ?", "Which movement preceded the Fauves?", "Post-impressionnisme", "Post-Impressionism", ["Cubisme", "Symbolisme", "Réalisme"], ["Cubism", "Symbolism", "Realism"]],
+  ["Quelle ville a vu naître le mouvement Dada en 1916 ?", "Which city saw Dada born in 1916?", "Zurich", "Zurich", ["Berlin", "Paris", "New York"], ["Berlin", "Paris", "New York"]],
+  ["Quel mouvement Léger, Delaunay et Picabia explorent-ils ?", "Which movement involved Léger, Delaunay and Picabia?", "Cubisme orphique / Orphisme", "Orphism", ["Futurisme", "Vorticisme", "Suprématisme"], ["Futurism", "Vorticism", "Suprematism"]],
+  // Misc / muses / divers (5)
+  ["Qui était l'épouse de Diego Rivera ?", "Who was Diego Rivera's wife?", "Frida Kahlo", "Frida Kahlo", ["Tina Modotti", "Tamara de Lempicka", "Remedios Varo"], ["Tina Modotti", "Tamara de Lempicka", "Remedios Varo"]],
+  ["Quelle muse de Dalí a aussi été sa femme ?", "Which muse was also Dalí's wife?", "Gala", "Gala", ["Amanda Lear", "Lorca", "Buñuel"], ["Amanda Lear", "Lorca", "Buñuel"]],
+  ["Quelle photographe française fut la muse et collaboratrice de Picasso (1937) ?", "Which French photographer was Picasso's muse in 1937?", "Dora Maar", "Dora Maar", ["Lee Miller", "Berenice Abbott", "Germaine Krull"], ["Lee Miller", "Berenice Abbott", "Germaine Krull"]],
+  ["Quel musée new-yorkais Frank Lloyd Wright a-t-il conçu ?", "Which NYC museum did Frank Lloyd Wright design?", "Solomon R. Guggenheim", "Solomon R. Guggenheim", ["MoMA", "Whitney", "Met"], ["MoMA", "Whitney", "Met"]],
+  ["Quel musée parisien expose principalement l'art du XIXe siècle ?", "Which Paris museum focuses on 19th-c. art?", "Musée d'Orsay", "Musée d'Orsay", ["Louvre", "Petit Palais", "Centre Pompidou"], ["Louvre", "Petit Palais", "Pompidou Centre"]],
+  // Compléments hard (5)
+  ["Qui a peint Le Jardin des délices (triptyque) ?", "Who painted The Garden of Earthly Delights (triptych)?", "Hieronymus Bosch", "Hieronymus Bosch", ["Pieter Bruegel l'Ancien", "Hans Memling", "Joachim Patinier"], ["Pieter Bruegel the Elder", "Hans Memling", "Joachim Patinier"]],
+  ["Qui a peint La Maja desnuda et La Maja vestida ?", "Who painted The Nude Maja and The Clothed Maja?", "Francisco Goya", "Francisco Goya", ["Diego Vélasquez", "Bartolomé Murillo", "Joaquín Sorolla"], ["Diego Velázquez", "Bartolomé Murillo", "Joaquín Sorolla"]],
+  ["Qui a peint Le Café de nuit (Arles) ?", "Who painted The Night Cafe (Arles)?", "Vincent van Gogh", "Vincent van Gogh", ["Paul Gauguin", "Toulouse-Lautrec", "Paul Cézanne"], ["Paul Gauguin", "Toulouse-Lautrec", "Paul Cézanne"]],
+  ["Qui a écrit Le Désert des Tartares (1940) ?", "Who wrote The Tartar Steppe (1940)?", "Dino Buzzati", "Dino Buzzati", ["Italo Calvino", "Cesare Pavese", "Alberto Moravia"], ["Italo Calvino", "Cesare Pavese", "Alberto Moravia"]],
+  ["Qui a composé l'opéra Boris Godounov ?", "Who composed Boris Godunov (opera)?", "Modeste Moussorgski", "Modest Mussorgsky", ["Piotr Tchaïkovski", "Nikolaï Rimsky-Korsakov", "Mikhaïl Glinka"], ["Pyotr Tchaikovsky", "Nikolai Rimsky-Korsakov", "Mikhail Glinka"]],
+];
+
+/* ── Expert (Diamant · 2200 ELO) ──────────────────────────────────── */
+const expert: CuratedFact[] = [
+  // Peintres pointus (10)
+  ["Qui a peint la Vue de Delft ?", "Who painted View of Delft?", "Johannes Vermeer", "Johannes Vermeer", ["Pieter de Hooch", "Carel Fabritius", "Gerrit Dou"], ["Pieter de Hooch", "Carel Fabritius", "Gerrit Dou"]],
+  ["Qui a peint Bacchus et Ariane (Londres) ?", "Who painted Bacchus and Ariadne (London)?", "Titien", "Titian", ["Tintoret", "Véronèse", "Giorgione"], ["Tintoretto", "Veronese", "Giorgione"]],
+  ["Qui a peint Le Triomphe de la Mort (Prado) ?", "Who painted The Triumph of Death (Prado)?", "Pieter Bruegel l'Ancien", "Pieter Bruegel the Elder", ["Hieronymus Bosch", "Pieter Aertsen", "Joachim Patinier"], ["Hieronymus Bosch", "Pieter Aertsen", "Joachim Patinier"]],
+  ["Qui a peint Les Époux Arnolfini ?", "Who painted The Arnolfini Portrait?", "Jan van Eyck", "Jan van Eyck", ["Hubert van Eyck", "Rogier van der Weyden", "Hans Memling"], ["Hubert van Eyck", "Rogier van der Weyden", "Hans Memling"]],
+  ["Qui a peint la Madone Sixtine (1513) ?", "Who painted the Sistine Madonna (1513)?", "Raphaël", "Raphael", ["Léonard de Vinci", "Andrea del Sarto", "Le Pérugin"], ["Leonardo da Vinci", "Andrea del Sarto", "Perugino"]],
+  ["Qui a peint Les Mariés de la Tour Eiffel (1939) ?", "Who painted The Bride and Groom of the Eiffel Tower (1939)?", "Marc Chagall", "Marc Chagall", ["Raoul Dufy", "Robert Delaunay", "Maurice Utrillo"], ["Raoul Dufy", "Robert Delaunay", "Maurice Utrillo"]],
+  ["Qui a peint l'Hommage au carré (série) ?", "Who painted Homage to the Square (series)?", "Josef Albers", "Josef Albers", ["Mark Rothko", "Frank Stella", "Ellsworth Kelly"], ["Mark Rothko", "Frank Stella", "Ellsworth Kelly"]],
+  ["Qui a peint Le Couronnement de la Vierge (1432) à Florence ?", "Who painted the Coronation of the Virgin (1432) in Florence?", "Filippo Lippi", "Fra Filippo Lippi", ["Masaccio", "Masolino", "Domenico Veneziano"], ["Masaccio", "Masolino", "Domenico Veneziano"]],
+  ["Qui a peint La Tempête (vers 1508) ?", "Who painted The Tempest (c. 1508)?", "Giorgione", "Giorgione", ["Titien", "Bellini", "Carpaccio"], ["Titian", "Bellini", "Carpaccio"]],
+  ["Qui a peint Les Joueurs de cartes (Cézanne, série) ?", "Who painted The Card Players (series)?", "Paul Cézanne", "Paul Cézanne", ["Édouard Manet", "Vincent van Gogh", "Paul Gauguin"], ["Édouard Manet", "Vincent van Gogh", "Paul Gauguin"]],
+  // Auteurs (10)
+  ["Qui a écrit Pâle Feu (1962) ?", "Who wrote Pale Fire (1962)?", "Vladimir Nabokov", "Vladimir Nabokov", ["Saul Bellow", "Philip Roth", "John Updike"], ["Saul Bellow", "Philip Roth", "John Updike"]],
+  ["Qui a écrit Pedro Páramo (1955) ?", "Who wrote Pedro Páramo (1955)?", "Juan Rulfo", "Juan Rulfo", ["Carlos Fuentes", "Octavio Paz", "Mario Vargas Llosa"], ["Carlos Fuentes", "Octavio Paz", "Mario Vargas Llosa"]],
+  ["Qui a écrit La Montagne magique ?", "Who wrote The Magic Mountain?", "Thomas Mann", "Thomas Mann", ["Hermann Hesse", "Heinrich Mann", "Stefan Zweig"], ["Hermann Hesse", "Heinrich Mann", "Stefan Zweig"]],
+  ["Qui a écrit Fictions (Borges, 1944) ?", "Who wrote Ficciones (1944)?", "Jorge Luis Borges", "Jorge Luis Borges", ["Adolfo Bioy Casares", "Julio Cortázar", "Ernesto Sábato"], ["Adolfo Bioy Casares", "Julio Cortázar", "Ernesto Sábato"]],
+  ["Qui a écrit Sous le volcan ?", "Who wrote Under the Volcano?", "Malcolm Lowry", "Malcolm Lowry", ["Graham Greene", "D. H. Lawrence", "Aldous Huxley"], ["Graham Greene", "D. H. Lawrence", "Aldous Huxley"]],
+  ["Qui a écrit L'Homme sans qualités ?", "Who wrote The Man Without Qualities?", "Robert Musil", "Robert Musil", ["Hermann Broch", "Joseph Roth", "Stefan Zweig"], ["Hermann Broch", "Joseph Roth", "Stefan Zweig"]],
+  ["Qui a écrit Gravity's Rainbow ?", "Who wrote Gravity's Rainbow?", "Thomas Pynchon", "Thomas Pynchon", ["Don DeLillo", "Robert Coover", "John Barth"], ["Don DeLillo", "Robert Coover", "John Barth"]],
+  ["Qui a écrit Le Bruit et la Fureur ?", "Who wrote The Sound and the Fury?", "William Faulkner", "William Faulkner", ["F. Scott Fitzgerald", "John Steinbeck", "Eudora Welty"], ["F. Scott Fitzgerald", "John Steinbeck", "Eudora Welty"]],
+  ["Qui a écrit Le Maître et Marguerite ?", "Who wrote The Master and Margarita?", "Mikhaïl Boulgakov", "Mikhail Bulgakov", ["Andreï Biély", "Vladimir Nabokov", "Boris Pasternak"], ["Andrei Bely", "Vladimir Nabokov", "Boris Pasternak"]],
+  ["Qui a écrit La Recherche du temps perdu (premier tome 1913) ?", "Who wrote In Search of Lost Time (first vol. 1913)?", "Marcel Proust", "Marcel Proust", ["André Gide", "Roger Martin du Gard", "François Mauriac"], ["André Gide", "Roger Martin du Gard", "François Mauriac"]],
+  // Compositeurs (5)
+  ["Qui a composé Pierrot lunaire ?", "Who composed Pierrot lunaire?", "Arnold Schoenberg", "Arnold Schoenberg", ["Alban Berg", "Anton Webern", "Paul Hindemith"], ["Alban Berg", "Anton Webern", "Paul Hindemith"]],
+  ["Qui a composé l'opéra Wozzeck ?", "Who composed Wozzeck?", "Alban Berg", "Alban Berg", ["Arnold Schoenberg", "Anton Webern", "Karlheinz Stockhausen"], ["Arnold Schoenberg", "Anton Webern", "Karlheinz Stockhausen"]],
+  ["Qui a composé Le Marteau sans maître ?", "Who composed Le Marteau sans maître?", "Pierre Boulez", "Pierre Boulez", ["Olivier Messiaen", "Iannis Xenakis", "Henri Dutilleux"], ["Olivier Messiaen", "Iannis Xenakis", "Henri Dutilleux"]],
+  ["Qui a composé le Quatuor pour la fin du temps ?", "Who composed the Quartet for the End of Time?", "Olivier Messiaen", "Olivier Messiaen", ["Pierre Boulez", "Henri Dutilleux", "Iannis Xenakis"], ["Pierre Boulez", "Henri Dutilleux", "Iannis Xenakis"]],
+  ["Qui a composé l'opéra Lulu (inachevé) ?", "Who composed the unfinished opera Lulu?", "Alban Berg", "Alban Berg", ["Arnold Schoenberg", "Anton Webern", "Richard Strauss"], ["Arnold Schoenberg", "Anton Webern", "Richard Strauss"]],
+  // Sculpteurs antiques (5)
+  ["Qui sculpta l'Aphrodite de Cnide (IVe s. av. J.-C.) ?", "Who sculpted the Aphrodite of Knidos?", "Praxitèle", "Praxiteles", ["Phidias", "Polyclète", "Lysippe"], ["Phidias", "Polykleitos", "Lysippos"]],
+  ["Quel sculpteur grec dirigea les sculptures du Parthénon ?", "Which Greek sculptor led the Parthenon sculptures?", "Phidias", "Phidias", ["Praxitèle", "Lysippe", "Polyclète"], ["Praxiteles", "Lysippos", "Polykleitos"]],
+  ["Quel sculpteur grec a sculpté le Doryphore ?", "Who sculpted the Doryphoros?", "Polyclète", "Polykleitos", ["Phidias", "Praxitèle", "Lysippe"], ["Phidias", "Praxiteles", "Lysippos"]],
+  ["Quel sculpteur italien futuriste a peint Formes uniques de continuité ?", "Which Italian Futurist sculpted Unique Forms of Continuity in Space?", "Umberto Boccioni", "Umberto Boccioni", ["Giacomo Balla", "Carlo Carrà", "Gino Severini"], ["Giacomo Balla", "Carlo Carrà", "Gino Severini"]],
+  ["Quel sculpteur français a créé Spoon Woman (1926-27) ?", "Which artist sculpted Spoon Woman (1926-27)?", "Alberto Giacometti", "Alberto Giacometti", ["Henry Moore", "Constantin Brâncuși", "Jean Arp"], ["Henry Moore", "Constantin Brâncuși", "Jean Arp"]],
+  // Architectes pointus (5)
+  ["Quel architecte russe constructiviste a conçu la tour Tatlin ?", "Which Russian Constructivist designed the Tatlin Tower?", "Vladimir Tatline", "Vladimir Tatlin", ["Iakov Tchernikhov", "Konstantin Melnikov", "El Lissitzky"], ["Yakov Chernikhov", "Konstantin Melnikov", "El Lissitzky"]],
+  ["Quel architecte allemand a conçu la tente du stade olympique de Munich (1972) ?", "Which architect designed Munich's 1972 Olympic stadium tent?", "Frei Otto", "Frei Otto", ["Günter Behnisch", "Egon Eiermann", "Josef Paul Kleihues"], ["Günter Behnisch", "Egon Eiermann", "Josef Paul Kleihues"]],
+  ["Quelle agence japonaise (SANAA) regroupe Sejima et Nishizawa ?", "Which Japanese firm pairs Sejima and Nishizawa?", "SANAA", "SANAA", ["Atelier Bow-Wow", "Studio Mumbai", "Office KGDVS"], ["Atelier Bow-Wow", "Studio Mumbai", "Office KGDVS"]],
+  ["Quel architecte néerlandais dirige l'agence OMA ?", "Which Dutch architect leads OMA?", "Rem Koolhaas", "Rem Koolhaas", ["Wiel Arets", "Mecanoo", "MVRDV"], ["Wiel Arets", "Mecanoo", "MVRDV"]],
+  ["Qui a conçu Casa Batlló à Barcelone ?", "Who designed Casa Batlló in Barcelona?", "Antoni Gaudí", "Antoni Gaudí", ["Lluís Domènech i Montaner", "Josep Puig i Cadafalch", "Jujol"], ["Lluís Domènech i Montaner", "Josep Puig i Cadafalch", "Jujol"]],
+  // Mouvements (5)
+  ["Quel mouvement Bonnard et Vuillard ont-ils représenté ?", "Which movement did Bonnard and Vuillard represent?", "Nabis", "Les Nabis", ["Fauvisme", "Symbolisme", "Pointillisme"], ["Fauvism", "Symbolism", "Pointillism"]],
+  ["Quel mouvement russe regroupe Rodtchenko et Stepanova ?", "Which Russian movement included Rodchenko and Stepanova?", "Constructivisme", "Constructivism", ["Suprématisme", "Cubo-futurisme", "Rayonnisme"], ["Suprematism", "Cubo-Futurism", "Rayonism"]],
+  ["Quel mouvement néerlandais incluait Mondrian et Theo van Doesburg ?", "Which Dutch movement included Mondrian and Van Doesburg?", "De Stijl", "De Stijl", ["Cobra", "Magic Realism", "Amsterdamse School"], ["Cobra", "Magic Realism", "Amsterdam School"]],
+  ["Qui a fondé le Suprématisme ?", "Who founded Suprematism?", "Kasimir Malevitch", "Kazimir Malevich", ["Vladimir Tatline", "El Lissitzky", "Aleksandr Rodtchenko"], ["Vladimir Tatlin", "El Lissitzky", "Aleksandr Rodchenko"]],
+  ["Quelle ville italienne abrita le Futurisme dès 1909 ?", "Which Italian city saw Futurism emerge in 1909?", "Milan", "Milan", ["Rome", "Florence", "Turin"], ["Rome", "Florence", "Turin"]],
+  // Photographie / divers (10)
+  ["Qui a réalisé la première photographie permanente vers 1826 ?", "Who took the first permanent photograph (~1826)?", "Nicéphore Niépce", "Nicéphore Niépce", ["Louis Daguerre", "William Talbot", "Hippolyte Bayard"], ["Louis Daguerre", "William Talbot", "Hippolyte Bayard"]],
+  ["En quelle année est inventé le daguerréotype ?", "When was the daguerreotype invented?", "1839", "1839", ["1826", "1851", "1888"], ["1826", "1851", "1888"]],
+  ["Quel photographe français a documenté le Paris 1900 ?", "Which photographer documented Paris around 1900?", "Eugène Atget", "Eugène Atget", ["Nadar", "Brassaï", "Henri Lartigue"], ["Nadar", "Brassaï", "Henri Lartigue"]],
+  ["Quel photographe a documenté la crise des fermiers américains 1930s ?", "Which photographer documented 1930s US farm crisis?", "Walker Evans", "Walker Evans", ["Dorothea Lange", "Ansel Adams", "Berenice Abbott"], ["Dorothea Lange", "Ansel Adams", "Berenice Abbott"]],
+  ["Quelle photographe brésilienne a couvert l'or de Serra Pelada ?", "Which Brazilian photographer covered Serra Pelada gold mines?", "Sebastião Salgado", "Sebastião Salgado", ["Cristina García Rodero", "Mary Ellen Mark", "Susan Meiselas"], ["Cristina García Rodero", "Mary Ellen Mark", "Susan Meiselas"]],
+  ["Dans quel musée se trouve la Pietà de Michel-Ange ?", "Which museum holds Michelangelo's Pietà?", "Basilique Saint-Pierre", "St. Peter's Basilica", ["Vatican (musées)", "Galerie de l'Académie", "Musée du Bargello"], ["Vatican Museums", "Accademia Gallery", "Bargello"]],
+  ["Quel musée parisien expose Le Penseur de Rodin ?", "Which Paris museum displays Rodin's Thinker?", "Musée Rodin", "Rodin Museum", ["Musée d'Orsay", "Petit Palais", "Centre Pompidou"], ["Musée d'Orsay", "Petit Palais", "Pompidou Centre"]],
+  ["Combien de tableaux Vermeer nous est-il parvenu ?", "How many Vermeer paintings survive?", "Environ 36", "About 36", ["Plus de 100", "Environ 60", "Moins de 20"], ["Over 100", "About 60", "Fewer than 20"]],
+  ["Combien mesure environ Guernica de Picasso ?", "Approximate dimensions of Picasso's Guernica?", "3.5 × 7.8 m", "3.5 × 7.8 m", ["1.5 × 3 m", "2 × 4 m", "5 × 10 m"], ["1.5 × 3 m", "2 × 4 m", "5 × 10 m"]],
+  ["Quel musée florentin abrite La Naissance de Vénus de Botticelli ?", "Which Florentine museum holds Botticelli's Birth of Venus?", "Galerie des Offices", "Uffizi Gallery", ["Galerie Palatine", "Bargello", "Galerie de l'Académie"], ["Pitti Palace", "Bargello", "Accademia Gallery"]],
+];
+
+export const ART_QUESTIONS = buildCuratedCategory(
+  "art",
+  "art",
+  [easy, medium, hard, expert],
+);

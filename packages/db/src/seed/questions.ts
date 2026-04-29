@@ -1,9 +1,15 @@
 /**
  * Seed fixtures for the question bank.
- * Bilingual (FR + EN), mixed categories and difficulties.
+ *
+ * Hand-curated bilingual content lives under `./bank/<category>.ts` —
+ * 8 categories × 200 unique facts × 2 locales = 3 200 entries balanced
+ * across the 4 difficulties. Each fact has its own 3 distractors per
+ * locale, hand-picked for plausibility.
  *
  * Run with: pnpm db:seed
  */
+
+import { BANK_QUESTIONS } from "./bank";
 
 interface SeedQuestion {
   /** Stable id so re-running the seed upserts instead of duplicating */
@@ -17,9 +23,11 @@ interface SeedQuestion {
   correctIndex: number;
   explanation?: string;
   timeLimit?: number;
+  /** Optional ELO target 600–2400 (defaults to one derived from `difficulty`). */
+  eloTarget?: number;
 }
 
-export const QUESTIONS: SeedQuestion[] = [
+const HAND_CURATED: SeedQuestion[] = [
   // ─── FR ─────────────────────────────────────────────────────────────
   {
     id: "fr-geo-001",
@@ -396,5 +404,12 @@ export const QUESTIONS: SeedQuestion[] = [
     correctIndex: 2,
   },
 ];
+
+/**
+ * `HAND_CURATED` is preserved for the original 40 entries (used by
+ * historical tests and as a smoke-test set). The full curated bank under
+ * `./bank/` is the production source of truth.
+ */
+export const QUESTIONS: SeedQuestion[] = [...BANK_QUESTIONS];
 
 export type { SeedQuestion };

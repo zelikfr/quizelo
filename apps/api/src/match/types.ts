@@ -14,6 +14,8 @@ export interface DbQuestion {
   choices: Array<{ id: string; label: string }>;
   correctChoiceId: string;
   timeLimit: number;
+  /** Target ELO 600–2400; null when not yet classified. */
+  eloTarget: number | null;
 }
 
 /** A player slot inside a running match — real user or shadow. */
