@@ -115,7 +115,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "fr-web-001",
     locale: "fr",
-    category: "tech",
+    category: "web",
     difficulty: "medium",
     prompt: "Quel réseau social a été lancé en 2010 par Kevin Systrom ?",
     choices: ["Pinterest", "Instagram", "Snapchat", "TikTok"],
@@ -124,7 +124,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "fr-web-002",
     locale: "fr",
-    category: "tech",
+    category: "web",
     difficulty: "easy",
     prompt: "Que signifie HTTP ?",
     choices: [
@@ -138,7 +138,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "fr-web-003",
     locale: "fr",
-    category: "tech",
+    category: "web",
     difficulty: "hard",
     prompt: "Quel langage est utilisé pour interroger les bases de données relationnelles ?",
     choices: ["XML", "SQL", "JSON", "YAML"],
@@ -192,7 +192,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "fr-cine-001",
     locale: "fr",
-    category: "cinema",
+    category: "entertainment",
     difficulty: "easy",
     prompt: "Qui a réalisé Pulp Fiction ?",
     choices: ["Scorsese", "Tarantino", "Spielberg", "Coppola"],
@@ -201,7 +201,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "fr-cine-002",
     locale: "fr",
-    category: "cinema",
+    category: "entertainment",
     difficulty: "medium",
     prompt: "Quel film a remporté l'Oscar du meilleur film en 2020 ?",
     choices: ["1917", "Joker", "Parasite", "Once Upon a Time in Hollywood"],
@@ -303,7 +303,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "en-web-001",
     locale: "en",
-    category: "tech",
+    category: "web",
     difficulty: "medium",
     prompt: "Which social network did Kevin Systrom launch in 2010?",
     choices: ["Pinterest", "Instagram", "Snapchat", "TikTok"],
@@ -312,7 +312,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "en-web-002",
     locale: "en",
-    category: "tech",
+    category: "web",
     difficulty: "easy",
     prompt: "What does HTTP stand for?",
     choices: [
@@ -326,7 +326,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "en-web-003",
     locale: "en",
-    category: "tech",
+    category: "web",
     difficulty: "hard",
     prompt: "Which language is used to query relational databases?",
     choices: ["XML", "SQL", "JSON", "YAML"],
@@ -380,7 +380,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "en-cine-001",
     locale: "en",
-    category: "cinema",
+    category: "entertainment",
     difficulty: "easy",
     prompt: "Who directed Pulp Fiction?",
     choices: ["Scorsese", "Tarantino", "Spielberg", "Coppola"],
@@ -389,7 +389,7 @@ export const QUESTIONS: SeedQuestion[] = [
   {
     id: "en-cine-002",
     locale: "en",
-    category: "cinema",
+    category: "entertainment",
     difficulty: "medium",
     prompt: "Which film won Best Picture at the 2020 Oscars?",
     choices: ["1917", "Joker", "Parasite", "Once Upon a Time in Hollywood"],

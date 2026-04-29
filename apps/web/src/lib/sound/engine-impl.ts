@@ -126,7 +126,9 @@ export function setMusicScene(scene: Scene): void {
 
 function applyScene(scene: Scene): void {
   if (!lobbyTrack || !phase1Track || !phase2Track || !phase3Track) return;
-  // BPM ramps so the player feels acceleration phase-to-phase.
+  // Direct BPM assignment (no `rampTo`) — automating the BPM signal while
+  // many Parts loop on Transport corrupts the internal tick state and trips
+  // a race in TickSource.getTicksAtTime.
   const targetBpm =
     scene === "lobby"
       ? BPM_LOBBY
@@ -139,7 +141,7 @@ function applyScene(scene: Scene): void {
             : null;
   if (targetBpm !== null) {
     Tone.Transport.bpm.cancelScheduledValues(Tone.now());
-    Tone.Transport.bpm.rampTo(targetBpm, 1.5);
+    Tone.Transport.bpm.value = targetBpm;
   }
   // Cross-fade: only the requested track gains volume, every other one stops.
   lobbyTrack[scene === "lobby" ? "play" : "stop"]();
@@ -286,7 +288,17 @@ class LobbyTrack {
 
   play(): void {
     for (const p of this.parts) {
-      if (p.state !== "started") p.start(0);
+      if (p.state !== "started") {
+        // start() with no arg = "now" on the Transport timeline. Calling
+        // start(0) when Transport has been running schedules all events in
+        // the past, so the Part stays silent until its next loop boundary
+        // (up to several seconds later — fatal for short transitions).
+        try {
+          p.start();
+        } catch {
+          /* swallow — Part may be in a weird state */
+        }
+      }
     }
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(1, FADE_S);
@@ -295,6 +307,9 @@ class LobbyTrack {
   stop(): void {
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(0, FADE_S);
+    // We deliberately leave the Parts started — calling p.stop() at runtime
+    // mutates Tone.Transport's tick schedule mid-flight and can crash
+    // TickSource ("cannot read 'time' of undefined").
   }
 }
 
@@ -511,7 +526,17 @@ class Phase1Track {
 
   play(): void {
     for (const p of this.parts) {
-      if (p.state !== "started") p.start(0);
+      if (p.state !== "started") {
+        // start() with no arg = "now" on the Transport timeline. Calling
+        // start(0) when Transport has been running schedules all events in
+        // the past, so the Part stays silent until its next loop boundary
+        // (up to several seconds later — fatal for short transitions).
+        try {
+          p.start();
+        } catch {
+          /* swallow — Part may be in a weird state */
+        }
+      }
     }
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(1, FADE_S);
@@ -520,6 +545,9 @@ class Phase1Track {
   stop(): void {
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(0, FADE_S);
+    // We deliberately leave the Parts started — calling p.stop() at runtime
+    // mutates Tone.Transport's tick schedule mid-flight and can crash
+    // TickSource ("cannot read 'time' of undefined").
   }
 }
 
@@ -775,7 +803,17 @@ class Phase2Track {
 
   play(): void {
     for (const p of this.parts) {
-      if (p.state !== "started") p.start(0);
+      if (p.state !== "started") {
+        // start() with no arg = "now" on the Transport timeline. Calling
+        // start(0) when Transport has been running schedules all events in
+        // the past, so the Part stays silent until its next loop boundary
+        // (up to several seconds later — fatal for short transitions).
+        try {
+          p.start();
+        } catch {
+          /* swallow — Part may be in a weird state */
+        }
+      }
     }
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(1, FADE_S);
@@ -784,6 +822,9 @@ class Phase2Track {
   stop(): void {
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(0, FADE_S);
+    // We deliberately leave the Parts started — calling p.stop() at runtime
+    // mutates Tone.Transport's tick schedule mid-flight and can crash
+    // TickSource ("cannot read 'time' of undefined").
   }
 }
 
@@ -916,7 +957,6 @@ class Phase3Track {
       for (let beat = 0; beat < 4; beat++) {
         kickHits.push(`${bar}:${beat}:0`);
       }
-      // syncopated push: ghost kick on the "and of 1" + "and of 3"
       kickHits.push(`${bar}:0:2`);
       kickHits.push(`${bar}:2:2`);
     }
@@ -972,7 +1012,6 @@ class Phase3Track {
       const { root, fifth } = bassNotes[bar] ?? bassNotes[0]!;
       for (let beat = 0; beat < 4; beat++) {
         for (let sub = 0; sub < 4; sub++) {
-          // Pattern: R R F R | R R F R per beat
           const note = sub === 2 ? fifth : root;
           sub16th.push({ time: `${bar}:${beat}:${sub}`, note });
         }
@@ -1055,7 +1094,17 @@ class Phase3Track {
 
   play(): void {
     for (const p of this.parts) {
-      if (p.state !== "started") p.start(0);
+      if (p.state !== "started") {
+        // start() with no arg = "now" on the Transport timeline. Calling
+        // start(0) when Transport has been running schedules all events in
+        // the past, so the Part stays silent until its next loop boundary
+        // (up to several seconds later — fatal for short transitions).
+        try {
+          p.start();
+        } catch {
+          /* swallow — Part may be in a weird state */
+        }
+      }
     }
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(1, FADE_S);
@@ -1064,6 +1113,9 @@ class Phase3Track {
   stop(): void {
     this.out.gain.cancelScheduledValues(Tone.now());
     this.out.gain.rampTo(0, FADE_S);
+    // We deliberately leave the Parts started — calling p.stop() at runtime
+    // mutates Tone.Transport's tick schedule mid-flight and can crash
+    // TickSource ("cannot read 'time' of undefined").
   }
 }
 

@@ -15,20 +15,35 @@ export const REWARD_TINTS = ["#FFD166", "#C9CFE0", "#B07A4A"] as const;
 /** Sample question per category, used in the desktop grid card preview. */
 export type CategorySample = { fr: string; en: string };
 
+/**
+ * The 8 canonical category IDs — same as the values stored in
+ * `questions.category` on the DB so `categories.names.{id}` resolves
+ * everywhere (home, in-game chip, profile accuracy).
+ */
+export type CategoryId =
+  | "geography"
+  | "history"
+  | "entertainment"
+  | "sport"
+  | "art"
+  | "web"
+  | "science"
+  | "fun";
+
 export const CATEGORIES: ReadonlyArray<{
-  id: "Geography" | "History" | "Entertainment" | "Sport" | "Art" | "Web" | "Society" | "Fun";
+  id: CategoryId;
   icon: string;
   tint: string;
   sample: CategorySample;
 }> = [
-  { id: "Geography",     icon: "◯", tint: "#5EC2FF", sample: { fr: "Capitale du Bhoutan ?",          en: "Capital of Bhutan?" } },
-  { id: "History",       icon: "◇", tint: "#FFD166", sample: { fr: "Année du traité de Versailles ?", en: "Year of Versailles treaty?" } },
-  { id: "Entertainment", icon: "▣", tint: "#FF6BB5", sample: { fr: "Réalisateur de Inception ?",      en: "Director of Inception?" } },
-  { id: "Sport",         icon: "⏣", tint: "#4ADE80", sample: { fr: "Hôte des JO 2008 ?",             en: "Host of 2008 Olympics?" } },
-  { id: "Art",           icon: "✦", tint: "#A18BFF", sample: { fr: 'Auteur de "L\'Étranger" ?',      en: 'Author of "The Stranger"?' } },
-  { id: "Web",           icon: "⌬", tint: "#7DE0E0", sample: { fr: "Créateur de Linux ?",            en: "Creator of Linux?" } },
-  { id: "Society",       icon: "◧", tint: "#FF8B5C", sample: { fr: "Capitale économique du Maroc ?", en: "Economic capital of Morocco?" } },
-  { id: "Fun",           icon: "✺", tint: "#FF4D6D", sample: { fr: "Plus petit pays du monde ?",     en: "Smallest country?" } },
+  { id: "geography",     icon: "◯", tint: "#5EC2FF", sample: { fr: "Capitale du Bhoutan ?",          en: "Capital of Bhutan?" } },
+  { id: "history",       icon: "◇", tint: "#FFD166", sample: { fr: "Année du traité de Versailles ?", en: "Year of Versailles treaty?" } },
+  { id: "entertainment", icon: "▣", tint: "#FF6BB5", sample: { fr: "Réalisateur de Inception ?",      en: "Director of Inception?" } },
+  { id: "sport",         icon: "⏣", tint: "#4ADE80", sample: { fr: "Hôte des JO 2008 ?",             en: "Host of 2008 Olympics?" } },
+  { id: "art",           icon: "✦", tint: "#A18BFF", sample: { fr: 'Auteur de "L\'Étranger" ?',      en: 'Author of "The Stranger"?' } },
+  { id: "web",           icon: "⌬", tint: "#7DE0E0", sample: { fr: "Créateur de Linux ?",            en: "Creator of Linux?" } },
+  { id: "science",       icon: "⚛", tint: "#FF8B5C", sample: { fr: "Symbole chimique de l'or ?",     en: "Chemical symbol for gold?" } },
+  { id: "fun",           icon: "✺", tint: "#FF4D6D", sample: { fr: "Plus petit pays du monde ?",     en: "Smallest country?" } },
 ];
 
 /** Demo roster shown in the hero `LiveMatchCard`. */

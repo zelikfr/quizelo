@@ -1,43 +1,76 @@
 import { getTranslations } from "next-intl/server";
-import { rankFromElo, rankLabel } from "@/lib/ranks";
-import { PROFILE_ME } from "@/lib/profile-data";
+import { RANKS, rankFromElo, rankLabel } from "@/lib/ranks";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 
 interface ProfileStatsProps {
   locale: Locale;
+  elo: number;
+  totals: {
+    matches: number;
+    wins: number;
+    winRate: number; // 0..1
+    avgRank: number;
+  };
   compact?: boolean;
 }
 
-export async function ProfileStats({ locale, compact = false }: ProfileStatsProps) {
+/** Upper bound (inclusive) of the tier the given elo belongs to. */
+function tierTop(elo: number): number | null {
+  const idx = RANKS.findIndex((r, i) => {
+    const next = RANKS[i + 1];
+    return elo >= r.min && (!next || elo < next.min);
+  });
+  if (idx < 0) return null;
+  const next = RANKS[idx + 1];
+  return next ? next.min - 1 : null;
+}
+
+export async function ProfileStats({
+  locale,
+  elo,
+  totals,
+  compact = false,
+}: ProfileStatsProps) {
   const t = await getTranslations("profile.stats");
 
-  const rank = rankFromElo(PROFILE_ME.elo);
+  const rank = rankFromElo(elo);
   const tierLabel = rankLabel(rank, locale);
-  const winRatePct = `${Math.round(PROFILE_ME.winRate * 100)}%`;
-  const winsCount = Math.round(PROFILE_ME.winRate * PROFILE_ME.matches);
+  const top = tierTop(elo);
+  const eloSub = top != null ? `${tierLabel} · ${elo}/${top}` : `${tierLabel} · ${elo}`;
 
-  const stats: readonly { label: string; value: string; sub: string; color?: string }[] = [
+  const winRatePct = `${Math.round(totals.winRate * 100)}%`;
+  const avgRank = totals.avgRank > 0 ? totals.avgRank.toFixed(1) : "—";
+
+  const stats: ReadonlyArray<{
+    label: string;
+    value: string;
+    sub: string;
+    color?: string;
+  }> = [
     {
       label: "ELO",
-      value: String(PROFILE_ME.elo),
-      sub: `${tierLabel} · ${PROFILE_ME.elo}/1599`,
+      value: String(elo),
+      sub: eloSub,
       color: "#FFD166",
     },
     {
       label: t("matches"),
-      value: String(PROFILE_ME.matches),
+      value: String(totals.matches),
       sub: t("thisSeason"),
     },
     {
       label: t("winRate"),
       value: winRatePct,
-      sub: `${winsCount} / ${PROFILE_ME.matches}`,
+      sub:
+        totals.matches > 0
+          ? `${totals.wins} / ${totals.matches}`
+          : t("thisSeason"),
       color: "#4ADE80",
     },
     {
       label: t("avgRank"),
-      value: PROFILE_ME.avgRank.toFixed(1),
+      value: avgRank,
       sub: t("outOf10"),
       color: "#A18BFF",
     },

@@ -90,25 +90,13 @@
     "sub": "Each match draws from one category or blends them. Specialist? Generalist? The ladder doesn't care.",
     "daily": "+ 12,000 NEW QUESTIONS GENERATED DAILY",
     "names": {
-      "Entertainment": "Entertainment",
-      "Geography": "Geography",
-      "Web": "Web culture",
-      "Society": "Society",
-      "History": "History",
-      "Sport": "Sport",
-      "Art": "Art & Literature",
-      "Fun": "Curiosities",
       "geography": "Geography",
       "history": "History",
-      "science": "Science",
-      "tech": "Tech & Web",
-      "sport": "Sport",
-      "art": "Art & Culture",
-      "cinema": "Cinema",
-      "music": "Music",
-      "literature": "Literature",
-      "society": "Society",
       "entertainment": "Entertainment",
+      "sport": "Sport",
+      "art": "Art & Literature",
+      "web": "Web culture",
+      "science": "Science",
       "fun": "Curiosities"
     }
   },
@@ -691,12 +679,14 @@
       "outOf10": "of 10"
     },
     "chart": {
-      "title": "ELO PROGRESS — 30 DAYS",
-      "titleShort": "ELO PROGRESS"
+      "title": "ELO PROGRESS — LAST 30 MATCHES",
+      "titleShort": "ELO PROGRESS",
+      "empty": "Play your first match to start your curve."
     },
     "categories": {
       "title": "ACCURACY BY CATEGORY",
-      "titleShort": "BY CATEGORY"
+      "titleShort": "BY CATEGORY",
+      "empty": "Answer a few questions to see your stats."
     }
   },
 

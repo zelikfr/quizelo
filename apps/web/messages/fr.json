@@ -90,25 +90,13 @@
     "sub": "Chaque partie pioche dans une catégorie ou les mélange. Spécialiste ? Polyvalent·e ? Le classement se fiche de la différence.",
     "daily": "+ 12 000 NOUVELLES QUESTIONS GÉNÉRÉES PAR JOUR",
     "names": {
-      "Entertainment": "Divertissement",
-      "Geography": "Géographie",
-      "Web": "Culture web",
-      "Society": "Société",
-      "History": "Histoire",
-      "Sport": "Sport",
-      "Art": "Art & Littérature",
-      "Fun": "Insolite",
       "geography": "Géographie",
       "history": "Histoire",
-      "science": "Sciences",
-      "tech": "Tech & Web",
-      "sport": "Sport",
-      "art": "Art & Culture",
-      "cinema": "Cinéma",
-      "music": "Musique",
-      "literature": "Littérature",
-      "society": "Société",
       "entertainment": "Divertissement",
+      "sport": "Sport",
+      "art": "Art & Littérature",
+      "web": "Culture web",
+      "science": "Sciences",
       "fun": "Insolite"
     }
   },
@@ -691,12 +679,14 @@
       "outOf10": "sur 10"
     },
     "chart": {
-      "title": "PROGRESSION ELO — 30 JOURS",
-      "titleShort": "PROGRESSION ELO"
+      "title": "PROGRESSION ELO — 30 DERNIERS MATCHES",
+      "titleShort": "PROGRESSION ELO",
+      "empty": "Joue ta première partie pour voir ta courbe."
     },
     "categories": {
       "title": "PRÉCISION PAR CATÉGORIE",
-      "titleShort": "PAR CATÉGORIE"
+      "titleShort": "PAR CATÉGORIE",
+      "empty": "Réponds à quelques questions pour voir tes statistiques."
     }
   },
 
