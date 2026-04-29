@@ -6,6 +6,7 @@ import { registry } from "./registry";
 
 const enqueueBody = z.object({
   locale: z.string().min(2).max(8).default("fr"),
+  mode: z.enum(["quick", "ranked"]).default("quick"),
 });
 
 export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
@@ -23,6 +24,7 @@ export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
       const { matchId } = await matchmaker.enqueue({
         userId: session.userId,
         locale: parsed.data.locale,
+        mode: parsed.data.mode,
         log: app.log,
       });
       return { matchId };

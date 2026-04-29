@@ -7,7 +7,7 @@ import {
   type Match,
 } from "@quizelo/db";
 import { and, eq, sql } from "drizzle-orm";
-import type { MatchStatus } from "@quizelo/protocol";
+import type { MatchMode, MatchStatus } from "@quizelo/protocol";
 import type { AnswerRecord, MatchPlayer, MatchState } from "./types";
 
 /**
@@ -22,7 +22,7 @@ const isShadowId = (id: string) => id.startsWith("shadow:");
 export async function persistMatchCreate(state: MatchState): Promise<void> {
   await db.insert(matches).values({
     id: state.matchId,
-    mode: "quick",
+    mode: state.mode,
     status: state.status as Match["status"],
     locale: state.locale,
     seed: state.seed,
@@ -107,8 +107,11 @@ export async function persistPlayerUpdates(
 
 export async function persistMatchEnd(
   matchId: string,
+  mode: MatchMode,
   podium: { userId: string; rank: number; eloDelta: number; score: number }[],
 ): Promise<void> {
+  const isRanked = mode === "ranked";
+
   await db
     .update(matches)
     .set({ status: "results", endedAt: new Date() })
@@ -120,16 +123,21 @@ export async function persistMatchEnd(
       .update(matchPlayers)
       .set({
         finalRank: row.rank,
-        eloDelta: row.eloDelta,
+        // Quick matches don't move ELO — store NULL so leaderboard / profile
+        // can ignore them in their aggregates.
+        eloDelta: isRanked ? row.eloDelta : null,
         score: row.score,
       })
       .where(
         and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.userId, row.userId)),
       );
-    // Apply elo delta to the user row.
-    await db
-      .update(users)
-      .set({ elo: sql`GREATEST(0, ${users.elo} + ${row.eloDelta})` })
-      .where(eq(users.id, row.userId));
+
+    // Only ranked matches mutate `users.elo`.
+    if (isRanked) {
+      await db
+        .update(users)
+        .set({ elo: sql`GREATEST(0, ${users.elo} + ${row.eloDelta})` })
+        .where(eq(users.id, row.userId));
+    }
   }
 }

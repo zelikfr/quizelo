@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
+export type MatchMode = "quick" | "ranked";
+
 export type EnqueueResult =
   | { ok: true; matchId: string }
   | { ok: false; reason: "unauthorized" | "api_down" | "unknown"; message?: string };
@@ -15,7 +17,9 @@ export type EnqueueResult =
  * Enqueue the current user into a match lobby (or join an open one).
  * Forwards the Auth.js cookie so apps/api can decode the session.
  */
-export async function enqueueMatchAction(): Promise<EnqueueResult> {
+export async function enqueueMatchAction(
+  mode: MatchMode = "quick",
+): Promise<EnqueueResult> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, reason: "unauthorized" };
 
@@ -32,7 +36,7 @@ export async function enqueueMatchAction(): Promise<EnqueueResult> {
         cookie: cookieHeader,
         ...(xff ? { "x-forwarded-for": xff } : {}),
       },
-      body: JSON.stringify({ locale }),
+      body: JSON.stringify({ locale, mode }),
       cache: "no-store",
     });
   } catch (err) {
@@ -54,11 +58,18 @@ export async function enqueueMatchAction(): Promise<EnqueueResult> {
   return { ok: true, matchId: body.matchId };
 }
 
-/**
- * Convenience wrapper that enqueues + redirects. Used directly by forms.
- */
+/** Form-targetable enqueue + redirect, defaults to quick. */
 export async function enqueueAndRedirectAction(): Promise<void> {
-  const result = await enqueueMatchAction();
+  return enqueueAndRedirectFor("quick");
+}
+
+/** Form-targetable enqueue + redirect for ranked matches. */
+export async function enqueueRankedAndRedirectAction(): Promise<void> {
+  return enqueueAndRedirectFor("ranked");
+}
+
+async function enqueueAndRedirectFor(mode: MatchMode): Promise<void> {
+  const result = await enqueueMatchAction(mode);
   if (!result.ok) {
     if (result.reason === "unauthorized") redirect("/auth/login?from=/home");
     redirect("/home?error=match_unavailable");

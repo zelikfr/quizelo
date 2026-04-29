@@ -198,7 +198,10 @@
       "waiting": "{remaining, plural, =0 {Démarrage imminent} =1 {On attend 1 joueur} other {On attend # joueurs}}",
       "startsIn": "DÉMARRAGE DANS",
       "seats": "{real} / {total} joueurs",
-      "leave": "Quitter"
+      "leave": "Quitter",
+      "roomCode": "ROOM #{code}",
+      "modeQuick": "Partie normale",
+      "modeRanked": "Partie classée"
     },
     "live": {
       "loading": "On charge la prochaine question…",

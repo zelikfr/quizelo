@@ -12,7 +12,8 @@ interface PodiumPlayer {
 interface PodiumColumnProps {
   player: PodiumPlayer;
   place: 1 | 2 | 3;
-  eloDelta: number;
+  /** Set to `null` to hide the ELO line entirely (used for quick matches). */
+  eloDelta: number | null;
   /** Player's ELO before the match (for the "1487 → +12" line on desktop). */
   eloBefore?: number;
   isMe?: boolean;
@@ -53,8 +54,10 @@ export function PodiumColumn({
   const height = HEIGHT[variant][place];
   const avatarSize = AVATAR_SIZE[variant][place];
   const placeNumberSize = PLACE_NUMBER_SIZE[variant];
-  const deltaColor = eloDelta >= 0 ? "#4ADE80" : "#FF4D6D";
-  const deltaSign = eloDelta >= 0 ? "+" : "";
+  const showElo = eloDelta !== null;
+  const deltaColor =
+    eloDelta != null && eloDelta >= 0 ? "#4ADE80" : "#FF4D6D";
+  const deltaSign = eloDelta != null && eloDelta >= 0 ? "+" : "";
 
   return (
     <div
@@ -78,25 +81,28 @@ export function PodiumColumn({
       >
         {player.name}
       </div>
-      {compact ? (
-        <div className="font-mono text-[9px] font-bold" style={{ color: deltaColor }}>
-          {deltaSign}
-          {eloDelta}
-        </div>
-      ) : (
-        <div className="font-mono text-[11px] text-fg-3">
-          {(eloBefore ?? player.elo) !== undefined && (
-            <>
-              {eloBefore ?? player.elo}{" "}
-              →{" "}
-            </>
-          )}
-          <b style={{ color: deltaColor }}>
+      {showElo &&
+        (compact ? (
+          <div
+            className="font-mono text-[9px] font-bold"
+            style={{ color: deltaColor }}
+          >
             {deltaSign}
             {eloDelta}
-          </b>
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="font-mono text-[11px] text-fg-3">
+            {(eloBefore ?? player.elo) !== undefined && (
+              <>
+                {eloBefore ?? player.elo} →{" "}
+              </>
+            )}
+            <b style={{ color: deltaColor }}>
+              {deltaSign}
+              {eloDelta}
+            </b>
+          </div>
+        ))}
 
       <div
         className={cn(

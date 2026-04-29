@@ -29,6 +29,12 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
 
   const slots = Array.from({ length: SEATS }, (_, i) => state.players[i] ?? null);
 
+  // First 4 hex chars of the (UUID) matchId, uppercased — short room code.
+  const roomCode =
+    (state.matchId ?? "").replace(/[^a-f0-9]/gi, "").slice(0, 4).toUpperCase() ||
+    "----";
+  const modeLabel = state.mode === "ranked" ? t("modeRanked") : t("modeQuick");
+
   return (
     <main className="bg-surface-1 qa-scan relative isolate min-h-screen overflow-x-clip">
       <div className="qa-grid-bg" aria-hidden />
@@ -45,11 +51,11 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
         <div className="relative z-10 flex items-center justify-between px-14 py-6">
           <div className="flex items-center gap-3.5">
             <span className="text-violet-light font-mono text-[10px] font-bold tracking-[0.3em]">
-              ◆ {tStart("room")}
+              ◆ {t("roomCode", { code: roomCode })}
             </span>
             <span className="bg-fg-3 h-1 w-1 rounded-full" />
             <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">
-              {tStart("rankedRange")}
+              {modeLabel.toUpperCase()}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -136,7 +142,7 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
 
         <div className="relative z-10 flex items-center justify-between px-[22px] pt-12">
           <span className="text-violet-light font-mono text-[9px] font-bold tracking-[0.25em]">
-            ◆ {tStart("roomShort")}
+            ◆ {t("roomCode", { code: roomCode })}
           </span>
           <div className="flex items-center gap-2.5">
             {!isFull && (

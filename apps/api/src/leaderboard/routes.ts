@@ -58,7 +58,9 @@ function avatarSeed(row: LeaderRowDb): number {
   return Math.abs(h) % 100;
 }
 
-/** Resolve a delta map { userId → sum(eloDelta) } over the past 24 hours. */
+/** Resolve a delta map { userId → sum(eloDelta) } over the past 24 hours.
+ *  Only ranked matches contribute — quick matches don't move ELO and write
+ *  NULL deltas, but we filter on `mode` explicitly for query clarity. */
 async function fetchDeltas24h(
   userIds: string[],
 ): Promise<Map<string, number>> {
@@ -73,6 +75,7 @@ async function fetchDeltas24h(
     .innerJoin(matches, eq(matchPlayers.matchId, matches.id))
     .where(
       and(
+        eq(matches.mode, "ranked"),
         gte(matches.endedAt, since),
         inArray(matchPlayers.userId, userIds),
       ),

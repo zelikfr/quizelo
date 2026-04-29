@@ -198,7 +198,10 @@
       "waiting": "{remaining, plural, =0 {Starting now} =1 {Waiting for 1 more} other {Waiting for # more}}",
       "startsIn": "STARTS IN",
       "seats": "{real} / {total} players",
-      "leave": "Leave"
+      "leave": "Leave",
+      "roomCode": "ROOM #{code}",
+      "modeQuick": "Quick match",
+      "modeRanked": "Ranked match"
     },
     "live": {
       "loading": "Loading the next question…",

@@ -2,6 +2,7 @@ import { db, matchPlayers, users } from "@quizelo/db";
 import { eq } from "drizzle-orm";
 import type { FastifyBaseLogger } from "fastify";
 import { randomUUID } from "node:crypto";
+import type { MatchMode } from "@quizelo/protocol";
 import { MATCH_CONFIG } from "./config";
 import { persistMatchCreate } from "./persistence";
 import { pickQuestionsForMatch } from "./questions";
@@ -13,18 +14,24 @@ import type { MatchPlayer, MatchState } from "./types";
 interface PendingLobby {
   matchId: string;
   locale: string;
+  mode: MatchMode;
   room: MatchRoom;
 }
 
+/** Quick + ranked don't share lobbies — bucket pending rooms by both. */
+const lobbyKey = (locale: string, mode: MatchMode) => `${mode}:${locale}`;
+
 class Matchmaker {
-  private pendingByLocale = new Map<string, PendingLobby>();
+  private pendingByKey = new Map<string, PendingLobby>();
 
   async enqueue(opts: {
     userId: string;
     locale: string;
+    mode: MatchMode;
     log: FastifyBaseLogger;
   }): Promise<{ matchId: string }> {
-    const { userId, locale, log } = opts;
+    const { userId, locale, mode, log } = opts;
+    const key = lobbyKey(locale, mode);
 
     // Resume only if the user is actually still playing (hasn't been
     // eliminated, hasn't left). Eliminated rows stay in the room so we
@@ -41,7 +48,7 @@ class Matchmaker {
       }
     }
 
-    let pending = this.pendingByLocale.get(locale);
+    let pending = this.pendingByKey.get(key);
 
     // Discard ghost lobbies — rooms whose only inhabitants left or are shadows.
     if (pending) {
@@ -50,7 +57,7 @@ class Matchmaker {
       ).length;
       if (realActive === 0) {
         registry.delete(pending.matchId, log);
-        this.pendingByLocale.delete(locale);
+        this.pendingByKey.delete(key);
         pending = undefined;
       }
     }
@@ -66,15 +73,15 @@ class Matchmaker {
       return { matchId: pending.matchId };
     }
 
-    pending = await this.openLobby(locale, log);
+    pending = await this.openLobby(locale, mode, log);
     await this.addPlayerToLobby(pending.room, userId, log);
     pending.room.startLobby();
     pending.room.onPlayerJoined();
 
     // The lobby slot is no longer joinable once the silent-fill timer fires.
     setTimeout(() => {
-      if (this.pendingByLocale.get(locale)?.matchId === pending!.matchId) {
-        this.pendingByLocale.delete(locale);
+      if (this.pendingByKey.get(key)?.matchId === pending!.matchId) {
+        this.pendingByKey.delete(key);
       }
     }, MATCH_CONFIG.lobby.silentFillMs + 500);
 
@@ -83,6 +90,7 @@ class Matchmaker {
 
   private async openLobby(
     locale: string,
+    mode: MatchMode,
     log: FastifyBaseLogger,
   ): Promise<PendingLobby> {
     const matchId = randomUUID();
@@ -93,7 +101,7 @@ class Matchmaker {
     const state: MatchState = {
       matchId,
       status: "lobby",
-      mode: "quick",
+      mode,
       locale,
       seed,
       players: [],
@@ -108,9 +116,9 @@ class Matchmaker {
     const room = new MatchRoom(state, log);
     registry.set(matchId, room);
 
-    const pending: PendingLobby = { matchId, locale, room };
-    this.pendingByLocale.set(locale, pending);
-    log.info({ matchId, locale }, "match lobby opened");
+    const pending: PendingLobby = { matchId, locale, mode, room };
+    this.pendingByKey.set(lobbyKey(locale, mode), pending);
+    log.info({ matchId, locale, mode }, "match lobby opened");
     return pending;
   }
 

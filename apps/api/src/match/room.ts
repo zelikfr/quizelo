@@ -927,18 +927,21 @@ export class MatchRoom {
       ...phase2Out,
       ...phase1Out,
     ];
+    const isRanked = this.state.mode === "ranked";
     const podium = ordered.map((p, i) => ({
       userId: p.userId,
       rank: i + 1,
       score: p.score,
-      eloDelta: eloDeltaForRank(i + 1),
+      // Quick matches broadcast a delta of 0 so the result screen shows no
+      // ELO movement and matches what the DB will (not) write.
+      eloDelta: isRanked ? eloDeltaForRank(i + 1) : 0,
     }));
 
     this.state.status = "results";
     this.broadcast({ type: "match_end", podium });
 
-    await persistMatchEnd(this.state.matchId, podium).catch((err) =>
-      this.log.error(err, "persistMatchEnd failed"),
+    await persistMatchEnd(this.state.matchId, this.state.mode, podium).catch(
+      (err) => this.log.error(err, "persistMatchEnd failed"),
     );
 
     setTimeout(() => registry.delete(this.state.matchId, this.log), 30_000);

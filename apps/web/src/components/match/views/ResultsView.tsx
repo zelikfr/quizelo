@@ -46,6 +46,11 @@ export function ResultsView({ state }: ResultsViewProps) {
   const third = podium.find((p) => p.rank === 3);
   const rest = podium.slice(3);
 
+  // Quick matches don't move ELO — hide every "+N / -N" cell instead of
+  // showing zero everywhere.
+  const isRanked = state.mode === "ranked";
+  const eloFor = (delta: number): number | null => (isRanked ? delta : null);
+
   return (
     <main className="relative isolate min-h-screen overflow-x-clip bg-surface-1 qa-scan">
       <div className="qa-grid-bg" aria-hidden />
@@ -81,7 +86,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(second, playerById)}
               place={2}
-              eloDelta={second.eloDelta}
+              eloDelta={eloFor(second.eloDelta)}
               isMe={second.userId === state.selfId}
             />
           )}
@@ -89,7 +94,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(first, playerById)}
               place={1}
-              eloDelta={first.eloDelta}
+              eloDelta={eloFor(first.eloDelta)}
               isMe={first.userId === state.selfId}
             />
           )}
@@ -97,7 +102,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(third, playerById)}
               place={3}
-              eloDelta={third.eloDelta}
+              eloDelta={eloFor(third.eloDelta)}
               isMe={third.userId === state.selfId}
             />
           )}
@@ -122,21 +127,20 @@ export function ResultsView({ state }: ResultsViewProps) {
                   <span className="flex-1 font-display text-[13px]">
                     {p?.name ?? row.userId}
                   </span>
-                  <span className="font-mono text-[12px] tabular-nums text-fg-2">
-                    {row.score}
-                  </span>
-                  <span
-                    className={cn(
-                      "w-12 text-right font-mono text-[11px] tabular-nums",
-                      row.eloDelta > 0
-                        ? "text-success"
-                        : row.eloDelta < 0
-                          ? "text-danger"
-                          : "text-fg-3",
-                    )}
-                  >
-                    {formatDelta(row.eloDelta)}
-                  </span>
+                  {isRanked && (
+                    <span
+                      className={cn(
+                        "w-12 text-right font-mono text-[11px] tabular-nums",
+                        row.eloDelta > 0
+                          ? "text-success"
+                          : row.eloDelta < 0
+                            ? "text-danger"
+                            : "text-fg-3",
+                      )}
+                    >
+                      {formatDelta(row.eloDelta)}
+                    </span>
+                  )}
                 </div>
               );
             })}
@@ -186,7 +190,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(second, playerById)}
               place={2}
-              eloDelta={second.eloDelta}
+              eloDelta={eloFor(second.eloDelta)}
               isMe={second.userId === state.selfId}
               compact
             />
@@ -195,7 +199,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(first, playerById)}
               place={1}
-              eloDelta={first.eloDelta}
+              eloDelta={eloFor(first.eloDelta)}
               isMe={first.userId === state.selfId}
               compact
             />
@@ -204,7 +208,7 @@ export function ResultsView({ state }: ResultsViewProps) {
             <PodiumColumn
               player={mapToPodium(third, playerById)}
               place={3}
-              eloDelta={third.eloDelta}
+              eloDelta={eloFor(third.eloDelta)}
               isMe={third.userId === state.selfId}
               compact
             />
