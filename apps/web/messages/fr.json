@@ -699,6 +699,11 @@
       "title": "PRÉCISION PAR CATÉGORIE",
       "titleShort": "PAR CATÉGORIE",
       "empty": "Réponds à quelques questions pour voir tes statistiques."
+    },
+    "history": {
+      "title": "20 DERNIÈRES PARTIES",
+      "empty": "Pas encore de partie terminée.",
+      "win": "VICTOIRE"
     }
   },
 

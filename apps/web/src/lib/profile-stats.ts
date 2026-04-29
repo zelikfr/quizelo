@@ -10,8 +10,19 @@ import {
   users,
 } from "@quizelo/db";
 import { and, desc, eq, isNotNull, sql, type SQL } from "drizzle-orm";
+import type { MatchMode } from "@quizelo/protocol";
 
 export type ProfileFilter = "all" | "quick" | "ranked";
+
+export interface RecentMatch {
+  matchId: string;
+  endedAt: Date;
+  mode: MatchMode;
+  /** 1..10, position the user finished the match at. */
+  finalRank: number;
+  /** ELO change for this match, or `null` for quick matches. */
+  eloDelta: number | null;
+}
 
 export interface ProfileStats {
   user: {
@@ -40,10 +51,13 @@ export interface ProfileStats {
     correct: number;
     total: number;
   }>;
+  /** Most-recent-first list of the player's last completed matches. */
+  recentMatches: RecentMatch[];
 }
 
 const HISTORY_LIMIT = 30;
 const CATEGORY_LIMIT = 8;
+const RECENT_MATCHES_LIMIT = 20;
 
 /** Resolve the currently authenticated user's profile stats. */
 export async function fetchProfileStats(
@@ -162,6 +176,37 @@ export async function fetchProfileStatsFor(
     };
   });
 
+  /* ── Recent matches (last N completed, newest first) ────────────────── */
+  const recentConditions: SQL[] = [
+    eq(matchPlayers.userId, userId),
+    isNotNull(matches.endedAt),
+    isNotNull(matchPlayers.finalRank),
+  ];
+  if (modeFilter) recentConditions.push(modeFilter);
+  const recentRows = await db
+    .select({
+      matchId: matches.id,
+      endedAt: matches.endedAt,
+      mode: matches.mode,
+      finalRank: matchPlayers.finalRank,
+      eloDelta: matchPlayers.eloDelta,
+    })
+    .from(matchPlayers)
+    .innerJoin(matches, eq(matchPlayers.matchId, matches.id))
+    .where(and(...recentConditions))
+    .orderBy(desc(matches.endedAt))
+    .limit(RECENT_MATCHES_LIMIT);
+
+  const recentMatches: RecentMatch[] = recentRows
+    .filter((r) => r.endedAt !== null && r.finalRank !== null)
+    .map((r) => ({
+      matchId: r.matchId,
+      endedAt: r.endedAt as Date,
+      mode: r.mode as MatchMode,
+      finalRank: r.finalRank as number,
+      eloDelta: r.eloDelta,
+    }));
+
   return {
     user: {
       id: userRow.id,
@@ -175,5 +220,6 @@ export async function fetchProfileStatsFor(
     totals: { matches: matchesCount, wins, winRate, avgRank },
     eloHistory: points,
     categories,
+    recentMatches,
   };
 }

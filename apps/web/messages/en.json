@@ -699,6 +699,11 @@
       "title": "ACCURACY BY CATEGORY",
       "titleShort": "BY CATEGORY",
       "empty": "Answer a few questions to see your stats."
+    },
+    "history": {
+      "title": "LAST 20 MATCHES",
+      "empty": "No completed match yet.",
+      "win": "WIN"
     }
   },
 

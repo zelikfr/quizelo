@@ -5,6 +5,7 @@ import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { CategoryAccuracy } from "@/components/profile/CategoryAccuracy";
 import { EloChart } from "@/components/profile/EloChart";
+import { MatchHistory } from "@/components/profile/MatchHistory";
 import { ProfileFilters } from "@/components/profile/ProfileFilters";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
@@ -50,12 +51,14 @@ export default async function ProfilePage({
           <ProfileStats locale={loc} elo={stats.user.elo} totals={stats.totals} />
 
           <div
-            className="grid flex-1 gap-3.5"
+            className="grid gap-3.5"
             style={{ gridTemplateColumns: "1.5fr 1fr" }}
           >
             <EloChart history={stats.eloHistory} />
             <CategoryAccuracy data={stats.categories} />
           </div>
+
+          <MatchHistory matches={stats.recentMatches} />
         </div>
       </div>
 
@@ -82,6 +85,10 @@ export default async function ProfilePage({
 
         <div className="px-[18px] pt-3.5">
           <CategoryAccuracy data={stats.categories} compact />
+        </div>
+
+        <div className="px-[18px] pt-3.5 pb-4">
+          <MatchHistory matches={stats.recentMatches} compact />
         </div>
 
         <div className="flex-1" />
