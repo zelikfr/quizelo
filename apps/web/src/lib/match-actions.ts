@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getLocale } from "next-intl/server";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getQuickQuota } from "@/lib/quick-quota";
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
@@ -69,6 +70,19 @@ export async function enqueueRankedAndRedirectAction(): Promise<void> {
 }
 
 async function enqueueAndRedirectFor(mode: MatchMode): Promise<void> {
+  // Daily-quota gate for free users on quick matches: we only *check* here
+  // and block lobby entry — the actual decrement happens server-side at
+  // phase-1 start so a player who quits the lobby before the match begins
+  // doesn't burn a free game.
+  if (mode === "quick") {
+    const session = await auth();
+    if (!session?.user?.id) redirect("/auth/login?from=/home");
+    const quota = await getQuickQuota(session.user.id);
+    if (quota && !quota.isPremium && (quota.remaining ?? 0) <= 0) {
+      redirect("/home?error=quick_quota_exhausted");
+    }
+  }
+
   const result = await enqueueMatchAction(mode);
   if (!result.ok) {
     if (result.reason === "unauthorized") redirect("/auth/login?from=/home");

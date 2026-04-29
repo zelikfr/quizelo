@@ -163,7 +163,8 @@
         "free": "GRATUIT",
         "description": "Difficulté modérée. Pas d'impact sur ton classement.",
         "freeLeft": "parties restantes aujourd'hui",
-        "watchAd": "Regarde une pub pour gagner +1 partie"
+        "watchAd": "Regarde une pub pour gagner +1 partie",
+        "blocked": "Quota atteint — reviens demain"
       },
       "ranked": {
         "title": "Match classé",

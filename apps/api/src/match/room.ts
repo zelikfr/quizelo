@@ -10,6 +10,7 @@ import type {
 import type { WebSocket } from "ws";
 import { MATCH_CONFIG } from "./config";
 import {
+  consumeQuickQuotaForUsers,
   flushAnswers,
   persistMatchEnd,
   persistMatchStatus,
@@ -234,9 +235,29 @@ export class MatchRoom {
 
   // ─── Phase orchestration ──────────────────────────────────────
   private async startPhase(phase: MatchPhase): Promise<void> {
+    const wasInLobby = this.state.status === "lobby";
     this.state.status = phase;
     this.state.currentPhase = phase;
     this.state.lobbyStartsAt = null;
+
+    // Consume each non-shadow player's daily quota at the moment the match
+    // *actually* starts (lobby → phase 1, quick mode only). Players who
+    // quit during the lobby are filtered out — their `markLeft` removed
+    // them from `state.players`. Premium users are filtered server-side.
+    if (
+      wasInLobby &&
+      phase === "phase1" &&
+      this.state.mode === "quick"
+    ) {
+      const userIds = this.state.players
+        .filter((p) => !p.isShadow && p.status !== "left")
+        .map((p) => p.userId);
+      if (userIds.length > 0) {
+        await consumeQuickQuotaForUsers(userIds).catch((err) =>
+          this.log.error(err, "consumeQuickQuotaForUsers failed"),
+        );
+      }
+    }
 
     // Phase 3: reset lives for the 3 finalists.
     if (phase === "phase3") {

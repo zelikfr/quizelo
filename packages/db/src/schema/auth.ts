@@ -42,6 +42,13 @@ export const users = pgTable("users", {
   postalCode: text("postal_code"),
   country: text("country"),
 
+  // ── Quick-match daily quota (free tier only — premium ignores it).
+  // Counter resets to QUICK_QUOTA_PER_DAY every UTC midnight on first read /
+  // write. The "watch ad" CTA increments it without a hard cap so a user
+  // who watches several ads can stack a few extra matches.
+  quickMatchesRemaining: integer("quick_matches_remaining").default(3).notNull(),
+  quickMatchesResetAt: timestamp("quick_matches_reset_at", { withTimezone: true }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -163,7 +163,8 @@
         "free": "FREE",
         "description": "Moderate difficulty. No ranking impact.",
         "freeLeft": "games left today",
-        "watchAd": "Watch an ad to earn +1 game"
+        "watchAd": "Watch an ad to earn +1 game",
+        "blocked": "Daily quota reached — come back tomorrow"
       },
       "ranked": {
         "title": "Ranked match",
