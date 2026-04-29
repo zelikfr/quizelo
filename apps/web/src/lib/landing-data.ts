@@ -46,6 +46,19 @@ export const CATEGORIES: ReadonlyArray<{
   { id: "fun",           icon: "✺", tint: "#FF4D6D", sample: { fr: "Plus petit pays du monde ?",     en: "Smallest country?" } },
 ];
 
+/** Default chip color used for a category that's not in the canonical list. */
+const FALLBACK_TINT = "#A18BFF"; // violet-light
+
+/** Look up the home-page tint for a category id. Case-insensitive. */
+export function tintForCategory(id: string | null | undefined): string {
+  if (!id) return FALLBACK_TINT;
+  const key = id.toLowerCase();
+  for (const c of CATEGORIES) {
+    if (c.id === key) return c.tint;
+  }
+  return FALLBACK_TINT;
+}
+
 /** Demo roster shown in the hero `LiveMatchCard`. */
 export const HERO_ROSTER = [
   { id: 1, name: "Aria",  seed: 0, dim: false },

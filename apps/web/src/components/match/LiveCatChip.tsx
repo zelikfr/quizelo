@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { tintForCategory } from "@/lib/landing-data";
 
 interface LiveCatChipProps {
   cat: string;
@@ -15,8 +16,17 @@ export function LiveCatChip({ cat }: LiveCatChipProps) {
     label = cat;
   }
 
+  const tint = tintForCategory(cat);
+
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-pill border border-violet/30 bg-violet/[0.12] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em] text-violet-light">
+    <span
+      className="inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.06em]"
+      style={{
+        color: tint,
+        borderColor: `${tint}55`,
+        background: `${tint}1F`,
+      }}
+    >
       {label}
     </span>
   );
