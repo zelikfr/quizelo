@@ -65,12 +65,6 @@ function Phase1View({ state, onAnswer }: QuestionViewProps) {
   const aliveRight = aliveSorted.slice(half);
 
   const handlePick = (choiceId: string) => {
-    console.info("[Phase1View] handlePick", {
-      choiceId,
-      isAnswered,
-      isReveal,
-      qIndex: q.index,
-    });
     if (isAnswered || isReveal) return;
     onAnswer(q.index, choiceId);
   };

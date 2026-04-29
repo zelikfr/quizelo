@@ -127,16 +127,7 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
     dispatch({ type: "_local/answer_pick", questionIndex, choiceId });
 
     const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.warn("[ws] answer not sent — socket not open", {
-        hasSocket: !!ws,
-        readyState: ws?.readyState,
-        questionIndex,
-        choiceId,
-      });
-      return;
-    }
-    console.info("[ws] sending answer", { questionIndex, choiceId });
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
     ws.send(
       JSON.stringify({
         type: "answer",

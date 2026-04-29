@@ -159,7 +159,7 @@
     },
     "modes": {
       "quick": {
-        "title": "Partie rapide",
+        "title": "Partie normale",
         "free": "GRATUIT",
         "description": "Difficulté modérée. Pas d'impact sur ton classement.",
         "freeLeft": "parties restantes aujourd'hui",
@@ -677,6 +677,11 @@
       "avgRank": "RANG MOYEN",
       "thisSeason": "cette saison",
       "outOf10": "sur 10"
+    },
+    "filters": {
+      "all": "Tout",
+      "quick": "Partie normale",
+      "ranked": "Partie classée"
     },
     "chart": {
       "title": "PROGRESSION ELO — 30 DERNIERS MATCHES",

@@ -39,7 +39,6 @@ export async function ProfileStats({
   const top = tierTop(elo);
   const eloSub = top != null ? `${tierLabel} · ${elo}/${top}` : `${tierLabel} · ${elo}`;
 
-  const winRatePct = `${Math.round(totals.winRate * 100)}%`;
   const avgRank = totals.avgRank > 0 ? totals.avgRank.toFixed(1) : "—";
 
   const stats: ReadonlyArray<{
@@ -60,15 +59,6 @@ export async function ProfileStats({
       sub: t("thisSeason"),
     },
     {
-      label: t("winRate"),
-      value: winRatePct,
-      sub:
-        totals.matches > 0
-          ? `${totals.wins} / ${totals.matches}`
-          : t("thisSeason"),
-      color: "#4ADE80",
-    },
-    {
       label: t("avgRank"),
       value: avgRank,
       sub: t("outOf10"),
@@ -77,7 +67,7 @@ export async function ProfileStats({
   ];
 
   return (
-    <div className={cn("grid gap-3.5", compact ? "grid-cols-2 gap-2" : "grid-cols-4")}>
+    <div className={cn("grid gap-3.5", compact ? "grid-cols-3 gap-2" : "grid-cols-3")}>
       {stats.map((s) => (
         <div
           key={s.label}

@@ -9,7 +9,9 @@ import {
   questions,
   users,
 } from "@quizelo/db";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql, type SQL } from "drizzle-orm";
+
+export type ProfileFilter = "all" | "quick" | "ranked";
 
 export interface ProfileStats {
   user: {
@@ -44,20 +46,33 @@ const HISTORY_LIMIT = 30;
 const CATEGORY_LIMIT = 8;
 
 /** Resolve the currently authenticated user's profile stats. */
-export async function fetchProfileStats(): Promise<ProfileStats | null> {
+export async function fetchProfileStats(
+  filter: ProfileFilter = "all",
+): Promise<ProfileStats | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
-  return fetchProfileStatsFor(session.user.id);
+  return fetchProfileStatsFor(session.user.id, filter);
 }
 
 /** Same as `fetchProfileStats` but for an explicit user id (e.g. /profile/[handle]). */
 export async function fetchProfileStatsFor(
   userId: string,
+  filter: ProfileFilter = "all",
 ): Promise<ProfileStats | null> {
   const userRow = await db.query.users.findFirst({
     where: eq(users.id, userId),
   });
   if (!userRow) return null;
+
+  // The mode filter constrains every aggregate that joins `matches`. The user
+  // info (ELO, joinedAt, handle…) above is unfiltered — it always reflects
+  // the current state of the row.
+  const modeFilter: SQL | undefined =
+    filter === "quick"
+      ? eq(matches.mode, "quick")
+      : filter === "ranked"
+        ? eq(matches.mode, "ranked")
+        : undefined;
 
   /* ── Totals (matches, wins, sum & count of finalRank) ───────────────── */
   const totalsRows = await db
@@ -68,7 +83,12 @@ export async function fetchProfileStatsFor(
       rankedCount: sql<number>`COALESCE(SUM(CASE WHEN ${matchPlayers.finalRank} IS NOT NULL THEN 1 ELSE 0 END), 0)::int`,
     })
     .from(matchPlayers)
-    .where(eq(matchPlayers.userId, userId));
+    .innerJoin(matches, eq(matchPlayers.matchId, matches.id))
+    .where(
+      modeFilter
+        ? and(eq(matchPlayers.userId, userId), modeFilter)
+        : eq(matchPlayers.userId, userId),
+    );
 
   const t = totalsRows[0];
   const matchesCount = Number(t?.total ?? 0);
@@ -79,6 +99,12 @@ export async function fetchProfileStatsFor(
   const avgRank = ranked > 0 ? sumRank / ranked : 0;
 
   /* ── ELO history — walk backward from current ELO subtracting deltas ── */
+  const histConditions: SQL[] = [
+    eq(matchPlayers.userId, userId),
+    isNotNull(matches.endedAt),
+    isNotNull(matchPlayers.eloDelta),
+  ];
+  if (modeFilter) histConditions.push(modeFilter);
   const histRows = await db
     .select({
       at: matches.endedAt,
@@ -86,13 +112,7 @@ export async function fetchProfileStatsFor(
     })
     .from(matchPlayers)
     .innerJoin(matches, eq(matchPlayers.matchId, matches.id))
-    .where(
-      and(
-        eq(matchPlayers.userId, userId),
-        isNotNull(matches.endedAt),
-        isNotNull(matchPlayers.eloDelta),
-      ),
-    )
+    .where(and(...histConditions))
     .orderBy(desc(matches.endedAt))
     .limit(HISTORY_LIMIT);
 
@@ -107,18 +127,29 @@ export async function fetchProfileStatsFor(
   points.reverse();
 
   /* ── Category accuracy (up to N most-answered categories) ───────────── */
-  const catRows = await db
-    .select({
-      id: questions.category,
-      total: sql<number>`COUNT(*)::int`,
-      correct: sql<number>`COALESCE(SUM(CASE WHEN ${matchAnswers.isCorrect} THEN 1 ELSE 0 END), 0)::int`,
-    })
-    .from(matchAnswers)
-    .innerJoin(questions, eq(matchAnswers.questionId, questions.id))
-    .where(eq(matchAnswers.userId, userId))
-    .groupBy(questions.category)
-    .orderBy(desc(sql`COUNT(*)`))
-    .limit(CATEGORY_LIMIT);
+  const catSelect = {
+    id: questions.category,
+    total: sql<number>`COUNT(*)::int`,
+    correct: sql<number>`COALESCE(SUM(CASE WHEN ${matchAnswers.isCorrect} THEN 1 ELSE 0 END), 0)::int`,
+  };
+  const catRows = modeFilter
+    ? await db
+        .select(catSelect)
+        .from(matchAnswers)
+        .innerJoin(questions, eq(matchAnswers.questionId, questions.id))
+        .innerJoin(matches, eq(matchAnswers.matchId, matches.id))
+        .where(and(eq(matchAnswers.userId, userId), modeFilter))
+        .groupBy(questions.category)
+        .orderBy(desc(sql`COUNT(*)`))
+        .limit(CATEGORY_LIMIT)
+    : await db
+        .select(catSelect)
+        .from(matchAnswers)
+        .innerJoin(questions, eq(matchAnswers.questionId, questions.id))
+        .where(eq(matchAnswers.userId, userId))
+        .groupBy(questions.category)
+        .orderBy(desc(sql`COUNT(*)`))
+        .limit(CATEGORY_LIMIT);
 
   const categories = catRows.map((r) => {
     const total = Number(r.total) || 0;

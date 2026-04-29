@@ -678,6 +678,11 @@
       "thisSeason": "this season",
       "outOf10": "of 10"
     },
+    "filters": {
+      "all": "All",
+      "quick": "Quick match",
+      "ranked": "Ranked match"
+    },
     "chart": {
       "title": "ELO PROGRESS — LAST 30 MATCHES",
       "titleShort": "ELO PROGRESS",

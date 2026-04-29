@@ -43,10 +43,7 @@ export function QAChoice({
   return (
     <button
       type="button"
-      onClick={(e) => {
-        console.info("[QAChoice] click", { letter, state, isDisabled });
-        if (onClick) onClick();
-      }}
+      onClick={onClick}
       disabled={isDisabled}
       aria-pressed={state === "selected"}
       className={cn(

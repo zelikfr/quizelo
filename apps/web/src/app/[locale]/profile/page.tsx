@@ -5,20 +5,32 @@ import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { CategoryAccuracy } from "@/components/profile/CategoryAccuracy";
 import { EloChart } from "@/components/profile/EloChart";
+import { ProfileFilters } from "@/components/profile/ProfileFilters";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
-import { fetchProfileStats } from "@/lib/profile-stats";
+import { fetchProfileStats, type ProfileFilter } from "@/lib/profile-stats";
 
 interface ProfilePageProps {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ mode?: string }>;
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+function normaliseFilter(raw: string | undefined): ProfileFilter {
+  return raw === "quick" || raw === "ranked" ? raw : "all";
+}
+
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: ProfilePageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const loc = (await getLocale()) as Locale;
 
-  const stats = await fetchProfileStats();
+  const sp = await searchParams;
+  const filter = normaliseFilter(sp.mode);
+
+  const stats = await fetchProfileStats(filter);
   if (!stats) {
     redirect("/auth/login?from=/profile");
   }
@@ -34,6 +46,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
         <div className="flex flex-col gap-5 px-14 py-8">
           <ProfileHeader user={stats.user} />
+          <ProfileFilters active={filter} />
           <ProfileStats locale={loc} elo={stats.user.elo} totals={stats.totals} />
 
           <div
@@ -51,6 +64,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <ProfileHeader user={stats.user} compact />
 
         <div className="px-[18px] pt-4">
+          <ProfileFilters active={filter} compact />
+        </div>
+
+        <div className="px-[18px] pt-3.5">
           <ProfileStats
             locale={loc}
             elo={stats.user.elo}
