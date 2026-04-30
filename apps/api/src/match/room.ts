@@ -17,7 +17,11 @@ import {
   persistPlayerRemove,
   persistPlayerUpdates,
 } from "./persistence";
-import { computeLobbyEloAvg, narrowPoolByElo } from "./questions";
+import {
+  computeLobbyEloAvg,
+  filterPoolBySeen,
+  narrowPoolByElo,
+} from "./questions";
 import { rngFromSeed } from "./random";
 import { registry } from "./registry";
 import { scorePhase1, scorePhase2 } from "./scoring";
@@ -260,26 +264,34 @@ export class MatchRoom {
       }
     }
 
-    // Narrow the wide initial question pool to the questions whose ELO
-    // target lies closest to the lobby's average ELO. Done once at
-    // phase 1 start when the player roster is final.
+    // Trim then narrow the question pool when phase 1 actually starts.
+    // Order matters:
+    //   1. filterPoolBySeen → drop questions any lobby player saw in the
+    //      last 14 days, so repeats stay extremely rare across matches.
+    //   2. narrowPoolByElo  → keep the questions whose ELO target lies
+    //      closest to the lobby's average ELO.
     if (wasInLobby && phase === "phase1") {
       const realIds = this.state.players
         .filter((p) => !p.isShadow && p.status !== "left")
         .map((p) => p.userId);
       try {
+        const beforeSeen = this.state.questionPool.length;
+        await filterPoolBySeen(this.state, realIds);
+        const afterSeen = this.state.questionPool.length;
         const eloAvg = await computeLobbyEloAvg(realIds);
         narrowPoolByElo(this.state, eloAvg);
         this.log.info(
           {
             matchId: this.state.matchId,
             eloAvg,
-            poolSize: this.state.questionPool.length,
+            poolSizeBeforeSeen: beforeSeen,
+            poolSizeAfterSeen: afterSeen,
+            poolSizeFinal: this.state.questionPool.length,
           },
-          "narrowed question pool by lobby ELO",
+          "filtered seen + narrowed question pool",
         );
       } catch (err) {
-        this.log.error(err, "narrowPoolByElo failed (using wide pool)");
+        this.log.error(err, "filter/narrow pool failed (using wide pool)");
       }
     }
 
@@ -294,12 +306,15 @@ export class MatchRoom {
     }
 
     if (phase === "phase2") {
-      // Each player progresses independently through the question pool.
+      // Each player progresses independently through the question pool,
+      // starting where phase 1 stopped so phase 2 questions don't repeat
+      // anything already asked in phase 1.
+      const startIdx = this.state.poolCursor;
       for (const p of this.state.players) {
         if (p.status === "active") {
           p.score = 0;
           p.streak = 0;
-          p.phase2Index = 0;
+          p.phase2Index = startIdx;
           p.lastScoreReachedAt = Date.now();
         }
       }
@@ -498,10 +513,10 @@ export class MatchRoom {
       return;
     }
 
-    const next =
-      this.state.currentQuestionIndex === undefined
-        ? 0
-        : this.state.currentQuestionIndex + 1;
+    // Use the global cursor so phase 1 / 3 always pick a fresh slot. The
+    // cursor is bumped after phase 2 to skip past every index any player
+    // consumed during phase 2.
+    const next = this.state.poolCursor;
 
     if (next >= this.state.questionPool.length) {
       // Pool depleted — end the match.
@@ -510,6 +525,7 @@ export class MatchRoom {
     }
 
     this.state.currentQuestionIndex = next;
+    this.state.poolCursor = next + 1;
     this.state.currentAnswers.clear();
     for (const p of this.state.players) {
       p.skipped = false;
@@ -889,6 +905,15 @@ export class MatchRoom {
       eliminated = dropped;
       nextStatus = "transition_p1_p2";
     } else if (phase === "phase2") {
+      // Advance the global cursor past every index any player consumed
+      // during phase 2 — phase 3 will pick up *after* the last phase 2
+      // question, never reusing one.
+      const maxConsumed = this.state.players.reduce(
+        (m, p) => Math.max(m, p.phase2Index),
+        this.state.poolCursor,
+      );
+      this.state.poolCursor = maxConsumed;
+
       // Sort by score (desc), tiebreak: earlier lastScoreReachedAt wins.
       const ranked = this.state.players
         .filter((p) => p.status === "active")
@@ -1087,7 +1112,6 @@ export class MatchRoom {
       score: p.score,
       streak: p.streak,
       lives: p.lives,
-      bonuses: { ...p.bonuses },
       isShadow: p.isShadow,
       isSelf: selfId ? p.userId === selfId : undefined,
     }));

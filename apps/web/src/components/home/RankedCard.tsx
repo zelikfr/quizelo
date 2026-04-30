@@ -2,6 +2,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
 import { Paywall } from "@/components/premium/Paywall";
 import { PaywallContent } from "@/components/premium/PaywallContent";
+import { PlayButton } from "@/components/home/PlayButton";
+import { getCurrentUser } from "@/lib/current-user";
+import { enqueueRankedAndRedirectAction } from "@/lib/match-actions";
 import { RANKS, rankLabel, rankFromElo } from "@/lib/ranks";
 import { ME } from "@/lib/game-data";
 import { cn } from "@/lib/cn";
@@ -18,8 +21,16 @@ const CARD_BG =
 export async function RankedCard({ compact = false, className }: RankedCardProps) {
   const t = await getTranslations("home.modes.ranked");
   const tPremium = await getTranslations("premium");
+  const tCommon = await getTranslations("common");
   const locale = (await getLocale()) as Locale;
-  const myRank = rankFromElo(ME.elo);
+
+  // Real user (and Premium status) from the session — falls back to the
+  // mock `ME` for the rank tier highlight if logged out so the card
+  // renders correctly on a public landing page.
+  const user = await getCurrentUser();
+  const elo = user?.elo ?? ME.elo;
+  const isPremium = user?.isPremium ?? false;
+  const myRank = rankFromElo(elo);
 
   return (
     <div
@@ -81,13 +92,19 @@ export async function RankedCard({ compact = false, className }: RankedCardProps
       )}
 
       <div className="relative mt-auto">
-        <Paywall
-          triggerLabel={`${t("cta")} ▸`}
-          triggerVariant="gold"
-          closeLabel={tPremium("close")}
-        >
-          <PaywallContent />
-        </Paywall>
+        {isPremium ? (
+          <form action={enqueueRankedAndRedirectAction}>
+            <PlayButton label={tCommon("play")} variant="gold" />
+          </form>
+        ) : (
+          <Paywall
+            triggerLabel={`${t("cta")} ▸`}
+            triggerVariant="gold"
+            closeLabel={tPremium("close")}
+          >
+            <PaywallContent />
+          </Paywall>
+        )}
       </div>
     </div>
   );

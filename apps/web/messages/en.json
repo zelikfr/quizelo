@@ -217,21 +217,14 @@
       "phase3Rule": "Wrong = −1 life. All correct → slowest loses 1 life.",
       "leaderboard": "LIVE LEADERBOARD",
       "you": "(you)",
-      "bonuses": "BONUSES",
       "skippedNotice": "Question skipped — no gain, no loss.",
-      "nextSoon": "Next question coming up…",
-      "bonus": {
-        "fifty_fifty": "50/50",
-        "skip": "SKIP",
-        "shield": "SHIELD"
-      }
+      "nextSoon": "Next question coming up…"
     },
     "phase1": {
       "subtitle": "Elimination",
       "survivors": "SURVIVORS",
       "others": "OTHERS",
-      "eliminated": "OUT",
-      "bonuses": "BONUSES"
+      "eliminated": "OUT"
     },
     "phase2": {
       "rules": "+1 / −1 / 0 · streak ×2",
@@ -283,10 +276,8 @@
       "stats": {
         "eloChange": "ELO CHANGE",
         "correct": "CORRECT",
-        "bonuses": "BONUSES",
         "avgReact": "AVG. REACT",
         "correctShort": "CORRECT",
-        "bonusesShort": "BOOSTS",
         "avgReactShort": "REACT"
       }
     },
@@ -586,6 +577,9 @@
       "freePlan": "Free account",
       "upsellLine": "Go Premium for cosmetics, modes, and advanced stats.",
       "upgrade": "Go Premium",
+      "activateMonth": "1 month",
+      "activateYear": "1 year",
+      "extendYear": "+1 year",
       "comingSoon": "Coming soon",
       "renewsOn": "Active until {date}",
       "activeNoExpiry": "Subscription active",

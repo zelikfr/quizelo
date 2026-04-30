@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Button } from "@/components/ui/button";
+import { PremiumToggleButtons } from "./PremiumToggleButtons";
 
 interface SubscriptionCardProps {
   isPremium: boolean;
@@ -26,10 +26,17 @@ export async function SubscriptionCard({
       }).format(premiumUntil)
     : null;
 
+  const labels = {
+    activateMonth: t("activateMonth"),
+    activateYear: t("activateYear"),
+    cancel: t("cancel"),
+    extend: t("extendYear"),
+  };
+
   if (!isPremium) {
     return (
       <div
-        className="flex items-center gap-[18px] rounded-lg border border-white/[0.08] p-[18px]"
+        className="flex flex-col gap-3 rounded-lg border border-white/[0.08] p-[18px] sm:flex-row sm:items-center sm:gap-[18px]"
         style={{ background: CARD_BG_FREE }}
       >
         <div
@@ -49,24 +56,18 @@ export async function SubscriptionCard({
             {t("upsellLine")}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="px-3 py-2 text-[11px] text-gold"
-          style={{ borderColor: "rgba(255,209,102,0.4)" }}
-          disabled
-          title={t("comingSoon")}
-        >
-          {t("upgrade")}
-        </Button>
+        <PremiumToggleButtons isPremium={false} labels={labels} />
       </div>
     );
   }
 
   return (
     <div
-      className="flex items-center gap-[18px] rounded-lg border p-[18px]"
-      style={{ background: CARD_BG_PREMIUM, borderColor: "rgba(255,209,102,0.3)" }}
+      className="flex flex-col gap-3 rounded-lg border p-[18px] sm:flex-row sm:items-center sm:gap-[18px]"
+      style={{
+        background: CARD_BG_PREMIUM,
+        borderColor: "rgba(255,209,102,0.3)",
+      }}
     >
       <div
         className="flex h-11 w-11 items-center justify-center rounded-xl text-[22px] text-gold"
@@ -85,15 +86,7 @@ export async function SubscriptionCard({
           {formatted ? t("renewsOn", { date: formatted }) : t("activeNoExpiry")}
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="px-3 py-2 text-[11px]"
-        disabled
-        title={t("comingSoon")}
-      >
-        {t("manage")}
-      </Button>
+      <PremiumToggleButtons isPremium labels={labels} />
     </div>
   );
 }

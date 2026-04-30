@@ -1,8 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+
+/**
+ * Lets descendants of a `<Paywall>` close the modal — used by the plan
+ * activation buttons (`PaywallActivateButton`) so they can dismiss the
+ * dialog after a successful activation.
+ */
+export const PaywallCloseContext = createContext<(() => void) | null>(null);
 
 interface PaywallDialogProps {
   open: boolean;
@@ -116,7 +129,9 @@ export function Paywall({
       </Button>
 
       <PaywallDialog open={open} onClose={() => setOpen(false)} closeLabel={closeLabel}>
-        {children}
+        <PaywallCloseContext.Provider value={() => setOpen(false)}>
+          {children}
+        </PaywallCloseContext.Provider>
       </PaywallDialog>
     </>
   );

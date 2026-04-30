@@ -16,14 +16,12 @@ interface Stat {
 const STATS: readonly Stat[] = [
   { labelKey: "eloChange", value: "+12",  sub: "1487 → 1499", color: "#4ADE80" },
   { labelKey: "correct",   value: "14",   sub: "/ 18",                            },
-  { labelKey: "bonuses",   value: "3",    sub: "/ 4",         color: "#A18BFF" },
   { labelKey: "avgReact",  value: "4.2s", sub: "Top 3",       color: "#FFD166" },
 ];
 
 const STATS_COMPACT: readonly Stat[] = [
   { labelKey: "eloChange",      value: "+12",   color: "#4ADE80" },
   { labelKey: "correctShort",   value: "14/18"                    },
-  { labelKey: "bonusesShort",   value: "3/4",   color: "#A18BFF" },
   { labelKey: "avgReactShort",  value: "4.2s",  color: "#FFD166" },
 ];
 
@@ -35,7 +33,7 @@ export async function ResultStats({ compact = false }: ResultStatsProps) {
     <div
       className={cn(
         "grid",
-        compact ? "grid-cols-2 gap-2" : "grid-cols-4 gap-3.5",
+        compact ? "grid-cols-3 gap-2" : "grid-cols-3 gap-3.5",
       )}
     >
       {data.map((s) => (

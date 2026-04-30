@@ -42,6 +42,14 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   });
   if (!row) return null;
 
+  // Apply expiry: a user flagged premium whose `premiumUntil` is in the
+  // past is treated as free everywhere in the UI. The DB row stays as-is
+  // (cleanup is a job for a future cron).
+  const now = Date.now();
+  const isCurrentlyPremium =
+    row.isPremium &&
+    (!row.premiumUntil || row.premiumUntil.getTime() > now);
+
   return {
     id: row.id,
     email: row.email,
@@ -51,7 +59,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     image: row.image,
     elo: row.elo,
     coins: row.coins,
-    isPremium: row.isPremium,
+    isPremium: isCurrentlyPremium,
     premiumUntil: row.premiumUntil,
     locale: row.locale,
     phone: row.phone,

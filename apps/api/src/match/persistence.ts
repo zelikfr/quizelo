@@ -6,7 +6,7 @@ import {
   users,
   type Match,
 } from "@quizelo/db";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lte, or, sql } from "drizzle-orm";
 import type { MatchMode, MatchStatus } from "@quizelo/protocol";
 import type { AnswerRecord, MatchPlayer, MatchState } from "./types";
 
@@ -79,13 +79,15 @@ export async function flushAnswers(
  * at lobby → phase 1 transition so a player who leaves the lobby before
  * the match begins doesn't lose a free game.
  *
- * Atomic per row: only decrements where `is_premium = false` AND
- * `quick_matches_remaining > 0`.
+ * Atomic per row: only decrements where the user is **not currently
+ * premium** (either `is_premium = false`, or `premium_until` has passed)
+ * AND `quick_matches_remaining > 0`.
  */
 export async function consumeQuickQuotaForUsers(
   userIds: string[],
 ): Promise<void> {
   if (userIds.length === 0) return;
+  const now = new Date();
   await db
     .update(users)
     .set({
@@ -94,7 +96,9 @@ export async function consumeQuickQuotaForUsers(
     .where(
       and(
         inArray(users.id, userIds),
-        eq(users.isPremium, false),
+        // Not currently premium = not flagged, OR flagged but expired.
+        // (premium_until IS NULL → lifetime premium → never deducts.)
+        or(eq(users.isPremium, false), lte(users.premiumUntil, now)),
         gt(users.quickMatchesRemaining, 0),
       ),
     );

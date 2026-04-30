@@ -107,6 +107,7 @@ class Matchmaker {
       players: [],
       questionPool: pool.map((q) => q.id),
       questions: new Map(pool.map((q) => [q.id, q])),
+      poolCursor: 0,
       currentAnswers: new Map(),
       answersBuffer: [],
       lobbyStartsAt: null,

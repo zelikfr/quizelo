@@ -71,6 +71,13 @@ export interface MatchState {
   /** Sequential pool of questions used across all phases. */
   questionPool: string[];
   questions: Map<string, DbQuestion>;
+  /**
+   * Next index in `questionPool` that hasn't been served yet. Increments
+   * as phase 1 / phase 3 ask questions, and jumps to the highest
+   * phase2Index after phase 2 ends. Guarantees no question repeats
+   * across phase 1 → 2 → 3 of the same match.
+   */
+  poolCursor: number;
 
   /** Currently active phase (undefined during lobby/transition/results). */
   currentPhase?: MatchPhase;

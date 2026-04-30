@@ -1,7 +1,10 @@
-import { Button } from "@/components/ui/button";
+import { PaywallActivateButton } from "./PaywallActivateButton";
+import type { PremiumDuration } from "@/lib/user-actions";
 import { cn } from "@/lib/cn";
 
 interface PlanCardProps {
+  /** "month" → activatePremiumAction("month"), same for year. */
+  duration: PremiumDuration;
   /** Mono cap eyebrow, e.g. "MONTHLY" / "MENSUEL". */
   eyebrow: string;
   price: string;
@@ -20,6 +23,7 @@ const HIGHLIGHTED_BG =
   "linear-gradient(180deg, rgba(255,209,102,0.18), rgba(124,92,255,0.10))";
 
 export function PlanCard({
+  duration,
   eyebrow,
   price,
   perPeriod,
@@ -71,13 +75,11 @@ export function PlanCard({
         {hint}
       </div>
 
-      <Button
+      <PaywallActivateButton
+        duration={duration}
+        cta={cta}
         variant={highlighted ? "gold" : "ghost"}
-        size="full"
-        className="mt-[18px] justify-center py-3 text-xs"
-      >
-        {cta} {highlighted && "▸"}
-      </Button>
+      />
     </div>
   );
 }

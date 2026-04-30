@@ -217,21 +217,14 @@
       "phase3Rule": "Mauvaise réponse = −1 vie. Si tous bons, le plus lent perd −1 vie.",
       "leaderboard": "CLASSEMENT EN DIRECT",
       "you": "(toi)",
-      "bonuses": "BONUS",
       "skippedNotice": "Question passée — pas de gain ni de perte.",
-      "nextSoon": "Prochaine question dans un instant…",
-      "bonus": {
-        "fifty_fifty": "50/50",
-        "skip": "PASSER",
-        "shield": "BOUCLIER"
-      }
+      "nextSoon": "Prochaine question dans un instant…"
     },
     "phase1": {
       "subtitle": "Élimination",
       "survivors": "SURVIVANTS",
       "others": "AUTRES",
-      "eliminated": "ÉLIMINÉS",
-      "bonuses": "BONUS"
+      "eliminated": "ÉLIMINÉS"
     },
     "phase2": {
       "rules": "+1 / −1 / 0 · streak ×2",
@@ -283,10 +276,8 @@
       "stats": {
         "eloChange": "VARIATION ELO",
         "correct": "BONNES RÉPONSES",
-        "bonuses": "BONUS UTILISÉS",
         "avgReact": "RÉACTION MOY.",
         "correctShort": "BONNES",
-        "bonusesShort": "BONUS",
         "avgReactShort": "RÉACT."
       }
     },
@@ -586,6 +577,9 @@
       "freePlan": "Compte gratuit",
       "upsellLine": "Passe Premium pour débloquer cosmétiques, modes et statistiques avancées.",
       "upgrade": "Passer Premium",
+      "activateMonth": "1 mois",
+      "activateYear": "1 an",
+      "extendYear": "+1 an",
       "comingSoon": "Bientôt disponible",
       "renewsOn": "Actif jusqu'au {date}",
       "activeNoExpiry": "Abonnement actif",

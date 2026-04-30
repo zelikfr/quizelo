@@ -1,5 +1,5 @@
-import { db, questions, users } from "@quizelo/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { db, matchAnswers, questions, users } from "@quizelo/db";
+import { and, eq, gte, inArray } from "drizzle-orm";
 import type { MatchMode } from "@quizelo/protocol";
 import { pickN } from "./random";
 import type { DbQuestion, MatchState } from "./types";
@@ -61,6 +61,51 @@ export async function pickQuestionsForMatch(
     out.push(next);
   }
   return out.slice(0, WIDE_POOL_SIZE);
+}
+
+/**
+ * Drop from the match's question pool every id any of `userIds` has
+ * answered within the last `windowDays` days. This is the cheapest way
+ * to make repeats *extremely* rare across matches: a player who just
+ * finished a match won't see those exact questions again for two weeks.
+ *
+ * Fail-safe: if the filter would shrink the pool below `minRemaining`,
+ * we keep the wide pool unchanged. Heavy players (who already saw most
+ * of the bank) would otherwise end up with too few questions to play.
+ */
+export async function filterPoolBySeen(
+  state: MatchState,
+  userIds: string[],
+  windowDays = 14,
+  minRemaining = 60,
+): Promise<void> {
+  if (userIds.length === 0) return;
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
+
+  const rows = await db
+    .select({ questionId: matchAnswers.questionId })
+    .from(matchAnswers)
+    .where(
+      and(
+        inArray(matchAnswers.userId, userIds),
+        gte(matchAnswers.answeredAt, since),
+      ),
+    );
+
+  if (rows.length === 0) return;
+  const seen = new Set(rows.map((r) => r.questionId));
+
+  const filtered = state.questionPool.filter((id) => !seen.has(id));
+  if (filtered.length < minRemaining) {
+    // Heavy player or tiny bank — accept overlap rather than starve.
+    return;
+  }
+
+  state.questionPool = filtered;
+  const keep = new Set(filtered);
+  for (const id of [...state.questions.keys()]) {
+    if (!keep.has(id)) state.questions.delete(id);
+  }
 }
 
 /**

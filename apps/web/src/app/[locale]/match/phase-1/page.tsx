@@ -6,7 +6,6 @@ import { QAChoice } from "@/components/shared/QAChoice";
 import { QALives } from "@/components/shared/QALives";
 import { QAPlayerChip } from "@/components/shared/QAPlayerChip";
 import { QATimerRing } from "@/components/shared/QATimerRing";
-import { BonusDock } from "@/components/match/BonusDock";
 import { MatchHeader } from "@/components/match/MatchHeader";
 import { ROSTER } from "@/lib/game-data";
 import { getQuestion } from "@/lib/game-questions";
@@ -82,9 +81,6 @@ export default async function Phase1Page({ params }: PhasePageProps) {
               ))}
             </div>
 
-            <div className="mt-auto pt-6">
-              <BonusDock />
-            </div>
           </section>
 
           {/* Right — others + eliminated */}
@@ -172,8 +168,6 @@ export default async function Phase1Page({ params }: PhasePageProps) {
         </div>
 
         <div className="flex-1" />
-
-        <BonusDock compact />
       </div>
     </main>
   );

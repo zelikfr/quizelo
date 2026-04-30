@@ -160,3 +160,93 @@ export async function updateDisplayNameAction(
 ): Promise<UserActionResult> {
   return updateUserFieldAction("displayName", raw);
 }
+
+/* ── Premium toggle (no payment, dev-mode activation) ───────────────────── */
+
+export type PremiumDuration = "month" | "year";
+
+/**
+ * Activate Quizelo Premium for `duration` starting from now (or extend
+ * the current subscription if one is already active). No payment is
+ * processed — this is a dev-mode toggle until billing is wired in.
+ */
+export async function activatePremiumAction(
+  duration: PremiumDuration,
+): Promise<UserActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, code: "unauthorized" };
+
+  if (duration !== "month" && duration !== "year") {
+    return { ok: false, code: "validation", message: "Durée invalide" };
+  }
+
+  // Read the user once so we can extend an active subscription.
+  const [row] = await db
+    .select({
+      isPremium: users.isPremium,
+      premiumUntil: users.premiumUntil,
+    })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
+
+  const now = Date.now();
+  // If already premium and still active, extend from `premiumUntil`;
+  // otherwise start from now.
+  const startMs =
+    row?.isPremium && row.premiumUntil && row.premiumUntil.getTime() > now
+      ? row.premiumUntil.getTime()
+      : now;
+
+  const addMs =
+    duration === "month"
+      ? 30 * 24 * 60 * 60 * 1000
+      : 365 * 24 * 60 * 60 * 1000;
+  const until = new Date(startMs + addMs);
+
+  try {
+    await db
+      .update(users)
+      .set({
+        isPremium: true,
+        premiumUntil: until,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, session.user.id));
+  } catch (err) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: err instanceof Error ? err.message : "DB update failed",
+    };
+  }
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Cancel Premium immediately. */
+export async function cancelPremiumAction(): Promise<UserActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, code: "unauthorized" };
+
+  try {
+    await db
+      .update(users)
+      .set({
+        isPremium: false,
+        premiumUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, session.user.id));
+  } catch (err) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: err instanceof Error ? err.message : "DB update failed",
+    };
+  }
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

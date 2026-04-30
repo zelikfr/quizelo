@@ -45,6 +45,7 @@ export async function PaywallContent() {
 
           <div className="grid grid-cols-2 gap-3.5">
             <PlanCard
+              duration="month"
               eyebrow={t("plans.monthly.eyebrow")}
               price="4,99 €"
               perPeriod={`/ ${t("plans.monthly.period")}`}
@@ -52,6 +53,7 @@ export async function PaywallContent() {
               cta={t("plans.monthly.cta")}
             />
             <PlanCard
+              duration="year"
               eyebrow={t("plans.yearly.eyebrow")}
               price="39,99 €"
               perPeriod={`/ ${t("plans.yearly.period")}`}
@@ -98,6 +100,7 @@ export async function PaywallContent() {
         {/* Plans stacked, yearly first */}
         <div className="relative flex flex-col gap-2.5 px-[18px] pt-5">
           <PlanCard
+            duration="year"
             eyebrow={t("plans.yearly.eyebrow")}
             price="39,99 €"
             perPeriod={`/ ${t("plans.yearly.period")}`}
@@ -107,6 +110,7 @@ export async function PaywallContent() {
             badge="−33%"
           />
           <PlanCard
+            duration="month"
             eyebrow={t("plans.monthly.eyebrow")}
             price="4,99 €"
             perPeriod={`/ ${t("plans.monthly.period")}`}

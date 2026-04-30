@@ -21,19 +21,31 @@ function isStale(d: Date | null): boolean {
   return d.toISOString().slice(0, 10) !== now.toISOString().slice(0, 10);
 }
 
+/** True when the user is currently premium **and** hasn't expired yet. */
+function isCurrentlyPremium(
+  isPremium: boolean,
+  premiumUntil: Date | null,
+): boolean {
+  if (!isPremium) return false;
+  // No expiry set → treat as active (lifetime / dev-mode).
+  if (!premiumUntil) return true;
+  return premiumUntil.getTime() > Date.now();
+}
+
 /** Read the user's current quota, applying the daily reset on the fly. */
 export async function getQuickQuota(userId: string): Promise<QuickQuota | null> {
   const row = await db.query.users.findFirst({
     where: eq(users.id, userId),
     columns: {
       isPremium: true,
+      premiumUntil: true,
       quickMatchesRemaining: true,
       quickMatchesResetAt: true,
     },
   });
   if (!row) return null;
 
-  if (row.isPremium) {
+  if (isCurrentlyPremium(row.isPremium, row.premiumUntil)) {
     return { remaining: null, max: QUICK_QUOTA_PER_DAY, isPremium: true };
   }
 
@@ -72,12 +84,15 @@ export async function consumeQuickMatch(userId: string): Promise<ConsumeResult> 
     where: eq(users.id, userId),
     columns: {
       isPremium: true,
+      premiumUntil: true,
       quickMatchesRemaining: true,
       quickMatchesResetAt: true,
     },
   });
   if (!row) return { ok: false, reason: "not_found" };
-  if (row.isPremium) return { ok: true, remaining: null };
+  if (isCurrentlyPremium(row.isPremium, row.premiumUntil)) {
+    return { ok: true, remaining: null };
+  }
 
   // Mid-night roll: reset before consuming so the very first match of the
   // day always succeeds.
@@ -113,12 +128,13 @@ export async function awardQuickMatchBonus(userId: string): Promise<QuickQuota |
     where: eq(users.id, userId),
     columns: {
       isPremium: true,
+      premiumUntil: true,
       quickMatchesRemaining: true,
       quickMatchesResetAt: true,
     },
   });
   if (!row) return null;
-  if (row.isPremium) {
+  if (isCurrentlyPremium(row.isPremium, row.premiumUntil)) {
     return { remaining: null, max: QUICK_QUOTA_PER_DAY, isPremium: true };
   }
 
