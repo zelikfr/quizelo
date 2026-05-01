@@ -32,6 +32,12 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   isPremium: boolean("is_premium").default(false).notNull(),
   premiumUntil: timestamp("premium_until", { withTimezone: true }),
+  /**
+   * Stripe customer ID — created lazily the first time the user opens
+   * the checkout flow. Persists across renewals so we don't duplicate
+   * customers in the Stripe dashboard.
+   */
+  stripeCustomerId: text("stripe_customer_id"),
   elo: integer("elo").default(1000).notNull(),
   coins: integer("coins").default(0).notNull(),
 

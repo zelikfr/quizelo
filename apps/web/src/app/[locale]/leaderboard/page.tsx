@@ -6,6 +6,7 @@ import { LeaderboardTable } from "@/components/leaderboard/LeaderboardTable";
 import { Top3Cards } from "@/components/leaderboard/Top3Cards";
 import { QAAvatar } from "@/components/shared/QAAvatar";
 import { fetchLeaderboard } from "@/lib/leaderboard-actions";
+import { formatSeasonNumber, getCurrentSeason } from "@/lib/season";
 import { cn } from "@/lib/cn";
 
 interface LeaderboardPageProps {
@@ -27,6 +28,8 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
   const tCommon = await getTranslations("common");
 
   const { top, me } = await fetchLeaderboard(50);
+  const season = getCurrentSeason();
+  const seasonNumber = formatSeasonNumber(season.number);
 
   const top3 = top.slice(0, 3);
   const tableRows = top.slice(3);
@@ -48,7 +51,7 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
                 ◆ {t("badge")}
               </p>
               <h1 className="mt-1 font-display text-[48px] font-bold tracking-[-0.03em]">
-                {t("season")} <span className="text-gold">03</span>
+                {t("season")} <span className="text-gold">{seasonNumber}</span>
               </h1>
             </div>
             <div className="rounded-lg border border-white/[0.08] bg-gradient-surface px-5 py-3.5 text-right">
@@ -56,7 +59,7 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
                 {t("seasonEnds")}
               </div>
               <div className="font-display font-mono text-[22px] font-bold text-gold">
-                47 {t("daysLeftShort")}
+                {season.daysLeft} {t("daysLeftShort")}
               </div>
             </div>
           </div>
@@ -77,12 +80,14 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
               ◆ {t("badge")}
             </p>
             <h1 className="mt-0.5 font-display text-[22px] font-bold">
-              {t("season")} <span className="text-gold">03</span>
+              {t("season")} <span className="text-gold">{seasonNumber}</span>
             </h1>
           </div>
           <div className="text-right">
             <div className="font-mono text-[9px] text-fg-3">{t("seasonEndsShort")}</div>
-            <div className="font-display font-mono text-sm font-bold text-gold">47j</div>
+            <div className="font-display font-mono text-sm font-bold text-gold">
+              {season.daysLeft}j
+            </div>
           </div>
         </div>
 

@@ -821,7 +821,18 @@
       "title": "Mot de passe oublié ?",
       "subtitle": "Indique ton e-mail — on t'envoie un lien magique pour le réinitialiser.",
       "submit": "ENVOYER LE LIEN",
+      "sent": "Si cet e-mail existe, un lien de réinitialisation t'a été envoyé. Vérifie ta boîte (et les spams).",
+      "error": "Impossible d'envoyer le lien. Réessaie dans un instant.",
       "backToLogin": "Retour à la connexion"
+    },
+    "newPassword": {
+      "badge": "NOUVEAU MOT DE PASSE",
+      "title": "Choisis un nouveau mot de passe",
+      "subtitle": "8 caractères minimum. Tu seras redirigé vers la connexion ensuite.",
+      "submit": "METTRE À JOUR",
+      "done": "Mot de passe mis à jour. Connecte-toi avec ton nouveau mot de passe.",
+      "tooShort": "Le mot de passe doit faire au moins 8 caractères.",
+      "error": "Impossible de mettre à jour le mot de passe."
     },
     "magicLink": {
       "divider": "OU LIEN MAGIQUE",
@@ -833,6 +844,19 @@
       "title": "Lien envoyé.",
       "body": "On vient de t'envoyer un lien de connexion par email. Clique dessus pour finaliser ta connexion.",
       "hint": "Pas de message ? Pense à vérifier les spams ou attends quelques secondes.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "verifyBanner": {
+      "title": "Vérifie ton e-mail",
+      "hint": "Un lien de vérification t'a été envoyé à {email}.",
+      "resend": "Renvoyer",
+      "sent": "Envoyé ✓"
+    },
+    "verifyRequired": {
+      "badge": "VÉRIFICATION OBLIGATOIRE",
+      "title": "Confirme ton e-mail",
+      "body": "Pour accéder à Quizelo, clique sur le lien envoyé à {email}.",
+      "hint": "Pas reçu ? Vérifie tes spams ou demande un nouvel envoi ci-dessous.",
       "backToLogin": "Retour à la connexion"
     },
     "errors": {

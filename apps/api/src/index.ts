@@ -18,7 +18,7 @@ const app = Fastify({
 });
 
 await app.register(cors, {
-  origin: env.AUTH_URL,
+  origin: env.CORS_ORIGINS,
   credentials: true,
 });
 await app.register(cookie);

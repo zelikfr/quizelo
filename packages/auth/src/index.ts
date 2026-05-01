@@ -42,8 +42,41 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
     Resend({
-      apiKey: process.env.AUTH_RESEND_KEY,
-      from: process.env.AUTH_EMAIL_FROM,
+      apiKey: process.env.AUTH_RESEND_KEY ?? "dev-no-key",
+      from: process.env.AUTH_EMAIL_FROM ?? "Quizelo <noreply@quizelo.app>",
+      // Dev fallback: when no Resend key is configured, print the magic
+      // link to the terminal instead of trying to ship an email. Lets
+      // you sign up + verify locally without setting up Resend.
+      // In prod (with AUTH_RESEND_KEY set) we delegate to the default
+      // implementation which actually sends mail.
+      async sendVerificationRequest({ identifier, url, provider }) {
+        if (!process.env.AUTH_RESEND_KEY) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `\n[1;33m✉  Magic link for ${identifier}[0m\n   [36m${url}[0m\n   (set AUTH_RESEND_KEY in .env to email it instead)\n`,
+          );
+          return;
+        }
+        // Real send via Resend's HTTP API — same shape as the built-in
+        // provider's default `sendVerificationRequest`.
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${provider.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: provider.from,
+            to: identifier,
+            subject: "Sign in to Quizelo",
+            html: `<p>Click to sign in:</p><p><a href="${url}">${url}</a></p>`,
+            text: `Sign in to Quizelo\n${url}\n`,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Resend send failed: ${res.status} ${await res.text()}`);
+        }
+      },
     }),
     Credentials({
       name: "Credentials",

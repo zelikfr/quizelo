@@ -821,7 +821,18 @@
       "title": "Forgot your password?",
       "subtitle": "Drop your email — we'll send a magic link to reset it.",
       "submit": "SEND LINK",
+      "sent": "If that email exists, we just sent a reset link. Check your inbox (and spam).",
+      "error": "Couldn't send the link. Try again in a moment.",
       "backToLogin": "Back to sign in"
+    },
+    "newPassword": {
+      "badge": "NEW PASSWORD",
+      "title": "Choose a new password",
+      "subtitle": "8 characters minimum. You'll be sent back to sign in afterwards.",
+      "submit": "UPDATE",
+      "done": "Password updated. Sign in with your new password.",
+      "tooShort": "Password must be at least 8 characters.",
+      "error": "Couldn't update the password."
     },
     "magicLink": {
       "divider": "OR MAGIC LINK",
@@ -833,6 +844,19 @@
       "title": "Link sent.",
       "body": "We just emailed you a sign-in link. Click it to finish logging in.",
       "hint": "Didn't get it? Check spam or wait a few seconds.",
+      "backToLogin": "Back to sign in"
+    },
+    "verifyBanner": {
+      "title": "Verify your email",
+      "hint": "A verification link was sent to {email}.",
+      "resend": "Resend",
+      "sent": "Sent ✓"
+    },
+    "verifyRequired": {
+      "badge": "VERIFICATION REQUIRED",
+      "title": "Confirm your email",
+      "body": "To access Quizelo, click the link we sent to {email}.",
+      "hint": "Didn't get it? Check your spam folder or request a new one below.",
       "backToLogin": "Back to sign in"
     },
     "errors": {

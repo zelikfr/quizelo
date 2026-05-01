@@ -2,11 +2,12 @@
 
 import { useContext, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  activatePremiumAction,
-  type PremiumDuration,
-} from "@/lib/user-actions";
 import { Button } from "@/components/ui/button";
+import {
+  startPremiumCheckoutAction,
+  type PremiumDuration,
+} from "@/lib/stripe-actions";
+import { activatePremiumAction } from "@/lib/user-actions";
 import { PaywallCloseContext } from "./Paywall";
 import { cn } from "@/lib/cn";
 
@@ -37,16 +38,28 @@ export function PaywallActivateButton({
   const onClick = () => {
     setError(null);
     startTransition(async () => {
-      const res = await activatePremiumAction(duration);
-      if (!res.ok) {
-        setError(res.message ?? "Une erreur est survenue.");
+      // Real flow: redirect to Stripe Checkout. The webhook flips
+      // `isPremium` after payment, then the user lands back on
+      // /settings?premium=success.
+      const checkout = await startPremiumCheckoutAction(duration);
+      if (checkout.ok) {
+        window.location.href = checkout.url;
         return;
       }
-      // Close the dialog first so the user immediately sees the home
-      // page refresh into its premium state (no quota counter, no
-      // upsell, premium crown badge).
-      close?.();
-      router.refresh();
+      // Dev-mode fallback: if Stripe isn't configured (e.g. local
+      // testing without keys), fall back to the instant flag-flip so
+      // the rest of the app stays usable.
+      if (checkout.code === "not_configured") {
+        const dev = await activatePremiumAction(duration);
+        if (!dev.ok) {
+          setError(dev.message ?? "Activation failed.");
+          return;
+        }
+        close?.();
+        router.refresh();
+        return;
+      }
+      setError(checkout.message ?? "Une erreur est survenue.");
     });
   };
 

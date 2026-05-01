@@ -3,9 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  openCustomerPortalAction,
+  startPremiumCheckoutAction,
+  type PremiumDuration,
+} from "@/lib/stripe-actions";
+import {
   activatePremiumAction,
   cancelPremiumAction,
-  type PremiumDuration,
 } from "@/lib/user-actions";
 import { Button } from "@/components/ui/button";
 
@@ -37,24 +41,46 @@ export function PremiumToggleButtons({
   const activate = (duration: PremiumDuration) => {
     setError(null);
     startTransition(async () => {
-      const res = await activatePremiumAction(duration);
-      if (!res.ok) {
-        setError(res.message ?? "Une erreur est survenue.");
+      const checkout = await startPremiumCheckoutAction(duration);
+      if (checkout.ok) {
+        window.location.href = checkout.url;
         return;
       }
-      router.refresh();
+      // Dev fallback when Stripe isn't configured.
+      if (checkout.code === "not_configured") {
+        const dev = await activatePremiumAction(duration);
+        if (!dev.ok) {
+          setError(dev.message ?? "Une erreur est survenue.");
+          return;
+        }
+        router.refresh();
+        return;
+      }
+      setError(checkout.message ?? "Une erreur est survenue.");
     });
   };
 
   const cancel = () => {
     setError(null);
     startTransition(async () => {
-      const res = await cancelPremiumAction();
-      if (!res.ok) {
-        setError(res.message ?? "Une erreur est survenue.");
+      // Real flow: open Stripe Customer Portal so the user manages /
+      // cancels from Stripe's hosted UI.
+      const portal = await openCustomerPortalAction();
+      if (portal.ok) {
+        window.location.href = portal.url;
         return;
       }
-      router.refresh();
+      // No customer yet, or Stripe disabled → fall back to dev cancel.
+      if (portal.code === "no_customer" || portal.code === "not_configured") {
+        const dev = await cancelPremiumAction();
+        if (!dev.ok) {
+          setError(dev.message ?? "Une erreur est survenue.");
+          return;
+        }
+        router.refresh();
+        return;
+      }
+      setError(portal.message ?? "Une erreur est survenue.");
     });
   };
 

@@ -7,7 +7,7 @@ export const MATCH_CONFIG = {
     /** Silent shadow-fill if the room hasn't filled with real players yet. */
     silentFillMs: 15_000,
     /** Once full (10/10), the visible "starts in" countdown. */
-    startCountdownMs: 5_000,
+    startCountdownMs: 15_000,
     /** Lobby tick (broadcast presence) interval (ms). */
     tickMs: 750,
   },
@@ -37,7 +37,7 @@ export const MATCH_CONFIG = {
   },
 
   /** Pause between phases (transition screens). */
-  transitionMs: 4_000,
+  transitionMs: 15_000,
 
   /** Score (phase 1 — speed + streak; phase 2 — flat ±1; phase 3 — score not used). */
   score: {

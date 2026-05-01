@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 export interface CurrentUser {
   id: string;
   email: string | null;
+  /** Set by Auth.js when the user clicks the magic link sent at signup. */
+  emailVerified: Date | null;
   name: string;
   handle: string | null;
   avatarId: number;
@@ -53,6 +55,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   return {
     id: row.id,
     email: row.email,
+    emailVerified: row.emailVerified,
     name: row.displayName ?? row.name ?? row.handle ?? "Player",
     handle: row.handle,
     avatarId: row.avatarId ?? FALLBACK_AVATAR_ID,

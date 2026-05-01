@@ -1,16 +1,10 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { AuthInput } from "@/components/auth/AuthInput";
-import { Button } from "@/components/ui/button";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 interface ForgotPasswordPageProps {
   params: Promise<{ locale: string }>;
-}
-
-async function forgotAction(_formData: FormData) {
-  "use server";
-  // TODO: connect to auth provider — send a reset link.
 }
 
 export default async function ForgotPasswordPage({ params }: ForgotPasswordPageProps) {
@@ -31,22 +25,14 @@ export default async function ForgotPasswordPage({ params }: ForgotPasswordPageP
         {t("forgot.subtitle")}
       </p>
 
-      <form action={forgotAction} className="flex flex-col gap-4">
-        <AuthInput
-          id="forgot-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          icon={<span aria-hidden>✉</span>}
-          label={t("fields.email")}
-          placeholder="alex@quizelo.gg"
-        />
-
-        <Button type="submit" variant="primary" size="full" className="mt-2 py-3.5">
-          {t("forgot.submit")} ▸
-        </Button>
-      </form>
+      <ForgotPasswordForm
+        labels={{
+          email: t("fields.email"),
+          submit: t("forgot.submit"),
+          sent: t("forgot.sent"),
+          error: t("forgot.error"),
+        }}
+      />
 
       <p className="mt-6 text-center text-[13px]">
         <Link

@@ -30,6 +30,15 @@ const SIGNED_IN_REDIRECT = [
   /^\/(en|fr)\/auth(\/|$)/, // login / signup / verify / forgot-password
 ];
 
+/**
+ * Pages an unverified-email user is *allowed* to reach. Everything else
+ * gets bounced to `/auth/verify-required`. We must let the auth flow
+ * routes through so they can resend the magic link, log out, etc.
+ */
+const UNVERIFIED_ALLOWED = [
+  /^\/(en|fr)\/auth(\/|$)/,
+];
+
 export default edgeAuth((req) => {
   const { pathname } = req.nextUrl;
 
@@ -48,6 +57,24 @@ export default edgeAuth((req) => {
 
   // 2. Already signed in? Bounce off the landing / auth pages straight to /home.
   if (req.auth) {
+    // 2a. Block every page except /auth/* until the email is verified.
+    const isVerified = !!req.auth.user?.emailVerified;
+    if (!isVerified) {
+      const allowedWhileUnverified = UNVERIFIED_ALLOWED.some((re) =>
+        re.test(pathname),
+      );
+      if (!allowedWhileUnverified) {
+        const url = req.nextUrl.clone();
+        url.pathname = `/${locale}/auth/verify-required`;
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+      // Inside /auth/* — let it through. /auth/verify-required is the
+      // canonical page; /auth/login can sign out, /auth/forgot-password
+      // remains useful, etc.
+      return intl(req);
+    }
+
     const shouldBounce = SIGNED_IN_REDIRECT.some((re) => re.test(pathname));
     if (shouldBounce) {
       const url = req.nextUrl.clone();
