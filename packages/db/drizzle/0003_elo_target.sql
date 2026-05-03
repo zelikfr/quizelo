@@ -1,1 +1,1 @@
-ALTER TABLE "questions" ADD COLUMN "elo_target" integer;
+ALTER TABLE "questions" ADD COLUMN IF NOT EXISTS "elo_target" integer;

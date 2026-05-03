@@ -3,6 +3,7 @@ import { QAAvatar } from "@/components/shared/QAAvatar";
 import { NextPhaseBrief } from "@/components/match/NextPhaseBrief";
 import { TransitionCountdown } from "@/components/match/TransitionCountdown";
 import { ROSTER } from "@/lib/game-data";
+import { formatSeasonNumber, getCurrentSeason } from "@/lib/season";
 
 interface TransitionPageProps {
   params: Promise<{ locale: string }>;
@@ -17,6 +18,7 @@ export default async function TransitionStartPage({ params }: TransitionPageProp
   setRequestLocale(locale);
 
   const t = await getTranslations("match.transition.start");
+  const seasonLabel = `S${formatSeasonNumber(getCurrentSeason().number)}`;
 
   return (
     <main className="bg-surface-1 qa-scan relative isolate min-h-screen overflow-x-clip">
@@ -121,7 +123,7 @@ export default async function TransitionStartPage({ params }: TransitionPageProp
         {/* Bottom strip */}
         <div className="relative z-10 flex items-center justify-between border-t border-white/[0.08] bg-black/30 px-14 py-4">
           <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">{t("tip")}</span>
-          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">QUIZELO · S03</span>
+          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">QUIZELO · {seasonLabel}</span>
         </div>
       </div>
 

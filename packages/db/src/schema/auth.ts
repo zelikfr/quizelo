@@ -38,6 +38,16 @@ export const users = pgTable("users", {
    * customers in the Stripe dashboard.
    */
   stripeCustomerId: text("stripe_customer_id"),
+  /**
+   * `true` once the user has scheduled a cancellation that hasn't kicked
+   * in yet. Set by the `customer.subscription.updated` webhook when
+   * Stripe flips `cancel_at_period_end`. Lets the UI show "Cancellation
+   * scheduled for X" instead of a fresh "Cancel" button — and lets the
+   * "Resume" CTA appear so the user can change their mind.
+   */
+  premiumCancelAtPeriodEnd: boolean("premium_cancel_at_period_end")
+    .default(false)
+    .notNull(),
   elo: integer("elo").default(1000).notNull(),
   coins: integer("coins").default(0).notNull(),
 

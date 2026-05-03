@@ -98,11 +98,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const ok = await verifyPassword(user.passwordHash, password);
         if (!ok) return null;
 
+        // Note: Auth.js' base `User` type doesn't list `emailVerified`,
+        // but the `jwt()` callback in config.ts reads it via a runtime
+        // cast and TS's structural typing happily accepts the extra
+        // field. We need it on the user object so the JWT can snapshot
+        // the verified-at claim on sign-in.
         return {
           id: user.id,
           email: user.email ?? undefined,
           name: user.displayName ?? user.name ?? undefined,
           image: user.image ?? undefined,
+          emailVerified: user.emailVerified,
         };
       },
     }),

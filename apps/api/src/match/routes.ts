@@ -61,6 +61,36 @@ export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
+  // ─── Admin ────────────────────────────────────────────────────
+  // Snapshot of every in-memory room — used by the backoffice live page.
+  // Auth: a shared secret (`ADMIN_API_TOKEN`) over `X-Admin-Token`. We
+  // can't reuse the user JWT cookie because the admin app sits on a
+  // different origin (different cookie scope).
+  app.get("/admin/live-matches", async (req, reply) => {
+    const expected = process.env.ADMIN_API_TOKEN;
+    if (!expected) return reply.code(503).send({ error: "ADMIN_API_TOKEN_NOT_SET" });
+    const got = req.headers["x-admin-token"];
+    if (got !== expected) return reply.code(401).send({ error: "UNAUTHORIZED" });
+
+    const rooms = registry.list();
+    return {
+      rooms: rooms.map((r) => ({
+        matchId: r.state.matchId,
+        status: r.state.status,
+        mode: r.state.mode,
+        locale: r.state.locale,
+        players: r.state.players.map((p) => ({
+          userId: p.userId,
+          seat: p.seat,
+          name: p.name,
+          status: p.status,
+          score: p.score,
+          isShadow: p.isShadow,
+        })),
+      })),
+    };
+  });
+
   // ─── WebSocket ────────────────────────────────────────────────
   app.get(
     "/ws/match/:matchId",

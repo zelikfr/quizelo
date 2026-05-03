@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  @apply bg-bg-0 text-fg-1;
+  min-height: 100vh;
+}
+
+/* Subtle grid + glow on the page chrome */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 80% -20%, rgba(124, 92, 255, 0.10), transparent 50%),
+    radial-gradient(ellipse at 0% 110%, rgba(91, 200, 255, 0.06), transparent 60%);
+}
+
+/* Form controls — small reset for browser defaults that always look bad */
+input,
+select,
+textarea {
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(92, 99, 144);
+}
+
+/* Hide arrows on number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -36,6 +36,20 @@
       "when": 1778803200000,
       "tag": "0004_stripe_customer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779148800000,
+      "tag": "0005_admin_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779235200000,
+      "tag": "0006_premium_cancel_flag",
+      "breakpoints": true
     }
   ]
 }

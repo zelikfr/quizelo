@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { enqueueRankedAndRedirectAction } from "@/lib/match-actions";
 import { RANKS, rankLabel, rankFromElo } from "@/lib/ranks";
 import { ME } from "@/lib/game-data";
+import { formatSeasonNumber, getCurrentSeason } from "@/lib/season";
 import { cn } from "@/lib/cn";
 
 interface RankedCardProps {
@@ -31,6 +32,11 @@ export async function RankedCard({ compact = false, className }: RankedCardProps
   const elo = user?.elo ?? ME.elo;
   const isPremium = user?.isPremium ?? false;
   const myRank = rankFromElo(elo);
+
+  // Season counter — drives the "Saison XX — N jours restants" line in
+  // the description. ICU pluralisation handles 1 jour vs N jours per
+  // locale, so we just feed the raw number.
+  const season = getCurrentSeason();
 
   return (
     <div
@@ -66,7 +72,12 @@ export async function RankedCard({ compact = false, className }: RankedCardProps
       </div>
 
       {!compact && (
-        <p className="relative m-0 mb-4 text-[13px] text-fg-2">{t("description")}</p>
+        <p className="relative m-0 mb-4 text-[13px] text-fg-2">
+          {t("description", {
+            season: formatSeasonNumber(season.number),
+            days: season.daysLeft,
+          })}
+        </p>
       )}
 
       {!compact && (

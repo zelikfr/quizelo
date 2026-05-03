@@ -1,9 +1,9 @@
 import { PaywallActivateButton } from "./PaywallActivateButton";
-import type { PremiumDuration } from "@/lib/user-actions";
+import type { PremiumDuration } from "@/lib/stripe-actions";
 import { cn } from "@/lib/cn";
 
 interface PlanCardProps {
-  /** "month" → activatePremiumAction("month"), same for year. */
+  /** Routed to the matching Stripe price via `startPremiumCheckoutAction`. */
   duration: PremiumDuration;
   /** Mono cap eyebrow, e.g. "MONTHLY" / "MENSUEL". */
   eyebrow: string;

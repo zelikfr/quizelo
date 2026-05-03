@@ -1,0 +1,85 @@
+import { count, eq, sql } from "drizzle-orm";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { db, matchAnswers, questions } from "@quizelo/db";
+import { PageHeader } from "@/components/PageHeader";
+import { Badge, Card } from "@/components/ui";
+import { formatDate } from "@/lib/format";
+import { QuestionEditForm } from "./QuestionEditForm";
+
+export default async function QuestionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const [q] = await db.select().from(questions).where(eq(questions.id, id)).limit(1);
+  if (!q) notFound();
+
+  const [usageRow] = await db
+    .select({
+      total: count(),
+      correct: sql<number>`sum(case when ${matchAnswers.isCorrect} then 1 else 0 end)::int`,
+      avgMs: sql<number>`coalesce(avg(${matchAnswers.responseMs})::int, 0)`,
+    })
+    .from(matchAnswers)
+    .where(eq(matchAnswers.questionId, id));
+
+  const usage = {
+    total: usageRow?.total ?? 0,
+    correct: usageRow?.correct ?? 0,
+    avgMs: usageRow?.avgMs ?? 0,
+  };
+  const correctPct = usage.total > 0 ? Math.round((usage.correct / usage.total) * 100) : null;
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <PageHeader
+        title="Edit question"
+        description={`Created ${formatDate(q.createdAt)} · Updated ${formatDate(q.updatedAt)}`}
+        actions={
+          <Link
+            href="/questions"
+            className="rounded-md border border-line bg-bg-2 px-3 py-1.5 text-sm text-fg-2 hover:bg-bg-3"
+          >
+            ← Back
+          </Link>
+        }
+      />
+
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-widest text-fg-3">Times asked</div>
+          <div className="mt-1 text-xl font-semibold text-fg-0">
+            {usage.total.toLocaleString("fr-FR")}
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-widest text-fg-3">Correct rate</div>
+          <div className="mt-1 text-xl font-semibold text-fg-0">
+            {correctPct == null ? "—" : `${correctPct}%`}
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-widest text-fg-3">Avg response</div>
+          <div className="mt-1 text-xl font-semibold text-fg-0">
+            {usage.avgMs > 0 ? `${(usage.avgMs / 1000).toFixed(1)} s` : "—"}
+          </div>
+        </Card>
+      </div>
+
+      <Card className="p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Badge>{q.locale}</Badge>
+          <Badge tone="accent">{q.category}</Badge>
+          <Badge>{q.difficulty}</Badge>
+          {q.eloTarget != null && <Badge tone="info">ELO {q.eloTarget}</Badge>}
+          {!q.active && <Badge tone="danger">inactive</Badge>}
+        </div>
+
+        <QuestionEditForm question={q} />
+      </Card>
+    </div>
+  );
+}

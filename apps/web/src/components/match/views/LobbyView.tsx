@@ -7,7 +7,14 @@ import { QAAvatar } from "@/components/shared/QAAvatar";
 import { NextPhaseBrief } from "@/components/match/NextPhaseBrief";
 import { TransitionCountdown } from "@/components/match/TransitionCountdown";
 import { cn } from "@/lib/cn";
+import { formatSeasonNumber, getCurrentSeason } from "@/lib/season";
 import type { MatchClientState } from "@/match/match-state";
+
+// Computed once on module load — the season number only flips every 90
+// days so we don't need to recompute on every render. The lobby is a
+// short-lived client component so a stale value here is impossible
+// in practice (and harmless either way).
+const SEASON_LABEL = `S${formatSeasonNumber(getCurrentSeason().number)}`;
 
 interface LobbyViewProps {
   state: MatchClientState;
@@ -128,7 +135,7 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
         {/* Bottom strip */}
         <div className="relative z-10 flex items-center justify-between border-t border-white/[0.08] bg-black/30 px-14 py-4">
           <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">{tStart("tip")}</span>
-          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">QUIZELO · S03</span>
+          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">QUIZELO · {SEASON_LABEL}</span>
         </div>
       </div>
 

@@ -3,18 +3,20 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  openCustomerPortalAction,
-  startPremiumCheckoutAction,
+  resumeSubscriptionAction,
   type PremiumDuration,
 } from "@/lib/stripe-actions";
-import {
-  activatePremiumAction,
-  cancelPremiumAction,
-} from "@/lib/user-actions";
 import { Button } from "@/components/ui/button";
+import { CancelSubscriptionDialog } from "@/components/premium/CancelSubscriptionDialog";
+import { PremiumCheckoutDialog } from "@/components/premium/PremiumCheckoutDialog";
 
 interface PremiumToggleButtonsProps {
   isPremium: boolean;
+  /** End of the current paid period — shown in the cancel dialog. */
+  premiumUntil: Date | null;
+  /** True if the user already scheduled a cancellation. Hides the
+   *  cancel CTA and shows a "Resume" CTA in its place. */
+  cancelAtPeriodEnd: boolean;
   /** Tone of the action labels (gold = activate, neutral = manage). */
   labels: {
     activateMonth: string;
@@ -25,128 +27,144 @@ interface PremiumToggleButtonsProps {
 }
 
 /**
- * Two activation buttons (1 month · 1 year) when free, plus an "extend"
- * shortcut + a danger "cancel" action when already Premium. No payment
- * is processed — the server action just flips the flag and bumps
- * `premiumUntil`.
+ * Premium activation / management buttons on the /settings page.
+ *
+ * State machine for a Premium user:
+ *   - default            → "Extend" + "Cancel" buttons
+ *   - cancellation armed → "Resume subscription" button (the period
+ *                          info is rendered by the parent card)
+ *
+ * Free user: two "activate" CTAs that open the embedded Checkout
+ * dialog. Everything stays inside Quizelo — no Stripe-hosted UI.
  */
 export function PremiumToggleButtons({
   isPremium,
+  premiumUntil,
+  cancelAtPeriodEnd,
   labels,
 }: PremiumToggleButtonsProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutDuration, setCheckoutDuration] = useState<PremiumDuration | null>(
+    null,
+  );
+  const [cancelOpen, setCancelOpen] = useState(false);
+
   const activate = (duration: PremiumDuration) => {
     setError(null);
-    startTransition(async () => {
-      const checkout = await startPremiumCheckoutAction(duration);
-      if (checkout.ok) {
-        window.location.href = checkout.url;
-        return;
-      }
-      // Dev fallback when Stripe isn't configured.
-      if (checkout.code === "not_configured") {
-        const dev = await activatePremiumAction(duration);
-        if (!dev.ok) {
-          setError(dev.message ?? "Une erreur est survenue.");
-          return;
-        }
-        router.refresh();
-        return;
-      }
-      setError(checkout.message ?? "Une erreur est survenue.");
-    });
+    setCheckoutDuration(duration);
+    setCheckoutOpen(true);
   };
 
-  const cancel = () => {
+  const resume = () => {
     setError(null);
     startTransition(async () => {
-      // Real flow: open Stripe Customer Portal so the user manages /
-      // cancels from Stripe's hosted UI.
-      const portal = await openCustomerPortalAction();
-      if (portal.ok) {
-        window.location.href = portal.url;
-        return;
-      }
-      // No customer yet, or Stripe disabled → fall back to dev cancel.
-      if (portal.code === "no_customer" || portal.code === "not_configured") {
-        const dev = await cancelPremiumAction();
-        if (!dev.ok) {
-          setError(dev.message ?? "Une erreur est survenue.");
-          return;
-        }
+      const res = await resumeSubscriptionAction();
+      if (res.ok) {
         router.refresh();
         return;
       }
-      setError(portal.message ?? "Une erreur est survenue.");
+      if (res.code === "no_subscription") {
+        setError("Aucune annulation en cours à reprendre.");
+        return;
+      }
+      if (res.code === "no_customer") {
+        setError("Aucun abonnement Stripe lié à ce compte.");
+        return;
+      }
+      if (res.code === "not_configured") {
+        setError("Reprise indisponible — réessaie plus tard.");
+        return;
+      }
+      if (res.code === "unauthorized") {
+        setError("Connecte-toi pour gérer ton abonnement.");
+        return;
+      }
+      setError(res.message ?? "Une erreur est survenue.");
     });
   };
 
-  if (!isPremium) {
-    return (
+  return (
+    <>
       <div className="flex flex-col items-end gap-1.5">
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        {!isPremium ? (
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => activate("month")}
+              className="px-3 py-2 text-[11px] text-gold"
+              style={{ borderColor: "rgba(255,209,102,0.4)" }}
+            >
+              {labels.activateMonth}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => activate("year")}
+              className="px-3 py-2 text-[11px] text-gold"
+              style={{ borderColor: "rgba(255,209,102,0.4)" }}
+            >
+              {labels.activateYear}
+            </Button>
+          </div>
+        ) : cancelAtPeriodEnd ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => activate("month")}
+            onClick={resume}
             disabled={pending}
             className="px-3 py-2 text-[11px] text-gold"
             style={{ borderColor: "rgba(255,209,102,0.4)" }}
           >
-            {labels.activateMonth}
+            {pending ? "…" : "Reprendre l'abonnement"}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => activate("year")}
-            disabled={pending}
-            className="px-3 py-2 text-[11px] text-gold"
-            style={{ borderColor: "rgba(255,209,102,0.4)" }}
-          >
-            {labels.activateYear}
-          </Button>
-        </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => activate("year")}
+              className="px-3 py-2 text-[11px] text-gold"
+              style={{ borderColor: "rgba(255,209,102,0.4)" }}
+            >
+              {labels.extend}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCancelOpen(true)}
+              className="px-3 py-2 text-[11px] text-danger"
+              style={{ borderColor: "rgba(248,113,113,0.4)" }}
+            >
+              {labels.cancel}
+            </Button>
+          </div>
+        )}
         {error ? (
           <span className="font-mono text-[10px] text-danger">{error}</span>
         ) : null}
       </div>
-    );
-  }
 
-  return (
-    <div className="flex flex-col items-end gap-1.5">
-      <div className="flex flex-wrap items-center justify-end gap-1.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => activate("year")}
-          disabled={pending}
-          className="px-3 py-2 text-[11px] text-gold"
-          style={{ borderColor: "rgba(255,209,102,0.4)" }}
-        >
-          {labels.extend}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={cancel}
-          disabled={pending}
-          className="px-3 py-2 text-[11px] text-danger"
-          style={{ borderColor: "rgba(248,113,113,0.4)" }}
-        >
-          {labels.cancel}
-        </Button>
-      </div>
-      {error ? (
-        <span className="font-mono text-[10px] text-danger">{error}</span>
-      ) : null}
-    </div>
+      <PremiumCheckoutDialog
+        open={checkoutOpen}
+        duration={checkoutDuration}
+        onClose={() => setCheckoutOpen(false)}
+      />
+
+      <CancelSubscriptionDialog
+        open={cancelOpen}
+        premiumUntil={premiumUntil}
+        onClose={() => setCancelOpen(false)}
+      />
+    </>
   );
 }

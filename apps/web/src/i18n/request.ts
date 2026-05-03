@@ -12,6 +12,17 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale,
     messages: (await import(`../../messages/${locale}.json`)).default,
     /**
+     * Default time zone for date/number formatting. Without this,
+     * next-intl warns (and errors in strict mode) on every server
+     * render — because the env-dependent fallback can produce
+     * different markup on server vs. client when the host TZ
+     * disagrees with the user's local TZ.
+     *
+     * `Europe/Paris` matches our launch market; client components
+     * that need user-local time can override per call.
+     */
+    timeZone: "Europe/Paris",
+    /**
      * Silent fallback for missing keys — return the last segment of the
      * namespace path. Keeps the UI sane while we backfill translations.
      */

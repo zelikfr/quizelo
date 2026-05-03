@@ -171,7 +171,7 @@
       },
       "ranked": {
         "title": "Match classé",
-        "description": "Difficulté adaptée à ton ELO. Saison 03 — 47 jours restants.",
+        "description": "Difficulté adaptée à ton ELO. Saison {season} — {days, plural, one {# jour restant} other {# jours restants}}.",
         "cta": "JOUER CLASSÉ"
       }
     }

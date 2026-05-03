@@ -1,7 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { auth } from "@quizelo/auth";
-import { getCurrentUser } from "@/lib/current-user";
 import { Link } from "@/i18n/routing";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { LoginBrandPanel } from "@/components/auth/LoginBrandPanel";
@@ -14,9 +13,17 @@ interface VerifyRequiredPageProps {
 
 /**
  * Hard gate for unverified accounts. The middleware redirects every
- * route here until `users.email_verified` is set. The user can:
- *   - re-send the magic link to their inbox
- *   - sign out (for example to switch accounts)
+ * route here until the JWT carries an `emailVerified` claim.
+ *
+ * IMPORTANT: this page MUST read the same source of truth as the
+ * middleware (the JWT) and not a freshly-fetched DB row. Otherwise an
+ * out-of-band verify (admin "Force verify" button, or any DB tweak)
+ * creates a redirect loop:
+ *   - DB says verified → page redirects to /home
+ *   - JWT still says unverified → middleware redirects back here
+ *   - …forever.
+ * The user has to sign out and back in (or click a magic link) for the
+ * JWT to refresh, which is the expected UX on a force-verify.
  */
 export default async function VerifyRequiredPage({
   params,
@@ -31,9 +38,9 @@ export default async function VerifyRequiredPage({
     redirect("/auth/login");
   }
 
-  const user = await getCurrentUser();
-  // Already verified → home.
-  if (user?.emailVerified) {
+  // JWT says verified → bounce home. Same source the middleware uses,
+  // so we don't ping-pong with the gate above.
+  if (session.user.emailVerified) {
     redirect("/home");
   }
 
@@ -50,7 +57,7 @@ export default async function VerifyRequiredPage({
         {t("title")}
       </h2>
       <p className="mt-3 mb-6 text-[14px] leading-relaxed text-fg-2">
-        {t("body", { email: user?.email ?? "" })}
+        {t("body", { email: session.user.email ?? "" })}
       </p>
 
       <div

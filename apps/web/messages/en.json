@@ -171,7 +171,7 @@
       },
       "ranked": {
         "title": "Ranked match",
-        "description": "Difficulty scales with your ELO. Season 03 — 47 days remaining.",
+        "description": "Difficulty scales with your ELO. Season {season} — {days, plural, one {# day remaining} other {# days remaining}}.",
         "cta": "PLAY RANKED"
       }
     }

@@ -17,6 +17,8 @@ export interface CurrentUser {
   coins: number;
   isPremium: boolean;
   premiumUntil: Date | null;
+  /** True when the user has scheduled a cancellation that hasn't kicked in yet. */
+  premiumCancelAtPeriodEnd: boolean;
   locale: string;
   // Contact + address — all optional, edited from /settings.
   phone: string | null;
@@ -64,6 +66,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     coins: row.coins,
     isPremium: isCurrentlyPremium,
     premiumUntil: row.premiumUntil,
+    premiumCancelAtPeriodEnd: row.premiumCancelAtPeriodEnd,
     locale: row.locale,
     phone: row.phone,
     addressLine: row.addressLine,

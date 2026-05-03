@@ -153,6 +153,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
               <SubscriptionCard
                 isPremium={user.isPremium}
                 premiumUntil={user.premiumUntil}
+                cancelAtPeriodEnd={user.premiumCancelAtPeriodEnd}
               />
             </section>
 
@@ -304,6 +305,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           <SubscriptionCard
             isPremium={user.isPremium}
             premiumUntil={user.premiumUntil}
+            cancelAtPeriodEnd={user.premiumCancelAtPeriodEnd}
           />
         </div>
 
