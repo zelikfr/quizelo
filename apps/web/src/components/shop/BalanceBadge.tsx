@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
-import { SHOP_BALANCE } from "@/lib/shop-data";
+import { getCurrentUser } from "@/lib/current-user";
 
 interface BalanceBadgeProps {
   /** Mobile = bigger card with explicit "BALANCE" label. */
@@ -17,7 +17,10 @@ const CARD_BG =
 export async function BalanceBadge({ variant = "pill" }: BalanceBadgeProps) {
   const t = await getTranslations("shop");
   const locale = (await getLocale()) as Locale;
-  const formatted = formatNumber(SHOP_BALANCE, locale);
+  // Real balance from the session — falls back to 0 for logged-out
+  // viewers (the shop page is gated, but the component is reusable).
+  const user = await getCurrentUser();
+  const formatted = formatNumber(user?.coins ?? 0, locale);
 
   if (variant === "card") {
     return (

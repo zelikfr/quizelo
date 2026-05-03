@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -50,6 +51,17 @@ export const users = pgTable("users", {
     .notNull(),
   elo: integer("elo").default(1000).notNull(),
   coins: integer("coins").default(0).notNull(),
+  /**
+   * Owned boost cards keyed by boost id (e.g. `{ "x2-3": 5, "shield-1": 2 }`).
+   * Bought from the shop with `coins`, consumed at the start of a
+   * ranked match. We store as JSON instead of a relational table for
+   * simpler atomic updates and zero migration cost when adding new
+   * boost types.
+   */
+  boostInventory: jsonb("boost_inventory")
+    .$type<Record<string, number>>()
+    .default({})
+    .notNull(),
 
   // ── Contact + address (all optional, edited from /settings)
   phone: text("phone"),

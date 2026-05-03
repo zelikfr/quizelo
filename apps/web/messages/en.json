@@ -479,7 +479,56 @@
       "doubleElo": "×2 ELO Card — {count} games",
       "doubleEloDesc": "Double ELO gains on {count} ranked wins",
       "shield": "ELO Shield ×{count}",
-      "shieldDesc": "Cancels ELO loss on {count} ranked {count, plural, one {loss} other {losses}}"
+      "shieldDesc": "Cancels ELO loss on {count} ranked {count, plural, one {loss} other {losses}}",
+      "inventoryDoubleElo": "×2 ELO charges",
+      "inventoryShield": "ELO Shield charges",
+      "pickerNone": "No boost",
+      "pickerActive": "Active boost",
+      "pickerHint": "One activation per ranked match"
+    },
+    "inventory": {
+      "eyebrow": "YOUR INVENTORY",
+      "title": "Owned cards"
+    },
+    "bought": "Bought ✓",
+    "errors": {
+      "insufficientCoins": "Not enough credits",
+      "notPremium": "Premium required",
+      "unauthorized": "Sign in",
+      "unknownBoost": "Unknown card",
+      "generic": "Error"
+    },
+    "premiumGate": {
+      "badge": "PREMIUM SHOP",
+      "title": "The shop is for Premium members",
+      "body": "Credits, boost cards and inventory are only available with an active Premium subscription. Upgrade to unlock the shop and everything inside.",
+      "perks": {
+        "coins": "In-app credit purchases",
+        "boosts": "×2 ELO and shield boost cards",
+        "ranked": "Unlimited ranked mode"
+      },
+      "cta": "Go Premium"
+    },
+    "checkout": {
+      "header": "Quizelo · Credits",
+      "closeAria": "Close",
+      "loading": "Loading…",
+      "initializing": "Initializing…",
+      "packLine": "{credits} credits",
+      "oneTime": "One-time payment — no subscription.",
+      "payCta": "Pay {amount}",
+      "paying": "Processing…",
+      "secured": "Secured by Stripe · 3-D Secure",
+      "errors": {
+        "notConfigured": "Payments unavailable — try again later.",
+        "notPremium": "Premium accounts only.",
+        "unauthorized": "Sign in to buy credits.",
+        "unknownPack": "Pack not found.",
+        "generic": "Something went wrong.",
+        "declined": "Payment declined.",
+        "processing": "Your payment is being processed.",
+        "incomplete": "Payment not completed. Try again."
+      }
     }
   },
 

@@ -50,6 +50,13 @@
       "when": 1779235200000,
       "tag": "0006_premium_cancel_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779321600000,
+      "tag": "0007_boost_inventory",
+      "breakpoints": true
     }
   ]
 }

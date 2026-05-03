@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
 import { Paywall } from "@/components/premium/Paywall";
 import { PaywallContent } from "@/components/premium/PaywallContent";
+import { BoostPicker } from "@/components/home/BoostPicker";
 import { PlayButton } from "@/components/home/PlayButton";
 import { getCurrentUser } from "@/lib/current-user";
 import { enqueueRankedAndRedirectAction } from "@/lib/match-actions";
@@ -105,6 +106,12 @@ export async function RankedCard({ compact = false, className }: RankedCardProps
       <div className="relative mt-auto">
         {isPremium ? (
           <form action={enqueueRankedAndRedirectAction}>
+            <BoostPicker
+              inventory={{
+                doubleElo: user?.boostInventory["double-elo"] ?? 0,
+                shield: user?.boostInventory["shield"] ?? 0,
+              }}
+            />
             <PlayButton label={tCommon("play")} variant="gold" />
           </form>
         ) : (

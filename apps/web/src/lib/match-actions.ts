@@ -5,6 +5,7 @@ import { getLocale } from "next-intl/server";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getQuickQuota } from "@/lib/quick-quota";
+import { consumeBoostChargeAction, type BoostKind } from "@/lib/shop-actions";
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
@@ -17,9 +18,14 @@ export type EnqueueResult =
 /**
  * Enqueue the current user into a match lobby (or join an open one).
  * Forwards the Auth.js cookie so apps/api can decode the session.
+ *
+ * `boost` is forwarded to the API only on ranked mode; the caller is
+ * responsible for having already consumed it from the user's
+ * inventory (see `enqueueAndRedirectFor`).
  */
 export async function enqueueMatchAction(
   mode: MatchMode = "quick",
+  boost: BoostKind | null = null,
 ): Promise<EnqueueResult> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, reason: "unauthorized" };
@@ -37,7 +43,11 @@ export async function enqueueMatchAction(
         cookie: cookieHeader,
         ...(xff ? { "x-forwarded-for": xff } : {}),
       },
-      body: JSON.stringify({ locale, mode }),
+      body: JSON.stringify({
+        locale,
+        mode,
+        boost: mode === "ranked" ? boost : null,
+      }),
       cache: "no-store",
     });
   } catch (err) {
@@ -64,12 +74,38 @@ export async function enqueueAndRedirectAction(): Promise<void> {
   return enqueueAndRedirectFor("quick");
 }
 
-/** Form-targetable enqueue + redirect for ranked matches. */
-export async function enqueueRankedAndRedirectAction(): Promise<void> {
-  return enqueueAndRedirectFor("ranked");
+/**
+ * Form-targetable enqueue + redirect for ranked matches.
+ *
+ * The form posts an optional `boost` field with values "double-elo"
+ * or "shield"; if present we atomically decrement one charge from the
+ * user's inventory before forwarding to the API. Quitting the lobby
+ * before the match starts does NOT refund the charge — same UX as a
+ * one-shot consumable everywhere else in the genre.
+ */
+export async function enqueueRankedAndRedirectAction(
+  formData: FormData,
+): Promise<void> {
+  const boostRaw = formData.get("boost");
+  let boost: BoostKind | null = null;
+  if (boostRaw === "double-elo" || boostRaw === "shield") {
+    const consumed = await consumeBoostChargeAction(boostRaw);
+    if (consumed.ok) {
+      boost = boostRaw;
+    } else {
+      // Couldn't consume (no charge / unauthorized) → bail back to /home
+      // with a soft error rather than letting the user enqueue without
+      // the boost they expected.
+      redirect("/home?error=boost_unavailable");
+    }
+  }
+  return enqueueAndRedirectFor("ranked", boost);
 }
 
-async function enqueueAndRedirectFor(mode: MatchMode): Promise<void> {
+async function enqueueAndRedirectFor(
+  mode: MatchMode,
+  boost: BoostKind | null = null,
+): Promise<void> {
   // Daily-quota gate for free users on quick matches: we only *check* here
   // and block lobby entry — the actual decrement happens server-side at
   // phase-1 start so a player who quits the lobby before the match begins
@@ -83,7 +119,7 @@ async function enqueueAndRedirectFor(mode: MatchMode): Promise<void> {
     }
   }
 
-  const result = await enqueueMatchAction(mode);
+  const result = await enqueueMatchAction(mode, boost);
   if (!result.ok) {
     if (result.reason === "unauthorized") redirect("/auth/login?from=/home");
     redirect("/home?error=match_unavailable");

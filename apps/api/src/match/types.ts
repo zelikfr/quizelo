@@ -46,6 +46,15 @@ export interface MatchPlayer {
   phase2Index: number;
   /** Shadows are server-driven — no real WS connection. */
   isShadow: boolean;
+  /**
+   * Optional boost the player activated before joining the match
+   * (consumed from their inventory at enqueue time). Applied at
+   * settlement:
+   *   - "double-elo": multiplies the player's eloDelta by 2.
+   *   - "shield"    : floors a negative eloDelta to 0.
+   * Ignored on quick matches (eloDelta is already 0 there).
+   */
+  activeBoost: "double-elo" | "shield" | null;
 }
 
 /** Every answer captured during the match — flushed to DB at phase end. */

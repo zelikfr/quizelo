@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
+import { CreditPackBuyButton } from "./CreditPackBuyButton";
 import { type CreditPack } from "@/lib/shop-data";
 import { cn } from "@/lib/cn";
 
@@ -56,13 +56,12 @@ export async function CreditPackCard({ pack, compact = false }: CreditPackCardPr
           </div>
           <div className="font-display font-mono text-lg font-bold">{credits}</div>
         </div>
-        <Button
+        <CreditPackBuyButton
+          packId={pack.id}
+          cta={pack.priceLabel}
           variant={pack.highlighted ? "primary" : "ghost"}
-          size="sm"
-          className="px-3 py-2 text-[11px]"
-        >
-          {pack.priceLabel}
-        </Button>
+          compact
+        />
       </div>
     );
   }
@@ -102,13 +101,13 @@ export async function CreditPackCard({ pack, compact = false }: CreditPackCardPr
         {pack.pricePerCredit} ¢ / {t("perCredit")}
       </div>
 
-      <Button
-        variant={pack.highlighted ? "primary" : "ghost"}
-        size="full"
-        className="mt-3.5 justify-center py-2.5 text-xs"
-      >
-        {pack.priceLabel}
-      </Button>
+      <div className="mt-3.5">
+        <CreditPackBuyButton
+          packId={pack.id}
+          cta={pack.priceLabel}
+          variant={pack.highlighted ? "primary" : "ghost"}
+        />
+      </div>
     </div>
   );
 }

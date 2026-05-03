@@ -28,9 +28,11 @@ class Matchmaker {
     userId: string;
     locale: string;
     mode: MatchMode;
+    /** Pre-match boost the user activated (null on quick or no activation). */
+    boost?: "double-elo" | "shield" | null;
     log: FastifyBaseLogger;
   }): Promise<{ matchId: string }> {
-    const { userId, locale, mode, log } = opts;
+    const { userId, locale, mode, boost, log } = opts;
     const key = lobbyKey(locale, mode);
 
     // Resume only if the user is actually still playing (hasn't been
@@ -67,7 +69,7 @@ class Matchmaker {
         (p) => p.userId === userId && p.status !== "left",
       );
       if (!already) {
-        await this.addPlayerToLobby(pending.room, userId, log);
+        await this.addPlayerToLobby(pending.room, userId, boost ?? null, log);
         pending.room.onPlayerJoined();
       }
       return { matchId: pending.matchId };
@@ -126,6 +128,7 @@ class Matchmaker {
   private async addPlayerToLobby(
     room: MatchRoom,
     userId: string,
+    boost: "double-elo" | "shield" | null,
     log: FastifyBaseLogger,
   ): Promise<void> {
     if (room.state.players.length >= MATCH_CONFIG.size) {
@@ -161,6 +164,7 @@ class Matchmaker {
       peakScore: 0,
       phase2Index: 0,
       isShadow: false,
+      activeBoost: boost,
     };
     room.state.players.push(player);
 

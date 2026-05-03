@@ -1,6 +1,11 @@
 /**
- * Static pricing fixtures for the shop mockup. Runtime values come from
- * `/api/shop/products` (or platform IAP product ids on iOS/Android).
+ * Shop catalog. Source of truth for the in-app prices, used by:
+ *   - the shop UI (display cards)
+ *   - `purchaseCreditPackAction` (Stripe PaymentIntent amount)
+ *   - `spendCoinsOnBoostAction` (price in coins)
+ *
+ * To launch a new pack, just push a row here — no Stripe Product/Price
+ * needed because we create PaymentIntents with the amount inline.
  */
 
 export type BadgeKey = "popular" | "bestValue";
@@ -10,6 +15,12 @@ export interface CreditPack {
   /** Mono-cap eyebrow shown above the price. */
   name: string;
   credits: number;
+  /** Total in the smallest currency unit (e.g. 199 = 1,99 €). */
+  amountCents: number;
+  /** ISO 4217 lowercase code passed to Stripe (`eur`, `usd`, …). */
+  currency: string;
+  /** Display label, e.g. "1,99 €". Pre-localized for FR; the UI can
+   *  re-format from amount/currency for other locales. */
   priceLabel: string;
   /** Per-credit price in cents — drives the "0,91 ¢ / credit" sub-line. */
   pricePerCredit: string;
@@ -20,11 +31,15 @@ export interface CreditPack {
 }
 
 export const CREDIT_PACKS: readonly CreditPack[] = [
-  { id: "starter",  name: "Starter",  credits:  200, priceLabel: "1,99 €",  pricePerCredit: "1,00" },
-  { id: "standard", name: "Standard", credits:  550, priceLabel: "4,99 €",  pricePerCredit: "0,91", badge: "popular" },
-  { id: "premium",  name: "Premium",  credits: 1200, priceLabel: "9,99 €",  pricePerCredit: "0,83", highlighted: true },
-  { id: "mega",     name: "Mega",     credits: 2800, priceLabel: "19,99 €", pricePerCredit: "0,71", badge: "bestValue" },
+  { id: "starter",  name: "Starter",  credits:  200, amountCents:   199, currency: "eur", priceLabel: "1,99 €",  pricePerCredit: "1,00" },
+  { id: "standard", name: "Standard", credits:  550, amountCents:   499, currency: "eur", priceLabel: "4,99 €",  pricePerCredit: "0,91", badge: "popular" },
+  { id: "premium",  name: "Premium",  credits: 1200, amountCents:   999, currency: "eur", priceLabel: "9,99 €",  pricePerCredit: "0,83", highlighted: true },
+  { id: "mega",     name: "Mega",     credits: 2800, amountCents:  1999, currency: "eur", priceLabel: "19,99 €", pricePerCredit: "0,71", badge: "bestValue" },
 ];
+
+export function findCreditPack(id: string): CreditPack | undefined {
+  return CREDIT_PACKS.find((p) => p.id === id);
+}
 
 export type BoostKind = "double-elo" | "shield";
 
@@ -37,6 +52,7 @@ export interface BoostCard {
   tint: string;
   /** Game count or qualifier shown after the kind label, e.g. "3" or "5". */
   count: number;
+  /** Price in coins. */
   price: number;
   /** Marks the card as "TOP" — gold gradient + ★ TOP badge. */
   best?: boolean;
@@ -50,4 +66,6 @@ export const BOOST_CARDS: readonly BoostCard[] = [
   { id: "shield-3",  kind: "shield",     icon: "◊",  tint: "#4ADE80", count:  3, price: 270 },
 ];
 
-export const SHOP_BALANCE = 1240;
+export function findBoost(id: string): BoostCard | undefined {
+  return BOOST_CARDS.find((b) => b.id === id);
+}

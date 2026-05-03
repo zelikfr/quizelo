@@ -15,6 +15,8 @@ export interface CurrentUser {
   image: string | null;
   elo: number;
   coins: number;
+  /** Owned boost cards keyed by boost id, e.g. `{ "x2-3": 5 }`. */
+  boostInventory: Record<string, number>;
   isPremium: boolean;
   premiumUntil: Date | null;
   /** True when the user has scheduled a cancellation that hasn't kicked in yet. */
@@ -64,6 +66,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     image: row.image,
     elo: row.elo,
     coins: row.coins,
+    boostInventory: (row.boostInventory ?? {}) as Record<string, number>,
     isPremium: isCurrentlyPremium,
     premiumUntil: row.premiumUntil,
     premiumCancelAtPeriodEnd: row.premiumCancelAtPeriodEnd,

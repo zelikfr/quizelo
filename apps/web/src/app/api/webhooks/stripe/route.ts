@@ -1,5 +1,5 @@
 import { db, users } from "@quizelo/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type Stripe from "stripe";
 import { isStripeConfigured, stripe } from "@/lib/stripe";
 
@@ -62,6 +62,12 @@ export async function POST(req: Request): Promise<Response> {
         await handleInvoicePaid(event.data.object as Stripe.Invoice);
         break;
 
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(
+          event.data.object as Stripe.PaymentIntent,
+        );
+        break;
+
       default:
         // Stripe sends many event types; ignore everything else.
         break;
@@ -86,6 +92,43 @@ async function handleSubscriptionEvent(sub: Stripe.Subscription): Promise<void> 
   // would otherwise crash `applySubscription` with an invalid date.
   const fresh = await stripe().subscriptions.retrieve(sub.id);
   await applySubscription(fresh);
+}
+
+/**
+ * One-time PaymentIntents from the shop (credit packs). Subscription
+ * payments also fire `payment_intent.succeeded` but their metadata
+ * doesn't carry `kind=credit_pack`, so they're filtered out here.
+ *
+ * Idempotency: we tag the PI with `metadata.creditedAt` after the
+ * coins are added; any subsequent delivery of the same event sees the
+ * tag and short-circuits. Same dedupe used by
+ * `confirmCreditPackPaidAction`.
+ */
+async function handlePaymentIntentSucceeded(
+  pi: Stripe.PaymentIntent,
+): Promise<void> {
+  if (pi.metadata?.kind !== "credit_pack") return;
+  if (pi.metadata?.creditedAt) return; // already applied
+  const userId = pi.metadata?.userId;
+  const credits = Number(pi.metadata?.credits ?? 0);
+  if (!userId || !Number.isFinite(credits) || credits <= 0) return;
+
+  await db
+    .update(users)
+    .set({
+      coins: sql`${users.coins} + ${credits}`,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+
+  // Tag the PI so a redelivery doesn't re-credit. Best-effort.
+  try {
+    await stripe().paymentIntents.update(pi.id, {
+      metadata: { ...pi.metadata, creditedAt: String(Date.now()) },
+    });
+  } catch {
+    // ignore
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {

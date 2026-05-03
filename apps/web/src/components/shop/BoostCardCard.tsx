@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Button } from "@/components/ui/button";
+import { BoostBuyButton } from "./BoostBuyButton";
 import { type BoostCard } from "@/lib/shop-data";
 import { cn } from "@/lib/cn";
 
@@ -46,6 +46,7 @@ export async function BoostCardCard({ card, compact = false }: BoostCardCardProp
           <span className="text-[10px]">◈</span>
           {card.price}
         </span>
+        <BoostBuyButton boostId={card.id} cta={t("buy")} compact />
       </div>
     );
   }
@@ -89,9 +90,7 @@ export async function BoostCardCard({ card, compact = false }: BoostCardCardProp
           <span className="text-[11px]">◈</span>
           {card.price}
         </span>
-        <Button variant="ghost" size="sm" className="px-2.5 py-1 text-[10px]">
-          {t("buy")}
-        </Button>
+        <BoostBuyButton boostId={card.id} cta={t("buy")} />
       </div>
     </div>
   );

@@ -7,6 +7,13 @@ import { registry } from "./registry";
 const enqueueBody = z.object({
   locale: z.string().min(2).max(8).default("fr"),
   mode: z.enum(["quick", "ranked"]).default("quick"),
+  /**
+   * Optional pre-match boost the user activated. The web app already
+   * consumed it from `users.boost_inventory` before sending us this
+   * request, so we just need to remember which one to apply at
+   * settlement. Ignored when mode === "quick".
+   */
+  boost: z.enum(["double-elo", "shield"]).nullish(),
 });
 
 export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
@@ -25,6 +32,7 @@ export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
         userId: session.userId,
         locale: parsed.data.locale,
         mode: parsed.data.mode,
+        boost: parsed.data.mode === "ranked" ? parsed.data.boost ?? null : null,
         log: app.log,
       });
       return { matchId };

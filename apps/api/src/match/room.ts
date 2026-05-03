@@ -998,14 +998,25 @@ export class MatchRoom {
       ...phase1Out,
     ];
     const isRanked = this.state.mode === "ranked";
-    const podium = ordered.map((p, i) => ({
-      userId: p.userId,
-      rank: i + 1,
-      score: p.score,
-      // Quick matches broadcast a delta of 0 so the result screen shows no
-      // ELO movement and matches what the DB will (not) write.
-      eloDelta: isRanked ? eloDeltaForRank(i + 1) : 0,
-    }));
+    const podium = ordered.map((p, i) => {
+      // Quick matches broadcast a delta of 0 so the result screen shows
+      // no ELO movement and matches what the DB will (not) write.
+      let eloDelta = isRanked ? eloDeltaForRank(i + 1) : 0;
+      // Apply the player's pre-match boost (if any). Boosts only ever
+      // help the player — they never compound a loss into a bigger one.
+      if (isRanked && p.activeBoost === "double-elo" && eloDelta > 0) {
+        eloDelta *= 2;
+      }
+      if (isRanked && p.activeBoost === "shield" && eloDelta < 0) {
+        eloDelta = 0;
+      }
+      return {
+        userId: p.userId,
+        rank: i + 1,
+        score: p.score,
+        eloDelta,
+      };
+    });
 
     this.state.status = "results";
     this.broadcast({ type: "match_end", podium });

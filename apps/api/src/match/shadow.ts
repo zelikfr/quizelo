@@ -56,6 +56,7 @@ export function makeShadow(seat: number, rand: () => number): MatchPlayer {
     peakScore: 0,
     phase2Index: 0,
     isShadow: true,
+    activeBoost: null,
   };
 }
 

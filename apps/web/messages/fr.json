@@ -479,7 +479,56 @@
       "doubleElo": "Carte ×2 ELO — {count} parties",
       "doubleEloDesc": "Double les gains ELO sur {count} victoires ranked",
       "shield": "Protection ELO ×{count}",
-      "shieldDesc": "Annule la perte ELO sur {count} {count, plural, one {défaite} other {défaites}}"
+      "shieldDesc": "Annule la perte ELO sur {count} {count, plural, one {défaite} other {défaites}}",
+      "inventoryDoubleElo": "Charges ×2 ELO",
+      "inventoryShield": "Charges Protection ELO",
+      "pickerNone": "Aucun boost",
+      "pickerActive": "Boost actif",
+      "pickerHint": "Activable une fois par match classé"
+    },
+    "inventory": {
+      "eyebrow": "TON INVENTAIRE",
+      "title": "Cartes possédées"
+    },
+    "bought": "Acheté ✓",
+    "errors": {
+      "insufficientCoins": "Crédits insuffisants",
+      "notPremium": "Premium requis",
+      "unauthorized": "Connecte-toi",
+      "unknownBoost": "Carte introuvable",
+      "generic": "Erreur"
+    },
+    "premiumGate": {
+      "badge": "BOUTIQUE PREMIUM",
+      "title": "La boutique est réservée aux Premium",
+      "body": "Crédits, cartes boost et inventaire ne s'achètent qu'avec un abonnement Premium actif. Active-le pour débloquer la boutique et toutes ses options.",
+      "perks": {
+        "coins": "Achat de crédits in-app",
+        "boosts": "Cartes ×2 ELO et protections",
+        "ranked": "Mode classé illimité"
+      },
+      "cta": "Passer Premium"
+    },
+    "checkout": {
+      "header": "Quizelo · Crédits",
+      "closeAria": "Fermer",
+      "loading": "Chargement…",
+      "initializing": "Initialisation…",
+      "packLine": "{credits} crédits",
+      "oneTime": "Paiement unique — pas d'abonnement.",
+      "payCta": "Payer {amount}",
+      "paying": "Paiement…",
+      "secured": "Paiement sécurisé par Stripe · 3-D Secure",
+      "errors": {
+        "notConfigured": "Paiement indisponible — réessaie plus tard.",
+        "notPremium": "Réservé aux comptes Premium.",
+        "unauthorized": "Connecte-toi pour acheter des crédits.",
+        "unknownPack": "Pack introuvable.",
+        "generic": "Une erreur est survenue.",
+        "declined": "Paiement refusé.",
+        "processing": "Paiement en cours de traitement.",
+        "incomplete": "Paiement non finalisé. Réessaie."
+      }
     }
   },
 
