@@ -421,6 +421,11 @@
       "copy": "Copier",
       "share": "PARTAGER"
     },
+    "share": {
+      "title": "Rejoins-moi sur Quizelo",
+      "text": "Inscris-toi avec mon code {code} et gagne 50 crédits !",
+      "copied": "Copié"
+    },
     "howItWorks": {
       "title": "COMMENT ÇA MARCHE",
       "step1": "Partage ton code à un·e ami·e",
@@ -445,7 +450,8 @@
     },
     "friends": {
       "title": "TES FILLEUL·E·S",
-      "joined": "rejoint le {date}"
+      "joined": "rejoint le {date}",
+      "empty": "Aucun filleul pour l'instant. Partage ton code pour commencer."
     }
   },
 
@@ -872,8 +878,14 @@
       "haveAccount": "Déjà inscrit ?",
       "loginLink": "Connexion",
       "orEmail": "OU EMAIL",
+      "referralApplied": "Code de parrainage appliqué : {code}",
+      "referralLabel": "Code de parrainage (optionnel)",
+      "referralPlaceholder": "XXXX-XXXX",
+      "referralHelper": "Si on t'a invité, colle ton code ici pour gagner des crédits.",
+      "referralPrefilled": "appliqué",
       "handleHint": "3 à 16 caractères, lettres et chiffres",
       "handleAvailable": "disponible",
+      "handleTaken": "déjà pris",
       "passwordStrength": {
         "weak": "Faible",
         "medium": "Moyen",

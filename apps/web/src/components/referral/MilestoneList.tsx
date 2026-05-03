@@ -1,12 +1,27 @@
 import { getTranslations } from "next-intl/server";
-import { MILESTONES, type Milestone } from "@/lib/referral-data";
+import {
+  MILESTONE_AWARDS,
+  type MilestoneId,
+  type MilestoneState,
+} from "@/lib/referral-config";
 import { cn } from "@/lib/cn";
 
+export interface MilestoneEntry {
+  id: MilestoneId;
+  state: MilestoneState;
+  /** 0..1, only meaningful when state === "active". */
+  progress: number;
+}
+
 interface MilestoneListProps {
+  milestones: readonly MilestoneEntry[];
   compact?: boolean;
 }
 
-export async function MilestoneList({ compact = false }: MilestoneListProps) {
+export async function MilestoneList({
+  milestones,
+  compact = false,
+}: MilestoneListProps) {
   const t = await getTranslations("referral.milestones");
   const tLabels = await getTranslations("referral.milestoneLabels");
 
@@ -21,31 +36,46 @@ export async function MilestoneList({ compact = false }: MilestoneListProps) {
         {compact ? t("titleShort") : t("title")}
       </p>
       <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
-        {MILESTONES.map((m, i) => (
-          <Row
-            key={m.id}
-            milestone={m}
-            index={i}
-            label={tLabels(m.id)}
-            refereeLabel={t("referee")}
-            compact={compact}
-          />
-        ))}
+        {milestones.map((m, i) => {
+          const award = MILESTONE_AWARDS[m.id];
+          return (
+            <Row
+              key={m.id}
+              entry={m}
+              index={i}
+              label={tLabels(m.id)}
+              refereeLabel={t("referee")}
+              ownerCredits={award.referrer}
+              refereeCredits={award.referee}
+              compact={compact}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
 interface RowProps {
-  milestone: Milestone;
+  entry: MilestoneEntry;
   index: number;
   label: string;
   refereeLabel: string;
+  ownerCredits: number;
+  refereeCredits: number;
   compact: boolean;
 }
 
-function Row({ milestone, index, label, refereeLabel, compact }: RowProps) {
-  const { state, ownerCredits, refereeCredits, progress = 0 } = milestone;
+function Row({
+  entry,
+  index,
+  label,
+  refereeLabel,
+  ownerCredits,
+  refereeCredits,
+  compact,
+}: RowProps) {
+  const { state, progress } = entry;
   const dotSize = compact ? 22 : 26;
 
   return (
@@ -86,7 +116,7 @@ function Row({ milestone, index, label, refereeLabel, compact }: RowProps) {
             <div
               className="h-full rounded-pill"
               style={{
-                width: `${progress * 100}%`,
+                width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
                 background: "linear-gradient(90deg, #7C5CFF, #FFD166)",
               }}
             />
@@ -94,7 +124,7 @@ function Row({ milestone, index, label, refereeLabel, compact }: RowProps) {
         )}
       </div>
 
-      <div className={compact ? "text-right" : "text-right"}>
+      <div className="text-right">
         <div className="flex items-center gap-1 font-mono font-bold text-gold">
           <span className={compact ? "text-[10px]" : "text-[11px]"}>◈</span>
           <span className={compact ? "text-xs" : "text-[13px]"}>+{ownerCredits}</span>

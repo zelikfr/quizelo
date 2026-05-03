@@ -1,11 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { FriendsList } from "@/components/referral/FriendsList";
 import { HowItWorks } from "@/components/referral/HowItWorks";
 import { MilestoneList } from "@/components/referral/MilestoneList";
 import { ReferralCodeCard } from "@/components/referral/ReferralCodeCard";
-import { REFERRAL_TOTALS } from "@/lib/referral-data";
+import { getReferralState } from "@/lib/referral-actions";
 import { cn } from "@/lib/cn";
 
 interface ReferralPageProps {
@@ -22,6 +23,12 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
   setRequestLocale(locale);
 
   const t = await getTranslations("referral");
+
+  // Pulls everything we need in one trip + lazy-creates the user's
+  // referral code if they don't have one yet. Also runs settlement
+  // for any pending milestone awards (see getReferralState).
+  const state = await getReferralState();
+  if (!state) redirect("/auth/login?from=/referral");
 
   return (
     <main className="relative isolate min-h-screen overflow-x-clip bg-surface-1 qa-scan">
@@ -55,9 +62,9 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
         >
           {/* Left: code + how + milestones */}
           <div className="flex flex-col gap-[22px]">
-            <ReferralCodeCard />
+            <ReferralCodeCard code={state.code} />
             <HowItWorks />
-            <MilestoneList />
+            <MilestoneList milestones={state.milestones} />
           </div>
 
           {/* Right: stats + friends + abuse note */}
@@ -65,17 +72,17 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
             <div className="grid grid-cols-2 gap-2.5">
               <StatTile
                 label={t("totals.friends")}
-                value={String(REFERRAL_TOTALS.friendsCount)}
+                value={String(state.totals.friendsCount)}
                 color="#A18BFF"
               />
               <StatTile
                 label={t("totals.earned")}
-                value={String(REFERRAL_TOTALS.earnedCredits)}
+                value={String(state.totals.earnedCredits)}
                 color="#FFD166"
                 accent="gold"
               />
             </div>
-            <FriendsList />
+            <FriendsList friends={state.friends} />
             <AbuseNote />
           </div>
         </div>
@@ -114,20 +121,20 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
 
         {/* Code card */}
         <div className="px-[18px] pt-3.5">
-          <ReferralCodeCard compact />
+          <ReferralCodeCard code={state.code} compact />
         </div>
 
         {/* Stats */}
         <div className="flex gap-2 px-[18px] pt-3.5">
           <StatTile
             label={t("totals.friendsShort")}
-            value={String(REFERRAL_TOTALS.friendsCount)}
+            value={String(state.totals.friendsCount)}
             color="#A18BFF"
             compact
           />
           <StatTile
             label={t("totals.earnedShort")}
-            value={String(REFERRAL_TOTALS.earnedCredits)}
+            value={String(state.totals.earnedCredits)}
             color="#FFD166"
             accent="gold"
             compact
@@ -136,7 +143,7 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
 
         {/* Milestones */}
         <div className="px-[18px] pt-3.5">
-          <MilestoneList compact />
+          <MilestoneList milestones={state.milestones} compact />
         </div>
 
         <div className="flex-1" />

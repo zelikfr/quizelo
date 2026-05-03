@@ -8,13 +8,19 @@ import { SocialButtons } from "@/components/auth/SocialButtons";
 
 interface SignupPageProps {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }
 
-export default async function SignupPage({ params }: SignupPageProps) {
+export default async function SignupPage({
+  params,
+  searchParams,
+}: SignupPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   const t = await getTranslations("auth");
+  const { ref } = await searchParams;
+  const referralCode = ref?.trim().toUpperCase().slice(0, 16) || null;
 
   return (
     <AuthShell brand={<SignupBrandPanel />}>
@@ -36,7 +42,7 @@ export default async function SignupPage({ params }: SignupPageProps) {
 
       <Divider label={t("signup.orEmail")} />
 
-      <SignupForm />
+      <SignupForm referralCode={referralCode} />
     </AuthShell>
   );
 }

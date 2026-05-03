@@ -421,6 +421,11 @@
       "copy": "Copy",
       "share": "SHARE"
     },
+    "share": {
+      "title": "Join me on Quizelo",
+      "text": "Sign up with my code {code} and earn 50 credits!",
+      "copied": "Copied"
+    },
     "howItWorks": {
       "title": "HOW IT WORKS",
       "step1": "Share your code with a friend",
@@ -445,7 +450,8 @@
     },
     "friends": {
       "title": "YOUR FRIENDS",
-      "joined": "joined {date}"
+      "joined": "joined {date}",
+      "empty": "No friends yet. Share your code to get started."
     }
   },
 
@@ -872,8 +878,14 @@
       "haveAccount": "Already a member?",
       "loginLink": "Sign in",
       "orEmail": "OR EMAIL",
+      "referralApplied": "Referral code applied: {code}",
+      "referralLabel": "Referral code (optional)",
+      "referralPlaceholder": "XXXX-XXXX",
+      "referralHelper": "If a friend invited you, paste their code here to earn credits.",
+      "referralPrefilled": "applied",
       "handleHint": "3–16 characters, letters and numbers",
       "handleAvailable": "available",
+      "handleTaken": "taken",
       "passwordStrength": {
         "weak": "Weak",
         "medium": "Medium",

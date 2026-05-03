@@ -7,6 +7,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -62,6 +63,20 @@ export const users = pgTable("users", {
     .$type<Record<string, number>>()
     .default({})
     .notNull(),
+
+  // ── Referral
+  /**
+   * Personal referral code. Generated lazily the first time the user
+   * visits /referral, kept stable for life. Format: 8 chars, [A-Z0-9].
+   * Unique across all users.
+   */
+  referralCode: text("referral_code").unique(),
+  /**
+   * If this user signed up via a referral link, this points to the
+   * referrer. Used to award milestones and to suppress self-referrals.
+   * Null for users who joined organically.
+   */
+  referredByUserId: text("referred_by_user_id"),
 
   // ── Contact + address (all optional, edited from /settings)
   phone: text("phone"),
@@ -141,6 +156,47 @@ export const authenticators = pgTable(
     pk: primaryKey({ columns: [auth.userId, auth.credentialId] }),
   }),
 );
+
+/**
+ * Log of credits awarded for referral milestones — append-only.
+ *
+ * One row = one milestone hit for one referee. The `(refereeUserId,
+ * milestone)` unique constraint guarantees we can't double-pay the
+ * same milestone if the settlement job runs twice.
+ *
+ * Ledger format makes it trivial to render history ("you earned X
+ * credits when Lior reached 10 games") and lets us audit anti-abuse
+ * disputes without scanning the matches table.
+ */
+export const referralRewards = pgTable(
+  "referral_rewards",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    referrerUserId: text("referrer_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    refereeUserId: text("referee_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    milestone: text("milestone").notNull(), // 'firstGame' | 'tenGames' | 'premium'
+    referrerCredits: integer("referrer_credits").notNull(),
+    refereeCredits: integer("referee_credits").notNull(),
+    awardedAt: timestamp("awarded_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    // Idempotency guarantee: a referee can only ever fire each
+    // milestone once, even if the settlement job runs twice.
+    uniqueByMilestone: uniqueIndex("referral_rewards_referee_milestone_uq").on(
+      table.refereeUserId,
+      table.milestone,
+    ),
+  }),
+);
+
+export type ReferralReward = typeof referralRewards.$inferSelect;
+export type NewReferralReward = typeof referralRewards.$inferInsert;
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),

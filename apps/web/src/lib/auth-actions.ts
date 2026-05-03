@@ -24,6 +24,10 @@ const signupSchema = z.object({
   password: z.string().min(8).max(200),
   acceptTerms: z.literal("on"),
   newsletter: z.string().optional(),
+  /** Optional referral code passed via the signup URL (`?ref=XXXX-XXXX`).
+   *  We accept any non-empty string here and validate it against the
+   *  DB after the user row is created. */
+  referralCode: z.string().max(32).optional(),
 });
 
 const magicLinkSchema = z.object({
@@ -37,7 +41,14 @@ const newPasswordSchema = z.object({
 
 export type AuthActionResult =
   | { ok: true }
-  | { ok: false; code: "validation" | "credentials" | "duplicate" | "unauthorized" | "unknown"; message?: string };
+  | {
+      ok: false;
+      code: "validation" | "credentials" | "duplicate" | "unauthorized" | "unknown";
+      /** For `code: "duplicate"`, which field collided. The client picks
+       *  the right translated string (signup.errors.duplicateEmail / Handle). */
+      field?: "email" | "handle";
+      message?: string;
+    };
 
 // ─── Helpers ────────────────────────────────────────────────────
 const handleAuthError = (err: unknown): AuthActionResult => {
@@ -93,16 +104,34 @@ export async function signUpWithCredentialsAction(
     columns: { id: true, email: true, handle: true },
   });
   if (existing) {
-    const dupField = existing.email === normalizedEmail ? "email" : "handle";
-    return { ok: false, code: "duplicate", message: `${dupField} already in use` };
+    const field: "email" | "handle" =
+      existing.email === normalizedEmail ? "email" : "handle";
+    return { ok: false, code: "duplicate", field };
   }
 
   const passwordHash = await hashPassword(password);
+
+  // Resolve an optional referral code → referrer.id BEFORE the insert
+  // so we can persist `referredByUserId` in a single write. Invalid /
+  // unknown codes are silently ignored (we don't want a typo to block
+  // signup); the user can still claim a code later via the /referral
+  // page if we add a "I have a code" CTA there.
+  let referredByUserId: string | null = null;
+  const rawRef = parsed.data.referralCode?.trim().toUpperCase();
+  if (rawRef) {
+    const referrer = await db.query.users.findFirst({
+      where: eq(users.referralCode, rawRef),
+      columns: { id: true },
+    });
+    if (referrer) referredByUserId = referrer.id;
+  }
+
   await db.insert(users).values({
     email: normalizedEmail,
     handle: normalizedHandle,
     displayName: handle,
     passwordHash,
+    referredByUserId,
   });
 
   // Send a verification magic link instead of auto-login. Clicking the
@@ -117,6 +146,32 @@ export async function signUpWithCredentialsAction(
   } catch (err) {
     return handleAuthError(err);
   }
+}
+
+// ─── Handle availability ────────────────────────────────────────
+const HANDLE_RE = /^[a-z0-9_]+$/i;
+
+/**
+ * Cheap "is this handle still free?" probe used by the signup form
+ * for live feedback. Returns `false` for malformed handles too, so
+ * the client can treat them as unavailable without a separate format
+ * check on every keystroke.
+ *
+ * Not race-proof on its own — the real uniqueness guarantee is the
+ * conflict check in `signUpWithCredentialsAction`. This is just UX.
+ */
+export async function checkHandleAvailableAction(
+  raw: string,
+): Promise<{ available: boolean }> {
+  const handle = raw.trim().toLowerCase();
+  if (handle.length < 3 || handle.length > 16 || !HANDLE_RE.test(handle)) {
+    return { available: false };
+  }
+  const existing = await db.query.users.findFirst({
+    where: eq(users.handle, handle),
+    columns: { id: true },
+  });
+  return { available: !existing };
 }
 
 // ─── Magic link (Resend) ────────────────────────────────────────
