@@ -8,13 +8,8 @@ import { isStripeConfigured, stripe } from "@/lib/stripe";
  * and `premiumUntil`. We verify the signature with
  * `STRIPE_WEBHOOK_SECRET`, then react to subscription lifecycle events:
  *
- *   - checkout.session.completed     → first-time activation. Pulls
- *                                      the just-created subscription
- *                                      and snapshots its state.
- *   - customer.subscription.created  → mostly redundant with the line
- *                                      above, but Stripe sometimes
- *                                      delivers it first; we handle
- *                                      both for safety.
+ *   - customer.subscription.created  → first-time activation when
+ *                                      the PaymentIntent confirms.
  *   - customer.subscription.updated  → cancel-at-period-end toggle,
  *                                      plan change, etc.
  *   - customer.subscription.deleted  → final cancellation. Strips
@@ -23,8 +18,12 @@ import { isStripeConfigured, stripe } from "@/lib/stripe";
  *                                      `premiumUntil` to the new
  *                                      period end.
  *
+ * `checkout.session.completed` is no longer used — we mount Stripe
+ * Payment Element in-app and create subscriptions directly via the
+ * Subscriptions API, so the Checkout product never runs.
+ *
  * In dev with `stripe listen`, all subscribed events are forwarded —
- * no extra config. In prod, configure these 5 in the Dashboard
+ * no extra config. In prod, configure these 4 in the Dashboard
  * webhook endpoint.
  */
 export async function POST(req: Request): Promise<Response> {
@@ -53,10 +52,6 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-        break;
-
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted":
@@ -82,23 +77,6 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 // ─── Handlers ────────────────────────────────────────────────────────
-
-async function handleCheckoutCompleted(
-  session: Stripe.Checkout.Session,
-): Promise<void> {
-  // Only subscription-mode checkouts touch premium — we still get this
-  // event for one-shot payments if anyone ever runs Checkout in
-  // `payment` mode, which we now don't.
-  if (session.mode !== "subscription") return;
-  if (!session.subscription) return;
-
-  const subId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription.id;
-  const sub = await stripe().subscriptions.retrieve(subId);
-  await applySubscription(sub);
-}
 
 async function handleSubscriptionEvent(sub: Stripe.Subscription): Promise<void> {
   // Refetch via the SDK so we always get the shape of our pinned API

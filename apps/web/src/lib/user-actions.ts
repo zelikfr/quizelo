@@ -166,7 +166,7 @@ export async function updateDisplayNameAction(
  * have been removed: Premium is now exclusively flipped by the Stripe
  * webhook (`/api/webhooks/stripe`) after a real payment. To activate /
  * extend / revoke Premium from server code, see:
- *   - `startPremiumCheckoutAction` in `lib/stripe-actions.ts` (user flow)
+ *   - `createSubscriptionAction` in `lib/stripe-actions.ts` (user flow)
  *   - the Stripe Customer Portal (cancel / refund)
  *   - the backoffice `setPremiumAction` (`apps/admin/src/app/users/actions.ts`)
  *     for support-mode overrides.

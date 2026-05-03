@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelSubscriptionAction } from "@/lib/stripe-actions";
@@ -15,25 +16,21 @@ interface CancelSubscriptionDialogProps {
 /**
  * In-app cancel confirmation. We don't terminate the subscription
  * immediately — `cancel_at_period_end=true` means the user keeps
- * Premium until the end of the paid period, then it lapses. The
- * webhook (`customer.subscription.updated`) is what updates our DB.
- *
- * If the user changes their mind during the grace period, they can
- * re-subscribe via the normal "Activate" buttons (Stripe will detect
- * the existing customer and Stripe will reactivate).
+ * Premium until the end of the paid period, then it lapses.
  */
 export function CancelSubscriptionDialog({
   open,
   premiumUntil,
   onClose,
 }: CancelSubscriptionDialogProps) {
+  const t = useTranslations("premium.cancelDialog");
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Reset state when reopening.
   useEffect(() => {
     if (!open) {
       setError(null);
@@ -41,7 +38,6 @@ export function CancelSubscriptionDialog({
     }
   }, [open]);
 
-  // ESC / scroll lock.
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
@@ -63,37 +59,33 @@ export function CancelSubscriptionDialog({
       const res = await cancelSubscriptionAction();
       if (res.ok) {
         setDone(true);
-        // Refresh so the SubscriptionCard pulls the updated row once
-        // the webhook lands. Stripe usually fires the `updated` event
-        // within ~1s, but we leave the modal up so the user gets a
-        // visible "got it" state.
         router.refresh();
         return;
       }
       if (res.code === "no_subscription") {
-        setError("Aucun abonnement actif à annuler.");
+        setError(t("errors.noSubscription"));
         return;
       }
       if (res.code === "no_customer") {
-        setError("Aucun abonnement Stripe lié à ce compte.");
+        setError(t("errors.noCustomer"));
         return;
       }
       if (res.code === "not_configured") {
-        setError("Annulation indisponible — réessaie plus tard.");
+        setError(t("errors.notConfigured"));
         return;
       }
       if (res.code === "unauthorized") {
-        setError("Connecte-toi pour gérer ton abonnement.");
+        setError(t("errors.unauthorized"));
         return;
       }
-      setError(res.message ?? "Une erreur est survenue.");
+      setError(res.message ?? t("errors.generic"));
     });
   };
 
   if (!open) return null;
 
   const formattedUntil = premiumUntil
-    ? premiumUntil.toLocaleDateString("fr-FR", {
+    ? premiumUntil.toLocaleDateString(locale, {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -112,13 +104,13 @@ export function CancelSubscriptionDialog({
       <div className="relative flex w-full max-w-[420px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-surface-1 shadow-card-elev">
         <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-3">
           <span className="font-mono text-[11px] uppercase tracking-widest3 text-fg-3">
-            Annuler Premium
+            {t("header")}
           </span>
           <button
             ref={closeBtnRef}
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t("closeAria")}
             className="rounded-md px-2 py-1 text-fg-2 transition hover:bg-white/[0.04] hover:text-fg-1"
           >
             ✕
@@ -129,40 +121,28 @@ export function CancelSubscriptionDialog({
           {done ? (
             <>
               <h2 className="font-display text-[20px] font-semibold text-white">
-                Annulation enregistrée
+                {t("doneTitle")}
               </h2>
               <p className="mt-2 text-sm text-fg-2">
-                Tu gardes Premium{" "}
-                {formattedUntil ? (
-                  <>
-                    jusqu&apos;au <strong className="text-fg-1">{formattedUntil}</strong>
-                  </>
-                ) : (
-                  "jusqu'à la fin de la période en cours"
-                )}
-                . Aucun nouveau prélèvement ne sera fait.
+                {formattedUntil
+                  ? t("doneBodyDated", { date: formattedUntil })
+                  : t("doneBodyUndated")}
               </p>
               <div className="mt-6 flex justify-end">
                 <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-                  Fermer
+                  {t("closeBtn")}
                 </Button>
               </div>
             </>
           ) : (
             <>
               <h2 className="font-display text-[20px] font-semibold text-white">
-                Annuler ton abonnement ?
+                {t("askTitle")}
               </h2>
               <p className="mt-2 text-sm text-fg-2">
-                Tu garderas Premium{" "}
-                {formattedUntil ? (
-                  <>
-                    jusqu&apos;au <strong className="text-fg-1">{formattedUntil}</strong>
-                  </>
-                ) : (
-                  "jusqu'à la fin de la période en cours"
-                )}
-                . Pas de remboursement, mais aucun nouveau prélèvement.
+                {formattedUntil
+                  ? t("askBodyDated", { date: formattedUntil })
+                  : t("askBodyUndated")}
               </p>
 
               {error && (
@@ -179,7 +159,7 @@ export function CancelSubscriptionDialog({
                   onClick={onClose}
                   disabled={pending}
                 >
-                  Garder Premium
+                  {t("keep")}
                 </Button>
                 <Button
                   type="button"
@@ -190,7 +170,7 @@ export function CancelSubscriptionDialog({
                   className="text-danger"
                   style={{ borderColor: "rgba(248,113,113,0.4)" }}
                 >
-                  {pending ? "Annulation…" : "Confirmer l'annulation"}
+                  {pending ? t("confirming") : t("confirm")}
                 </Button>
               </div>
             </>

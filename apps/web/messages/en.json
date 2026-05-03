@@ -511,7 +511,49 @@
     ],
     "disclaimer": "Auto-renews. Cancel anytime from your account.",
     "notNow": "Not now",
-    "close": "Close"
+    "close": "Close",
+    "checkout": {
+      "header": "Quizelo · Premium",
+      "closeAria": "Close",
+      "loading": "Loading…",
+      "initializing": "Initializing…",
+      "planMonth": "Premium · 1 month",
+      "planYear": "Premium · 1 year",
+      "renewMonthly": "Renews monthly — cancel anytime.",
+      "renewYearly": "Renews yearly — cancel anytime.",
+      "payCta": "Pay {amount}",
+      "paying": "Processing…",
+      "secured": "Secured by Stripe · 3-D Secure",
+      "errors": {
+        "notConfigured": "Payments unavailable — try again later.",
+        "unauthorized": "Sign in to activate Premium.",
+        "generic": "Something went wrong.",
+        "declined": "Payment declined.",
+        "processing": "Your payment is being processed. You'll receive a confirmation by email.",
+        "incomplete": "Payment not completed. Try again or contact support."
+      }
+    },
+    "cancelDialog": {
+      "header": "Cancel Premium",
+      "closeAria": "Close",
+      "doneTitle": "Cancellation scheduled",
+      "doneBodyDated": "You keep Premium until {date}. No further charges.",
+      "doneBodyUndated": "You keep Premium until the end of the current period. No further charges.",
+      "askTitle": "Cancel your subscription?",
+      "askBodyDated": "You'll keep Premium until {date}. No refund, but no further charges.",
+      "askBodyUndated": "You'll keep Premium until the end of the current period. No refund, but no further charges.",
+      "keep": "Keep Premium",
+      "confirm": "Confirm cancellation",
+      "confirming": "Canceling…",
+      "closeBtn": "Close",
+      "errors": {
+        "noSubscription": "No active subscription to cancel.",
+        "noCustomer": "No Stripe subscription linked to this account.",
+        "notConfigured": "Cancellation unavailable — try again later.",
+        "unauthorized": "Sign in to manage your subscription.",
+        "generic": "Something went wrong."
+      }
+    }
   },
 
   "settings": {

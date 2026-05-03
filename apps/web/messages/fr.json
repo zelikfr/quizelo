@@ -511,7 +511,49 @@
     ],
     "disclaimer": "Renouvellement automatique. Annulable à tout moment depuis ton compte.",
     "notNow": "Plus tard",
-    "close": "Fermer"
+    "close": "Fermer",
+    "checkout": {
+      "header": "Quizelo · Premium",
+      "closeAria": "Fermer",
+      "loading": "Chargement…",
+      "initializing": "Initialisation…",
+      "planMonth": "Premium · 1 mois",
+      "planYear": "Premium · 1 an",
+      "renewMonthly": "Renouvellement mensuel — résiliable à tout moment.",
+      "renewYearly": "Renouvellement annuel — résiliable à tout moment.",
+      "payCta": "Payer {amount}",
+      "paying": "Paiement…",
+      "secured": "Paiement sécurisé par Stripe · 3-D Secure",
+      "errors": {
+        "notConfigured": "Paiement indisponible — réessaie plus tard.",
+        "unauthorized": "Connecte-toi pour activer Premium.",
+        "generic": "Une erreur est survenue.",
+        "declined": "Paiement refusé.",
+        "processing": "Le paiement est en cours de traitement. Tu recevras une confirmation par email.",
+        "incomplete": "Paiement non finalisé. Réessaie ou contacte le support."
+      }
+    },
+    "cancelDialog": {
+      "header": "Annuler Premium",
+      "closeAria": "Fermer",
+      "doneTitle": "Annulation enregistrée",
+      "doneBodyDated": "Tu gardes Premium jusqu'au {date}. Aucun nouveau prélèvement ne sera fait.",
+      "doneBodyUndated": "Tu gardes Premium jusqu'à la fin de la période en cours. Aucun nouveau prélèvement ne sera fait.",
+      "askTitle": "Annuler ton abonnement ?",
+      "askBodyDated": "Tu garderas Premium jusqu'au {date}. Pas de remboursement, mais aucun nouveau prélèvement.",
+      "askBodyUndated": "Tu garderas Premium jusqu'à la fin de la période en cours. Pas de remboursement, mais aucun nouveau prélèvement.",
+      "keep": "Garder Premium",
+      "confirm": "Confirmer l'annulation",
+      "confirming": "Annulation…",
+      "closeBtn": "Fermer",
+      "errors": {
+        "noSubscription": "Aucun abonnement actif à annuler.",
+        "noCustomer": "Aucun abonnement Stripe lié à ce compte.",
+        "notConfigured": "Annulation indisponible — réessaie plus tard.",
+        "unauthorized": "Connecte-toi pour gérer ton abonnement.",
+        "generic": "Une erreur est survenue."
+      }
+    }
   },
 
   "settings": {

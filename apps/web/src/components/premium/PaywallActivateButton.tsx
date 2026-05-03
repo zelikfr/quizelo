@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { PaywallCloseContext } from "./Paywall";
 import { PremiumCheckoutDialog } from "./PremiumCheckoutDialog";
 import type { PremiumDuration } from "@/lib/stripe-actions";
 import { cn } from "@/lib/cn";
 
 interface PaywallActivateButtonProps {
-  /** Monthly or yearly — passed straight through to Stripe Checkout. */
+  /** Monthly or yearly — passed straight through to Stripe. */
   duration: PremiumDuration;
   /** Visible label (e.g. translated "Get Premium"). */
   cta: string;
@@ -18,16 +19,17 @@ interface PaywallActivateButtonProps {
 /**
  * The "Get Premium" CTA on a plan card.
  *
- * Opens an in-app dialog with Stripe Embedded Checkout — the user pays
- * without leaving Quizelo. The webhook (`/api/webhooks/stripe`) is the
- * **only** thing that flips `isPremium`; this component just opens the
- * payment surface.
+ * Opens the in-app Payment Element dialog. On successful payment we
+ * also close the surrounding Paywall (via `PaywallCloseContext`) so
+ * the user lands back on whatever page triggered the paywall, with
+ * the freshly-applied Premium state.
  */
 export function PaywallActivateButton({
   duration,
   cta,
   variant = "ghost",
 }: PaywallActivateButtonProps) {
+  const closePaywall = useContext(PaywallCloseContext);
   const [open, setOpen] = useState(false);
 
   return (
@@ -48,6 +50,13 @@ export function PaywallActivateButton({
         open={open}
         duration={open ? duration : null}
         onClose={() => setOpen(false)}
+        onSuccess={() => {
+          // Close the payment dialog AND the outer paywall in one go,
+          // so the user doesn't land back on the plan-selection screen
+          // they just paid for.
+          setOpen(false);
+          closePaywall?.();
+        }}
       />
     </>
   );

@@ -3,7 +3,7 @@ import type { PremiumDuration } from "@/lib/stripe-actions";
 import { cn } from "@/lib/cn";
 
 interface PlanCardProps {
-  /** Routed to the matching Stripe price via `startPremiumCheckoutAction`. */
+  /** Routed to the matching Stripe price via `createSubscriptionAction`. */
   duration: PremiumDuration;
   /** Mono cap eyebrow, e.g. "MONTHLY" / "MENSUEL". */
   eyebrow: string;
