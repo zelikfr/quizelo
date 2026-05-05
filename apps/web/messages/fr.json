@@ -148,7 +148,9 @@
       "profile": "Profil",
       "premium": "Premium",
       "shop": "Boutique",
-      "play": "Jouer"
+      "play": "Jouer",
+      "referral": "Parrainage",
+      "settings": "Réglages"
     },
     "userMenu": {
       "ariaLabel": "Ouvrir le menu utilisateur",

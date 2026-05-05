@@ -21,16 +21,46 @@ const WINDOW_BY_MODE: Record<MatchMode, number> = {
 const FALLBACK_ELO = 1500;
 /** Default avg when no real player ELO can be read (all-shadow lobby). */
 const DEFAULT_LOBBY_ELO = 1500;
+/** Locales that must be active for a fact to enter the cross-locale pool. */
+const REQUIRED_LOCALES: readonly string[] = ["fr", "en"];
 
 /**
- * Pull active questions for the locale and pick `WIDE_POOL_SIZE`
- * deterministically from the seed. The pool is later narrowed by ELO at
- * phase 1 start when the lobby's avg ELO is known.
+ * The stem (= shared suffix) is everything after the leading
+ * `<locale>-` part of a question id. `fr-web-easy-051` and
+ * `en-web-easy-051` both stem-to `web-easy-051`. The stem is the
+ * unit the runtime advances through; each player gets the locale
+ * variant that matches their `MatchPlayer.locale`.
+ *
+ * Falls back to the full id if the format doesn't match — never
+ * happens with seeded rows but keeps us safe against hand-inserted
+ * ones.
+ */
+export function stemOf(questionId: string): string {
+  const i = questionId.indexOf("-");
+  return i >= 0 ? questionId.substring(i + 1) : questionId;
+}
+
+export interface BilingualPool {
+  /** Ordered list of stems, deterministic from the seed. */
+  stems: string[];
+  /** stem → locale → question. Only stems with all required locales. */
+  byStem: Map<string, Map<string, DbQuestion>>;
+}
+
+/**
+ * Pull active questions for ALL required locales and group them by
+ * stem so the runtime can serve each player their own locale's
+ * variant. Only stems where every locale in `REQUIRED_LOCALES` has
+ * an active row are kept — guarantees that any joining player can
+ * be served regardless of which locale they speak.
+ *
+ * Returns a deterministic `WIDE_POOL_SIZE` slice, picked from the
+ * shuffled stem list under the match seed. The pool is later
+ * narrowed by ELO at phase 1 start.
  */
 export async function pickQuestionsForMatch(
-  locale: string,
   rand: () => number,
-): Promise<DbQuestion[]> {
+): Promise<BilingualPool> {
   const rows = await db
     .select({
       id: questions.id,
@@ -44,34 +74,67 @@ export async function pickQuestionsForMatch(
       eloTarget: questions.eloTarget,
     })
     .from(questions)
-    .where(and(eq(questions.locale, locale), eq(questions.active, true)));
+    .where(
+      and(
+        inArray(questions.locale, [...REQUIRED_LOCALES]),
+        eq(questions.active, true),
+      ),
+    );
 
   if (rows.length === 0) {
+    throw new Error(`No active questions in DB. Run pnpm db:seed.`);
+  }
+
+  // Group rows by stem. We then keep only stems that have every
+  // required locale present — that's the cross-locale guarantee.
+  const grouped = new Map<string, Map<string, DbQuestion>>();
+  for (const r of rows as DbQuestion[]) {
+    const stem = stemOf(r.id);
+    let m = grouped.get(stem);
+    if (!m) {
+      m = new Map();
+      grouped.set(stem, m);
+    }
+    m.set(r.locale, r);
+  }
+  const completeStems: string[] = [];
+  for (const [stem, m] of grouped) {
+    if (REQUIRED_LOCALES.every((l) => m.has(l))) completeStems.push(stem);
+  }
+  if (completeStems.length === 0) {
     throw new Error(
-      `No active questions for locale=${locale}. Run pnpm db:seed.`,
+      `No bilingual fact has all required locales (${REQUIRED_LOCALES.join("/")}) active.`,
     );
   }
 
-  const target = Math.max(WIDE_POOL_SIZE, rows.length);
-  const out: DbQuestion[] = [];
-  let pool: DbQuestion[] = [];
+  // Deterministic wide-pool slice. The match seed drives the order
+  // so re-runs (or audit replays) produce the same first N stems.
+  const target = Math.max(WIDE_POOL_SIZE, completeStems.length);
+  const out: string[] = [];
+  let pool: string[] = [];
   while (out.length < target) {
-    if (pool.length === 0) pool = pickN(rows as DbQuestion[], rows.length, rand);
+    if (pool.length === 0)
+      pool = pickN(completeStems, completeStems.length, rand);
     const next = pool.shift()!;
     out.push(next);
   }
-  return out.slice(0, WIDE_POOL_SIZE);
+  const stems = out.slice(0, WIDE_POOL_SIZE);
+  // Trim the byStem map to just what's in the wide slice. Saves
+  // memory for the 60s+ a room lives in registry.
+  const byStem = new Map<string, Map<string, DbQuestion>>();
+  for (const s of stems) byStem.set(s, grouped.get(s)!);
+  return { stems, byStem };
 }
 
 /**
- * Drop from the match's question pool every id any of `userIds` has
- * answered within the last `windowDays` days. This is the cheapest way
- * to make repeats *extremely* rare across matches: a player who just
- * finished a match won't see those exact questions again for two weeks.
+ * Drop from the pool every fact stem any of `userIds` has answered
+ * within `windowDays`. We compare by stem so seeing `fr-web-easy-051`
+ * also disqualifies `en-web-easy-051` for someone who switches
+ * locales mid-week — same fact, same answer, regardless of language.
  *
- * Fail-safe: if the filter would shrink the pool below `minRemaining`,
- * we keep the wide pool unchanged. Heavy players (who already saw most
- * of the bank) would otherwise end up with too few questions to play.
+ * Fail-safe: if the filter would shrink the pool below
+ * `minRemaining`, we keep it unchanged. Heavy players otherwise end
+ * up with too few questions.
  */
 export async function filterPoolBySeen(
   state: MatchState,
@@ -93,9 +156,9 @@ export async function filterPoolBySeen(
     );
 
   if (rows.length === 0) return;
-  const seen = new Set(rows.map((r) => r.questionId));
+  const seenStems = new Set(rows.map((r) => stemOf(r.questionId)));
 
-  const filtered = state.questionPool.filter((id) => !seen.has(id));
+  const filtered = state.questionPool.filter((stem) => !seenStems.has(stem));
   if (filtered.length < minRemaining) {
     // Heavy player or tiny bank — accept overlap rather than starve.
     return;
@@ -103,8 +166,8 @@ export async function filterPoolBySeen(
 
   state.questionPool = filtered;
   const keep = new Set(filtered);
-  for (const id of [...state.questions.keys()]) {
-    if (!keep.has(id)) state.questions.delete(id);
+  for (const s of [...state.questionsByStem.keys()]) {
+    if (!keep.has(s)) state.questionsByStem.delete(s);
   }
 }
 
@@ -139,10 +202,24 @@ export function narrowPoolByElo(
 ): void {
   const baseWindow = WINDOW_BY_MODE[state.mode];
 
-  const scored = state.questionPool.map((id) => {
-    const q = state.questions.get(id);
-    const elo = q?.eloTarget ?? FALLBACK_ELO;
-    return { id, dist: Math.abs(elo - eloAvg) };
+  // Each stem's ELO is read from any locale variant — they share the
+  // same eloTarget by construction (set per fact, not per locale).
+  // We default to the room's "default" locale for the lookup; if
+  // missing we fall through to the first variant.
+  const scored = state.questionPool.map((stem) => {
+    const variants = state.questionsByStem.get(stem);
+    let elo: number | null = null;
+    const defaultV = variants?.get(state.locale);
+    if (defaultV) elo = defaultV.eloTarget ?? null;
+    if (elo == null && variants) {
+      for (const v of variants.values()) {
+        if (v.eloTarget != null) {
+          elo = v.eloTarget;
+          break;
+        }
+      }
+    }
+    return { stem, dist: Math.abs((elo ?? FALLBACK_ELO) - eloAvg) };
   });
 
   let window = baseWindow;
@@ -157,12 +234,12 @@ export function narrowPoolByElo(
   }
 
   admitted.sort((a, b) => a.dist - b.dist);
-  const narrowed = admitted.slice(0, NARROW_POOL_SIZE).map((s) => s.id);
+  const narrowed = admitted.slice(0, NARROW_POOL_SIZE).map((s) => s.stem);
 
   // Mutate state in place.
   state.questionPool = narrowed;
   const keep = new Set(narrowed);
-  for (const id of [...state.questions.keys()]) {
-    if (!keep.has(id)) state.questions.delete(id);
+  for (const s of [...state.questionsByStem.keys()]) {
+    if (!keep.has(s)) state.questionsByStem.delete(s);
   }
 }

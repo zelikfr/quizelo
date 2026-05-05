@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/routing";
+import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { FriendsList } from "@/components/referral/FriendsList";
 import { HowItWorks } from "@/components/referral/HowItWorks";
@@ -89,7 +90,8 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="relative flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav. */}
+      <div className="relative flex min-h-screen flex-col pb-24 md:hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -147,6 +149,8 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
         </div>
 
         <div className="flex-1" />
+
+        <HomeMobileBottomNav active="referral" />
       </div>
     </main>
   );

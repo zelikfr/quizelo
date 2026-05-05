@@ -63,7 +63,8 @@ export default async function ProfilePage({
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav. */}
+      <div className="flex min-h-screen flex-col pb-24 md:hidden">
         <ProfileHeader user={stats.user} compact />
 
         <div className="px-[18px] pt-4">
@@ -93,7 +94,8 @@ export default async function ProfilePage({
 
         <div className="flex-1" />
 
-        <HomeMobileBottomNav active="profile" />
+        {/* Profile lives in the header avatar, not in the bottom nav. */}
+        <HomeMobileBottomNav />
       </div>
     </main>
   );

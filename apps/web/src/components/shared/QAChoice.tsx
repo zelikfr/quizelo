@@ -73,10 +73,14 @@ export function QAChoice({
       aria-pressed={state === "selected"}
       className={cn(
         "flex w-full items-center gap-3 rounded-[14px] border px-4 py-3.5 text-left font-body text-sm font-medium transition-all duration-120",
-        // focus-visible only — guarantees the keyboard ring shows
-        // even if a future global CSS rule silences :focus, while
-        // keeping mouse clicks ring-free.
-        "focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/60 focus-visible:ring-offset-0",
+        // Always silence the default outline. On desktop (md+) we
+        // re-enable a violet ring on `:focus-visible` only — that's
+        // keyboard-driven Tab navigation, where the ring is useful.
+        // Mobile (touch) gets no focus state at all: the ring would
+        // otherwise persist on a tapped button until another element
+        // gains focus, which on iOS Safari can stick across question
+        // transitions and look like a wrongly-pre-selected answer.
+        "focus:outline-none focus-visible:outline-none md:focus-visible:ring-2 md:focus-visible:ring-violet/60 md:focus-visible:ring-offset-0",
         !isDisabled && "cursor-pointer hover:border-violet/40 hover:bg-violet/[0.08]",
         isDisabled && "cursor-default",
         STATE_BUTTON[state],

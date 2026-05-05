@@ -13,13 +13,20 @@ import type { MatchPlayer, MatchState } from "./types";
 
 interface PendingLobby {
   matchId: string;
+  /** First-joiner locale; only used as the room's fallback default. */
   locale: string;
   mode: MatchMode;
   room: MatchRoom;
 }
 
-/** Quick + ranked don't share lobbies — bucket pending rooms by both. */
-const lobbyKey = (locale: string, mode: MatchMode) => `${mode}:${locale}`;
+/**
+ * Quick + ranked don't share lobbies. We used to also bucket by
+ * locale, but the pool is now bilingual and each player carries
+ * their own `MatchPlayer.locale` — so a FR player and an EN player
+ * can share the exact same room and each see the question in their
+ * own language.
+ */
+const lobbyKey = (mode: MatchMode) => `${mode}`;
 
 class Matchmaker {
   private pendingByKey = new Map<string, PendingLobby>();
@@ -33,7 +40,7 @@ class Matchmaker {
     log: FastifyBaseLogger;
   }): Promise<{ matchId: string }> {
     const { userId, locale, mode, boost, log } = opts;
-    const key = lobbyKey(locale, mode);
+    const key = lobbyKey(mode);
 
     // Resume only if the user is actually still playing (hasn't been
     // eliminated, hasn't left). Eliminated rows stay in the room so we
@@ -69,14 +76,26 @@ class Matchmaker {
         (p) => p.userId === userId && p.status !== "left",
       );
       if (!already) {
-        await this.addPlayerToLobby(pending.room, userId, boost ?? null, log);
+        await this.addPlayerToLobby(
+          pending.room,
+          userId,
+          locale,
+          boost ?? null,
+          log,
+        );
         pending.room.onPlayerJoined();
       }
       return { matchId: pending.matchId };
     }
 
     pending = await this.openLobby(locale, mode, log);
-    await this.addPlayerToLobby(pending.room, userId, boost ?? null, log);
+    await this.addPlayerToLobby(
+      pending.room,
+      userId,
+      locale,
+      boost ?? null,
+      log,
+    );
     pending.room.startLobby();
     pending.room.onPlayerJoined();
 
@@ -98,17 +117,20 @@ class Matchmaker {
     const matchId = randomUUID();
     const seed = randomUUID();
     const rand = rngFromSeed(seed);
-    const pool = await pickQuestionsForMatch(locale, rand);
+    const pool = await pickQuestionsForMatch(rand);
 
     const state: MatchState = {
       matchId,
       status: "lobby",
       mode,
+      // Default locale is the first joiner's — mostly used for shadows
+      // and for fields that need a single locale when the runtime
+      // doesn't have a player context to key off of.
       locale,
       seed,
       players: [],
-      questionPool: pool.map((q) => q.id),
-      questions: new Map(pool.map((q) => [q.id, q])),
+      questionPool: pool.stems,
+      questionsByStem: pool.byStem,
       poolCursor: 0,
       currentAnswers: new Map(),
       answersBuffer: [],
@@ -120,7 +142,7 @@ class Matchmaker {
     registry.set(matchId, room);
 
     const pending: PendingLobby = { matchId, locale, mode, room };
-    this.pendingByKey.set(lobbyKey(locale, mode), pending);
+    this.pendingByKey.set(lobbyKey(mode), pending);
     log.info({ matchId, locale, mode }, "match lobby opened");
     return pending;
   }
@@ -128,6 +150,7 @@ class Matchmaker {
   private async addPlayerToLobby(
     room: MatchRoom,
     userId: string,
+    locale: string,
     boost: "double-elo" | "shield" | null,
     log: FastifyBaseLogger,
   ): Promise<void> {
@@ -154,6 +177,9 @@ class Matchmaker {
       name: row.displayName ?? row.handle ?? row.name ?? "Player",
       handle: row.handle,
       avatarId: row.avatarId ?? 0,
+      // Each player carries their own locale across the match — the
+      // pool is bilingual so FR and EN players coexist in one room.
+      locale,
       status: "active",
       score: 0,
       streak: 0,

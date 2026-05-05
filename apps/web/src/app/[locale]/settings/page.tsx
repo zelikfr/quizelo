@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link, type Locale } from "@/i18n/routing";
+import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { AudioMuteToggle } from "@/components/settings/AudioMuteToggle";
 import { DangerCard } from "@/components/settings/DangerCard";
@@ -203,7 +204,8 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="relative flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav. */}
+      <div className="relative flex min-h-screen flex-col pb-24 md:hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -337,6 +339,9 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         <div className="px-[18px] pb-6 pt-5 text-center font-mono text-[9px] tracking-[0.15em] text-fg-3">
           QUIZELO · 0.1.0 · BUILD DEV
         </div>
+
+        {/* Settings lives in the header gear, not in the bottom nav. */}
+        <HomeMobileBottomNav />
       </div>
     </main>
   );

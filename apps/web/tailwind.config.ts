@@ -2,6 +2,15 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: "class",
+  // `hoverOnlyWhenSupported` gates every `hover:` modifier behind
+  // `@media (hover: hover)`. On touch devices (iOS Safari, Android
+  // Chrome) `:hover` would otherwise stick after a tap until the
+  // user touches somewhere else — making just-tapped buttons look
+  // pre-selected on the next render (e.g. a Q1 answer button that
+  // bleeds into Q2's UI). With this flag, hover styles only apply
+  // on devices that actually have a hover-capable pointer.
+  // Tailwind v4 makes this the default; we opt in early.
+  future: { hoverOnlyWhenSupported: true },
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",

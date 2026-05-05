@@ -112,9 +112,28 @@ export class MatchRoom {
       this.broadcastLobby();
     } else {
       // Re-emit current question if any so reconnect mid-question works.
-      const q = this.publicQuestion();
+      const q = this.publicQuestionFor(userId);
       if (q) this.send(socket, { type: "question", question: q });
     }
+  }
+
+  // ─── Locale lookup helpers ────────────────────────────────────
+  /** DbQuestion for a stem in the requested locale, with fallback. */
+  private dbqFor(stem: string, locale: string): DbQuestion | null {
+    const variants = this.state.questionsByStem.get(stem);
+    if (!variants) return null;
+    return (
+      variants.get(locale) ??
+      variants.get(this.state.locale) ??
+      variants.values().next().value ??
+      null
+    );
+  }
+
+  /** DbQuestion picked for a specific player (uses player.locale). */
+  private dbqForPlayer(stem: string, userId: string): DbQuestion | null {
+    const p = this.state.players.find((x) => x.userId === userId);
+    return this.dbqFor(stem, p?.locale ?? this.state.locale);
   }
 
   private onMessage(userId: string, raw: string) {
@@ -201,7 +220,7 @@ export class MatchRoom {
       if (this.state.status !== "lobby") return;
       if (this.state.players.length < MATCH_CONFIG.size) {
         const seat = this.state.players.length;
-        this.state.players.push(makeShadow(seat, this.rand));
+        this.state.players.push(makeShadow(seat, this.rand, this.state.locale));
         this.broadcastLobby();
       }
       if (this.state.players.length >= MATCH_CONFIG.size) {
@@ -239,7 +258,7 @@ export class MatchRoom {
     const missing = MATCH_CONFIG.size - this.state.players.length;
     for (let i = 0; i < missing; i++) {
       const seat = this.state.players.length;
-      this.state.players.push(makeShadow(seat, this.rand));
+      this.state.players.push(makeShadow(seat, this.rand, this.state.locale));
     }
   }
 
@@ -391,8 +410,9 @@ export class MatchRoom {
     const idx = p.phase2Index;
     if (idx >= this.state.questionPool.length) return;
 
-    const qid = this.state.questionPool[idx]!;
-    const dbq = this.state.questions.get(qid)!;
+    const stem = this.state.questionPool[idx]!;
+    const dbq = this.dbqFor(stem, p.locale);
+    if (!dbq) return;
 
     if (p.isShadow) return; // shadows don't need WS payloads
 
@@ -421,8 +441,9 @@ export class MatchRoom {
     if (!p || p.status !== "active") return;
     if (p.phase2Index !== questionIndex) return; // stale answer
 
-    const qid = this.state.questionPool[p.phase2Index]!;
-    const dbq = this.state.questions.get(qid)!;
+    const stem = this.state.questionPool[p.phase2Index]!;
+    const dbq = this.dbqFor(stem, p.locale);
+    if (!dbq) return;
     const isCorrect = choiceId === dbq.correctChoiceId;
     const delta = isCorrect ? MATCH_CONFIG.score.phase2Correct : MATCH_CONFIG.score.phase2Wrong;
 
@@ -432,7 +453,8 @@ export class MatchRoom {
 
     this.state.answersBuffer.push({
       userId,
-      questionId: qid,
+      // Log the locale-specific id the player actually answered.
+      questionId: dbq.id,
       questionIndex: p.phase2Index,
       phase: "phase2",
       chosenChoiceId: choiceId,
@@ -498,8 +520,9 @@ export class MatchRoom {
 
       const idx = player.phase2Index;
       if (idx >= this.state.questionPool.length) return;
-      const qid = this.state.questionPool[idx]!;
-      const dbq = this.state.questions.get(qid)!;
+      const stem = this.state.questionPool[idx]!;
+      const dbq = this.dbqFor(stem, player.locale);
+      if (!dbq) return;
       const correctIdx = dbq.choices.findIndex((c) => c.id === dbq.correctChoiceId);
       // Reuse phase-1 shadow profile for accuracy.
       const accuracy = 0.55 + (player.seat % 5) * 0.06;
@@ -548,34 +571,44 @@ export class MatchRoom {
       p.skipped = false;
     }
 
-    const qid = this.state.questionPool[next]!;
-    const dbq = this.state.questions.get(qid)!;
+    const stem = this.state.questionPool[next]!;
     const timeLimitMs = phaseQuestionMs(phase);
     const now = Date.now();
     this.state.currentQuestionStartedAt = now;
     this.state.currentQuestionDeadline = now + timeLimitMs;
 
-    const publicQ: PublicQuestion = {
-      index: next,
-      phase,
-      category: dbq.category,
-      prompt: dbq.prompt,
-      choices: dbq.choices.map(({ id, label }) => ({ id, label })),
-      deadline: this.state.currentQuestionDeadline,
-    };
+    // Per-player rendering — each connected player gets the variant
+    // matching their `MatchPlayer.locale` (FR or EN). Choice ids
+    // differ across locales so the server's correctness check has to
+    // also key on the player's locale (see recordAnswer).
+    for (const [, conn] of this.conns) {
+      const dbq = this.dbqForPlayer(stem, conn.userId);
+      if (!dbq) continue;
+      const publicQ: PublicQuestion = {
+        index: next,
+        phase,
+        category: dbq.category,
+        prompt: dbq.prompt,
+        choices: dbq.choices.map(({ id, label }) => ({ id, label })),
+        deadline: this.state.currentQuestionDeadline,
+      };
+      this.send(conn.socket, { type: "question", question: publicQ });
+    }
 
-    this.broadcast({ type: "question", question: publicQ });
-
-    this.scheduleShadowAnswers(dbq, timeLimitMs);
+    this.scheduleShadowAnswers(stem, timeLimitMs);
     this.clearTimer();
     this.timer = setTimeout(() => this.closeQuestion(next), timeLimitMs);
   }
 
-  private scheduleShadowAnswers(q: DbQuestion, timeLimitMs: number): void {
-    const correctIdx = q.choices.findIndex((c) => c.id === q.correctChoiceId);
-    const choiceIds = q.choices.map((c) => c.id);
+  private scheduleShadowAnswers(stem: string, timeLimitMs: number): void {
     for (const p of this.state.players) {
       if (!p.isShadow || p.status !== "active") continue;
+      // Each shadow scores against its own locale variant — the
+      // correct choice id and choice index are locale-specific.
+      const q = this.dbqFor(stem, p.locale);
+      if (!q) continue;
+      const correctIdx = q.choices.findIndex((c) => c.id === q.correctChoiceId);
+      const choiceIds = q.choices.map((c) => c.id);
       const { choiceId, responseMs } = shadowAnswer(
         p,
         choiceIds,
@@ -658,8 +691,8 @@ export class MatchRoom {
       receivedAt: Date.now(),
     });
     if (!fromShadow) {
-      const qid = this.state.questionPool[questionIndex]!;
-      const dbq = this.state.questions.get(qid)!;
+      const stem = this.state.questionPool[questionIndex]!;
+      const dbq = this.dbqForPlayer(stem, userId)!;
       this.log.info(
         {
           userId,
@@ -694,12 +727,17 @@ export class MatchRoom {
   private closeQuestion(questionIndex: number): void {
     if (this.state.currentQuestionIndex !== questionIndex) return;
     const phase = this.state.currentPhase!;
-    const qid = this.state.questionPool[questionIndex]!;
-    const dbq = this.state.questions.get(qid)!;
+    const stem = this.state.questionPool[questionIndex]!;
 
+    // Score each player against THEIR locale's variant. The fact is
+    // shared but the correct choice id and answer position differ
+    // between FR and EN.
     const outcomes = this.state.players
       .filter((p) => p.status === "active")
-      .map((p) => this.scorePlayerAtClose(p, dbq, questionIndex, phase));
+      .map((p) => {
+        const dbq = this.dbqFor(stem, p.locale)!;
+        return this.scorePlayerAtClose(p, dbq, questionIndex, phase);
+      });
 
     // Phase 3 special rule: all-correct → slowest correct loses 1 life.
     if (phase === "phase3") {
@@ -720,12 +758,21 @@ export class MatchRoom {
       }
     }
 
-    this.broadcast({
-      type: "reveal",
-      questionIndex,
-      correctChoiceId: dbq.correctChoiceId,
-      outcomes,
-    });
+    // Per-player reveal — `correctChoiceId` is the choice id from
+    // the player's own locale variant so the client can highlight
+    // the right row in its rendered question. Outcomes themselves
+    // are shared (only `isCorrect` matters for the live row, the
+    // choiceId strings are opaque to other clients).
+    for (const [, conn] of this.conns) {
+      const dbq = this.dbqForPlayer(stem, conn.userId);
+      if (!dbq) continue;
+      this.send(conn.socket, {
+        type: "reveal",
+        questionIndex,
+        correctChoiceId: dbq.correctChoiceId,
+        outcomes,
+      });
+    }
 
     // Decide what to do next.
     const revealMs = phaseRevealMs(phase);
@@ -806,6 +853,9 @@ export class MatchRoom {
     if (p.score > p.peakScore) p.peakScore = p.score;
     if (scoreDelta !== 0) p.lastScoreReachedAt = Date.now();
 
+    // `dbq` here is the player's locale variant (closeQuestion picks
+    // it that way), so `dbq.id` is the locale-specific question id
+    // we want to log against `match_answers.questionId`.
     this.state.answersBuffer.push({
       userId: p.userId,
       questionId: dbq.id,
@@ -1238,7 +1288,9 @@ export class MatchRoom {
         });
         // If a question is currently in flight, re-send it with the
         // original deadline so the client clock keeps the same target.
-        const q = this.publicQuestion();
+        // Per-player rendering — pick the variant matching this user's
+        // locale, not the room default.
+        const q = this.publicQuestionFor(userId);
         if (q) this.send(socket, { type: "question", question: q });
         return;
       }
@@ -1257,8 +1309,8 @@ export class MatchRoom {
         if (p && p.status === "active") {
           const idx = p.phase2Index;
           if (idx < this.state.questionPool.length) {
-            const qid = this.state.questionPool[idx]!;
-            const dbq = this.state.questions.get(qid);
+            const stem = this.state.questionPool[idx]!;
+            const dbq = this.dbqFor(stem, p.locale);
             if (dbq) {
               this.send(socket, {
                 type: "question",
@@ -1346,16 +1398,16 @@ export class MatchRoom {
     }));
   }
 
-  private publicQuestion(): PublicQuestion | null {
+  private publicQuestionFor(userId: string): PublicQuestion | null {
     if (
       this.state.currentQuestionIndex === undefined ||
       !this.state.currentPhase ||
       !this.state.currentQuestionDeadline
     )
       return null;
-    const qid = this.state.questionPool[this.state.currentQuestionIndex];
-    if (!qid) return null;
-    const dbq = this.state.questions.get(qid);
+    const stem = this.state.questionPool[this.state.currentQuestionIndex];
+    if (!stem) return null;
+    const dbq = this.dbqForPlayer(stem, userId);
     if (!dbq) return null;
     return {
       index: this.state.currentQuestionIndex,

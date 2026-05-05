@@ -26,6 +26,16 @@ export interface MatchPlayer {
   name: string;
   handle: string | null;
   avatarId: number;
+  /**
+   * The player's preferred locale ("fr", "en"…). Lobbies are now
+   * mixed-locale — the matchmaker buckets by mode only — so each
+   * player's payload is rendered against their personal `locale`
+   * while everyone advances through the same shared fact pool.
+   * Shadows are seeded with a synthetic locale at creation; it
+   * doesn't really matter (they're server-driven) but the room
+   * scoring code keys lookups on it.
+   */
+  locale: string;
   status: PlayerStatus;
   score: number;
   streak: number;
@@ -74,12 +84,30 @@ export interface MatchState {
   matchId: string;
   status: MatchStatus;
   mode: MatchMode;
+  /**
+   * The room's "default" locale — used as a fallback for shadows and
+   * for any code path that needs a single locale (e.g. persistence
+   * writes when a player has no locale of their own). Real players
+   * each carry their own `MatchPlayer.locale`, set at enqueue time
+   * from the user's web-app locale.
+   */
   locale: string;
   seed: string;
   players: MatchPlayer[];
-  /** Sequential pool of questions used across all phases. */
+  /**
+   * Sequential pool of FACT STEMS (shared suffix without the locale
+   * prefix, e.g. `web-easy-051`) used across all phases. The same
+   * pool serves every player; what differs is the locale-specific
+   * `DbQuestion` we render to them.
+   */
   questionPool: string[];
-  questions: Map<string, DbQuestion>;
+  /**
+   * stem → locale → DbQuestion. Built at lobby creation: only stems
+   * where every supported locale has an active row are included, so
+   * the runtime can serve each player the variant matching their
+   * own `MatchPlayer.locale` regardless of who joined.
+   */
+  questionsByStem: Map<string, Map<string, DbQuestion>>;
   /**
    * Next index in `questionPool` that hasn't been served yet. Increments
    * as phase 1 / phase 3 ask questions, and jumps to the highest

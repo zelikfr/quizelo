@@ -73,7 +73,8 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav. */}
+      <div className="flex min-h-screen flex-col pb-24 md:hidden">
         <div className="flex items-center justify-between px-[18px] pt-3.5">
           <div>
             <p className="font-mono text-[9px] tracking-[0.2em] text-violet-light">

@@ -35,8 +35,18 @@ const PROFILES: ShadowProfile[] = [
 
 let counter = 0;
 
-/** Build a shadow MatchPlayer. */
-export function makeShadow(seat: number, rand: () => number): MatchPlayer {
+/**
+ * Build a shadow MatchPlayer. The `locale` is the room's default —
+ * shadows are server-driven so their locale only affects which
+ * locale's `correctChoiceId` the runtime checks against in
+ * `recordAnswer`. Pinning to the room default keeps shadow scoring
+ * deterministic and doesn't compete with any real player slot.
+ */
+export function makeShadow(
+  seat: number,
+  rand: () => number,
+  locale: string,
+): MatchPlayer {
   const idx = Math.floor(rand() * NAMES.length);
   const name = NAMES[idx] ?? "shadow";
   counter += 1;
@@ -46,6 +56,7 @@ export function makeShadow(seat: number, rand: () => number): MatchPlayer {
     name,
     handle: name.toLowerCase().replace(/[^a-z0-9_]/g, "_"),
     avatarId: Math.floor(rand() * 10),
+    locale,
     status: "active",
     score: 0,
     streak: 0,

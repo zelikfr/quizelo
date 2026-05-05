@@ -61,7 +61,9 @@ export default async function HomePage({ params }: HomePageProps) {
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav so the last
+          card isn't hidden behind it. */}
+      <div className="flex min-h-screen flex-col pb-24 md:hidden">
         <HomeMobileHeader />
         <PlayerStatusCard />
 
@@ -82,7 +84,7 @@ export default async function HomePage({ params }: HomePageProps) {
         </div>
 
         <div className="flex-1" />
-        <HomeMobileBottomNav />
+        <HomeMobileBottomNav active="play" />
       </div>
     </main>
   );

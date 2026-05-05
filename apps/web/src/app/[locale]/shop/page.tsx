@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { BalanceBadge } from "@/components/shop/BalanceBadge";
 import { BoostCardCard } from "@/components/shop/BoostCardCard";
@@ -100,7 +101,8 @@ export default async function ShopPage({ params }: ShopPageProps) {
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      <div className="relative flex min-h-screen flex-col md:hidden">
+      {/* `pb-24` reserves room for the fixed bottom nav. */}
+      <div className="relative flex min-h-screen flex-col pb-24 md:hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -169,6 +171,8 @@ export default async function ShopPage({ params }: ShopPageProps) {
             <div className="pb-[18px]" />
           </>
         )}
+
+        <HomeMobileBottomNav active="shop" />
       </div>
     </main>
   );
