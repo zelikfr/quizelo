@@ -40,14 +40,43 @@ export function QAChoice({
   className,
 }: QAChoiceProps) {
   const isDisabled = disabled || state === "dimmed";
+
+  /**
+   * Drop focus from the button after a pointer click so the focus
+   * ring doesn't ghost onto the next question's button at the same
+   * DOM slot — when the parent swaps in fresh choice text, React
+   * keeps the underlying <button> node, so a previously-clicked
+   * button passes its focus state to whatever new content lands
+   * there. Result: one of the four answers looks "pre-selected"
+   * before the user has touched anything on the next question.
+   *
+   * We only blur on real pointer interactions (`event.detail > 0`).
+   * Keyboard activations (Enter / Space on a focused button) come
+   * through with `detail === 0`; blurring those would yank the
+   * focus context away from a Tab-driven user, who'd have to
+   * re-orient on every question. That's a worse a11y trade than
+   * accepting a ring for keyboard users (which is the desired
+   * behavior for them anyway).
+   */
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.detail > 0) {
+      e.currentTarget.blur();
+    }
+    onClick?.();
+  };
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={state === "selected"}
       className={cn(
         "flex w-full items-center gap-3 rounded-[14px] border px-4 py-3.5 text-left font-body text-sm font-medium transition-all duration-120",
+        // focus-visible only — guarantees the keyboard ring shows
+        // even if a future global CSS rule silences :focus, while
+        // keeping mouse clicks ring-free.
+        "focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/60 focus-visible:ring-offset-0",
         !isDisabled && "cursor-pointer hover:border-violet/40 hover:bg-violet/[0.08]",
         isDisabled && "cursor-default",
         STATE_BUTTON[state],
