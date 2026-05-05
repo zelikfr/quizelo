@@ -3,29 +3,26 @@
  * differently from its distractors enough that a player could guess
  * by shape alone. The build pipeline already auto-strips
  * parenthesized context off correct answers (see
- * `_builder.ts:deLeakAnswerShape`), so this script surfaces tells
- * that auto-fix can't safely repair on its own:
+ * `_builder.ts:deLeakAnswerShape`), so the rules below catch the
+ * tells that auto-fix can't safely repair:
  *   - parens that the auto-strip somehow missed (unbalanced bracket,
  *     etc.) — should be ~zero in practice
  *   - a comma only on the correct answer
  *   - a content word ≥3 chars present in every distractor but absent
  *     from the correct answer — the "FreeBSD seul / OpenBSD seul /
  *     NetBSD seul / 4BSD" case where the player picks the odd one
- *     out without knowing the topic.
+ *     out without knowing the topic
+ *   - a length leak — correct answer ≥1.6× the avg distractor length
+ *     and at least 12 chars (skips short answers where the gap
+ *     wouldn't be visually meaningful)
+ *   - digits-only-on-correct or digits-only-on-distractors — when
+ *     the digit asymmetry could let the player pick the lone shape
  *
- * NOTE: two earlier rules were deliberately removed:
- *
- *   - "length leak" (correct ≥1.6× avg distractor) — too many false
- *     positives on official names ("République démocratique du Congo"
- *     vs "Pérou"), multi-word toponyms ("Pitcairn Islands" vs "Niue").
- *
- *   - "digit-shape" (only correct has digits, or only distractors) —
- *     same problem with format names (MP3 vs WAV/FLAC/OGG), model
- *     numbers (iPhone 4), version strings (Web 2.0). The digit isn't
- *     a curator choice, it's part of the entity's actual name.
- *
- * Both produced inbox noise without giving the curator anything they
- * could meaningfully fix.
+ * The length and digit rules can fire on legitimate proper nouns
+ * ("République démocratique du Congo" vs "Pérou", "MP3" vs WAV /
+ * FLAC / OGG). That's fine: the backoffice's sticky-review system
+ * lets an admin Approve once and the row never gets re-flagged.
+ * Real tells still get caught and force review.
  *
  * Run: `pnpm --filter @quizelo/db lint:bank`
  *

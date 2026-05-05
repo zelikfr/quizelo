@@ -64,6 +64,11 @@ export default async function QuestionsPage({
   if (loc) conds.push(eq(questions.locale, loc));
   if (activeFilter === "yes") conds.push(eq(questions.active, true));
   if (activeFilter === "no") conds.push(eq(questions.active, false));
+  // "Flagged" = the row still has a non-null lint reason. Approve
+  // and Delete actions clear it (verdict given), while Edit and
+  // Toggle keep it (the admin made a tweak but hasn't formally
+  // signed off yet — the row stays visible until they explicitly
+  // click Approve).
   if (flaggedOnly) conds.push(isNotNull(questions.lintReason));
   // Reviewed = the admin has touched this row (approve / edit /
   // toggle / delete) and therefore the seed pipeline now leaves it
@@ -73,9 +78,11 @@ export default async function QuestionsPage({
 
   const where = conds.length > 0 ? and(...conds) : undefined;
 
-  // Header counter — total questions in the bank still flagged by the
-  // shape-leak linter and pending admin review. Drives the "Needs
-  // review" pill at the top of the page.
+  // Header counter — rows still carrying a lint reason. Approve and
+  // Delete actions clear `lint_reason` (so they drop out of the
+  // counter immediately), while Edit and Toggle preserve it (the
+  // admin can still see the row in the queue until they explicitly
+  // approve it).
   const [{ flaggedCount } = { flaggedCount: 0 }] = await db
     .select({ flaggedCount: sql<number>`count(*)::int` })
     .from(questions)
@@ -285,7 +292,14 @@ export default async function QuestionsPage({
                   <div className="flex items-center justify-end gap-1.5">
                     {r.lintReason && <ApproveButton id={r.id} />}
                     <Link
-                      href={`/questions/${r.id}`}
+                      // Carry the current filter set into the detail
+                      // page as `?from=…` so "← Back" and post-delete
+                      // redirects land on the same view (e.g. the
+                      // `?flagged=yes` queue) instead of dumping the
+                      // reviewer back onto the unfiltered list.
+                      href={`/questions/${r.id}?from=${encodeURIComponent(
+                        currentListHref(sp),
+                      )}`}
                       className="rounded-md border border-line bg-bg-2 px-2.5 py-1 text-xs text-fg-2 hover:bg-bg-3"
                     >
                       Edit
@@ -348,4 +362,13 @@ function hrefWith(sp: Search, patch: Partial<Search>): string {
   }
   const qs = params.toString();
   return qs ? `/questions?${qs}` : "/questions";
+}
+
+/**
+ * URL of the current list view as the user is seeing it — used as
+ * the `from` deeplink we hand to the detail page so its Back / Delete
+ * actions can return to the same filtered queue (e.g. flagged-only).
+ */
+function currentListHref(sp: Search): string {
+  return hrefWith(sp, {});
 }

@@ -13,7 +13,18 @@ import {
 const CATEGORIES = ["geography", "history", "entertainment", "sport", "art", "web", "science", "fun"];
 const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 
-export function QuestionEditForm({ question }: { question: Question }) {
+export function QuestionEditForm({
+  question,
+  /**
+   * Where to navigate after a soft-delete. Defaults to the
+   * unfiltered list — overridden by the detail page when a
+   * reviewer arrives via `?from=` from a filtered queue.
+   */
+  backHref = "/questions",
+}: {
+  question: Question;
+  backHref?: string;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +79,9 @@ export function QuestionEditForm({ question }: { question: Question }) {
     if (!window.confirm("Soft-delete this question? It will be set inactive.")) return;
     start(async () => {
       await deleteQuestionAction(question.id);
-      router.push("/questions");
+      // Return to the queue/filter the reviewer came from instead of
+      // dumping them on the unfiltered list.
+      router.push(backHref);
     });
   }
 

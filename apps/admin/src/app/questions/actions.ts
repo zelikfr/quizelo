@@ -78,13 +78,16 @@ export async function toggleQuestionActiveAction(id: string, active: boolean) {
 export async function deleteQuestionAction(id: string) {
   await ensureAdmin();
   // We soft-delete via active=false because match_answers FK references
-  // questions.id and we don't want to break history. Stamp
-  // `lintReviewedAt` so the seed pipeline doesn't try to resurrect
+  // questions.id and we don't want to break history. Clearing
+  // `lintReason` removes the row from the "needs review" queue —
+  // delete is a verdict, same UX bucket as Approve. The
+  // `lintReviewedAt` stamp keeps the seed pipeline from resurrecting
   // it on the next run.
   await db
     .update(questions)
     .set({
       active: false,
+      lintReason: null,
       lintReviewedAt: new Date(),
       updatedAt: new Date(),
     })

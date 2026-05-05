@@ -9,10 +9,19 @@ import { QuestionEditForm } from "./QuestionEditForm";
 
 export default async function QuestionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from } = await searchParams;
+
+  // Validate the `from` param to make sure we never push the user
+  // off-site or to an unrelated route. We only honor URLs that stay
+  // inside `/questions...`.
+  const backHref =
+    from && from.startsWith("/questions") ? from : "/questions";
 
   const [q] = await db.select().from(questions).where(eq(questions.id, id)).limit(1);
   if (!q) notFound();
@@ -40,7 +49,9 @@ export default async function QuestionDetailPage({
         description={`Created ${formatDate(q.createdAt)} · Updated ${formatDate(q.updatedAt)}`}
         actions={
           <Link
-            href="/questions"
+            // Honor `?from=` so a reviewer who came in from
+            // `/questions?flagged=yes` lands back on that same queue.
+            href={backHref}
             className="rounded-md border border-line bg-bg-2 px-3 py-1.5 text-sm text-fg-2 hover:bg-bg-3"
           >
             ← Back
@@ -92,7 +103,7 @@ export default async function QuestionDetailPage({
           </div>
         )}
 
-        <QuestionEditForm question={q} />
+        <QuestionEditForm question={q} backHref={backHref} />
       </Card>
     </div>
   );

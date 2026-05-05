@@ -5,16 +5,21 @@
  * human can review in the backoffice.
  *
  * Surfaces tells that the build-time auto-strip can't safely repair:
- *   - parens that auto-strip somehow missed (unbalanced bracket, etc.)
+ *   - parens that auto-strip somehow missed (unbalanced bracket etc.)
  *   - a comma only on the correct answer
  *   - a content word ≥3 chars present in every distractor but absent
  *     from the correct answer — "FreeBSD seul / OpenBSD seul /
- *     NetBSD seul / 4BSD".
+ *     NetBSD seul / 4BSD"
+ *   - a length leak — correct ≥1.6× the avg distractor length and
+ *     ≥12 chars
+ *   - digits-only-on-correct or digits-only-on-distractors
  *
- * Two earlier rules were deliberately removed: "length leak" and
- * "digit-shape". They produced too many false positives on legitimate
- * proper nouns ("République démocratique du Congo", "MP3", "Pitcairn
- * Islands"). See `lint-bank.ts` header for the rationale.
+ * The two latter rules were briefly disabled because they fire on
+ * legitimate proper nouns / format names ("République démocratique du
+ * Congo" / "MP3"). They're back now that the backoffice has the
+ * sticky-review system: a curator-side false positive is approved
+ * once and never bothers anyone again, while real tells get caught.
+ * Net win.
  */
 
 const PAREN_RE = /[(\[][^)\]]*[)\]]/;
@@ -122,6 +127,37 @@ export function detectShapeLeak(
     if (leaks.length > 0) {
       return `common-in-distractors-only: "${leaks.join('", "')}"`;
     }
+  }
+
+  // 4. Length leak — correct answer ≥1.6× the avg distractor length,
+  //    floor at 12 chars to skip cases where a 5-vs-8 char gap is
+  //    visually meaningless. False positives on long proper nouns
+  //    ("République démocratique du Congo" vs "Pérou") are expected
+  //    and resolved via the backoffice's sticky-review approve.
+  const corrLen = correct.length;
+  const avgDistLen =
+    distractors.reduce((s, d) => s + d.length, 0) /
+    Math.max(1, distractors.length);
+  if (corrLen >= 12 && corrLen >= avgDistLen * 1.6) {
+    return `length-leak: ${corrLen} chars vs avg ${avgDistLen.toFixed(1)}`;
+  }
+
+  // 5. Digit imbalance — only the correct has digits, or only the
+  //    distractors do. Year-style answers ("1492") naturally land on
+  //    the "everything has digits" branch and are skipped. Format
+  //    names ("MP3") trip this rule and get filtered through the
+  //    backoffice review.
+  const corrHasDigits = /\d/.test(correct);
+  const distractorsWithDigits = distractors.filter((d) => /\d/.test(d)).length;
+  if (corrHasDigits && distractorsWithDigits === 0) {
+    return "digits-only-on-correct";
+  }
+  if (
+    !corrHasDigits &&
+    distractors.length > 0 &&
+    distractorsWithDigits === distractors.length
+  ) {
+    return "digits-only-on-distractors";
   }
 
   return null;
