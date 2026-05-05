@@ -64,6 +64,15 @@ export default async function QuestionsPage({
   if (loc) conds.push(eq(questions.locale, loc));
   if (activeFilter === "yes") conds.push(eq(questions.active, true));
   if (activeFilter === "no") conds.push(eq(questions.active, false));
+  // "Deleted" = admin verdict to take the question out of rotation
+  // (delete action OR manual toggle-off after reviewing). The combo
+  // `active=false AND lint_reviewed_at IS NOT NULL` is the only
+  // signal we have to separate these from "ship-flagged, never
+  // reviewed" rows that happen to also be inactive.
+  if (activeFilter === "deleted") {
+    conds.push(eq(questions.active, false));
+    conds.push(isNotNull(questions.lintReviewedAt));
+  }
   // "Flagged" = the row still has a non-null lint reason. Approve
   // and Delete actions clear it (verdict given), while Edit and
   // Toggle keep it (the admin made a tweak but hasn't formally
@@ -186,6 +195,7 @@ export default async function QuestionsPage({
           <option value="">Any status</option>
           <option value="yes">Active</option>
           <option value="no">Inactive</option>
+          <option value="deleted">Deleted (admin)</option>
         </select>
         <select
           name="reviewed"

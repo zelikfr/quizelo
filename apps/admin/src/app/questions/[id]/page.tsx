@@ -1,4 +1,4 @@
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, ilike, ne, sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db, matchAnswers, questions } from "@quizelo/db";
@@ -25,6 +25,31 @@ export default async function QuestionDetailPage({
 
   const [q] = await db.select().from(questions).where(eq(questions.id, id)).limit(1);
   if (!q) notFound();
+
+  // Cross-locale siblings — IDs share the same suffix after the
+  // locale prefix (e.g. `fr-web-easy-051` ↔ `en-web-easy-051`).
+  // Surfaced below the form so the reviewer doesn't disable one side
+  // and forget the other; the seed pipeline doesn't enforce parity.
+  const dashIdx = q.id.indexOf("-");
+  const sharedSuffix = dashIdx >= 0 ? q.id.substring(dashIdx) : null;
+  const siblings = sharedSuffix
+    ? await db
+        .select({
+          id: questions.id,
+          locale: questions.locale,
+          active: questions.active,
+          lintReason: questions.lintReason,
+          lintReviewedAt: questions.lintReviewedAt,
+          prompt: questions.prompt,
+        })
+        .from(questions)
+        .where(
+          and(
+            ne(questions.id, q.id),
+            ilike(questions.id, `%${sharedSuffix}`),
+          ),
+        )
+    : [];
 
   const [usageRow] = await db
     .select({
@@ -105,6 +130,62 @@ export default async function QuestionDetailPage({
 
         <QuestionEditForm question={q} backHref={backHref} />
       </Card>
+
+      {siblings.length > 0 && (
+        <Card className="mt-6 p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-fg-1">Locale siblings</h2>
+            <span className="text-[10px] text-fg-3">
+              same fact in other languages
+            </span>
+          </div>
+          <p className="mb-3 text-xs text-fg-3">
+            The match runtime queries one locale at a time, so disabling
+            this row only blocks {q.locale.toUpperCase()} players. Check
+            below if the sibling needs the same treatment — the seed
+            pipeline does NOT auto-mirror your decision.
+          </p>
+          <ul className="space-y-2">
+            {siblings.map((s) => {
+              const desync = s.active !== q.active;
+              return (
+                <li
+                  key={s.id}
+                  className={
+                    "flex items-center gap-3 rounded-md border px-3 py-2 " +
+                    (desync
+                      ? "border-warn/40 bg-warn/5"
+                      : "border-line bg-bg-2")
+                  }
+                >
+                  <Badge>{s.locale}</Badge>
+                  {s.active ? (
+                    <Badge tone="success">active</Badge>
+                  ) : (
+                    <Badge tone="danger">inactive</Badge>
+                  )}
+                  {s.lintReason && <Badge tone="warn">flagged</Badge>}
+                  {s.lintReviewedAt && <Badge tone="info">reviewed</Badge>}
+                  {desync && (
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-warn">
+                      ⚠ desynced
+                    </span>
+                  )}
+                  <span className="line-clamp-1 flex-1 text-xs text-fg-2">
+                    {s.prompt}
+                  </span>
+                  <Link
+                    href={`/questions/${s.id}?from=${encodeURIComponent(backHref)}`}
+                    className="rounded-md border border-line bg-bg-2 px-2.5 py-1 text-xs text-fg-2 hover:bg-bg-3"
+                  >
+                    Open
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
     </div>
   );
 }
