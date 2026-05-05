@@ -76,7 +76,21 @@ export default async function QuestionDetailPage({
           <Badge>{q.difficulty}</Badge>
           {q.eloTarget != null && <Badge tone="info">ELO {q.eloTarget}</Badge>}
           {!q.active && <Badge tone="danger">inactive</Badge>}
+          {q.lintReason && <Badge tone="warn">flagged</Badge>}
+          {q.lintReviewedAt && <Badge tone="info">reviewed</Badge>}
         </div>
+
+        {q.lintReason && (
+          <div className="mb-4 rounded-md border border-warn/30 bg-warn/10 px-3 py-2 text-xs text-warn">
+            <strong className="font-semibold">Shape-leak lint:</strong>{" "}
+            {q.lintReason}. Cette question a été désactivée
+            automatiquement par le seed. Vérifie que la bonne réponse
+            n'est pas devinable par forme, puis sauvegarde avec{" "}
+            <em>active = true</em> pour la réactiver — ou utilise
+            l'action “Approuver” ci-dessous pour effacer le drapeau
+            sans toucher au contenu.
+          </div>
+        )}
 
         <QuestionEditForm question={q} />
       </Card>

@@ -58,6 +58,19 @@ const easy: CuratedFact[] = [
   ["Quelle entreprise a racheté Twitter en 2022 ?", "Who bought Twitter in 2022?", "Elon Musk", "Elon Musk", ["Microsoft", "Google", "Meta"], ["Microsoft", "Google", "Meta"]],
   ["Quelle plateforme dédiée au code utilise des dépôts Git ?", "Which Git-based code platform?", "GitHub", "GitHub", ["GitLab", "Bitbucket", "SourceForge"], ["GitLab", "Bitbucket", "SourceForge"]],
   ["Quelle plateforme de questions-réponses pour développeurs est célèbre ?", "Which famous Q&A site for developers?", "Stack Overflow", "Stack Overflow", ["Quora", "Reddit r/programming", "Hacker News"], ["Quora", "Reddit r/programming", "Hacker News"]],
+  // Culture internet / créateurs (12)
+  ["Quel est le vrai nom de PewDiePie ?", "What's PewDiePie's real name?", "Felix Kjellberg", "Felix Kjellberg", ["Markus Persson", "Anthony Padilla", "Logan Paul"], ["Markus Persson", "Anthony Padilla", "Logan Paul"]],
+  ["Quel est le vrai nom de MrBeast ?", "What's MrBeast's real name?", "Jimmy Donaldson", "Jimmy Donaldson", ["Felix Kjellberg", "Logan Paul", "Mark Fischbach"], ["Felix Kjellberg", "Logan Paul", "Mark Fischbach"]],
+  ["Quelle entreprise possède Twitch ?", "Who owns Twitch?", "Amazon", "Amazon", ["Google", "Microsoft", "Meta"], ["Google", "Microsoft", "Meta"]],
+  ["Quelle entreprise chinoise possède TikTok ?", "Which Chinese company owns TikTok?", "ByteDance", "ByteDance", ["Tencent", "Alibaba", "Baidu"], ["Tencent", "Alibaba", "Baidu"]],
+  ["Quelle app est connue pour ses photos éphémères ?", "Which app is famous for self-destructing photos?", "Snapchat", "Snapchat", ["Instagram", "WhatsApp", "Telegram"], ["Instagram", "WhatsApp", "Telegram"]],
+  ["Quelle plateforme de chat a été créée à l'origine pour les gamers ?", "Which chat platform was originally built for gamers?", "Discord", "Discord", ["Slack", "Telegram", "Teams"], ["Slack", "Telegram", "Teams"]],
+  ["Quelle race de chien est devenue le mème Doge ?", "Which dog breed became the Doge meme?", "Shiba Inu", "Shiba Inu", ["Akita", "Husky", "Corgi"], ["Akita", "Husky", "Corgi"]],
+  ["Quelle chanson de Rick Astley sert au Rickroll ?", "Which Rick Astley song is the Rickroll?", "Never Gonna Give You Up", "Never Gonna Give You Up", ["Together Forever", "Whenever You Need Somebody", "Cry for Help"], ["Together Forever", "Whenever You Need Somebody", "Cry for Help"]],
+  ["Quel est le prénom du youtubeur Squeezie ?", "What is YouTuber Squeezie's first name?", "Lucas", "Lucas", ["Hugo", "Antoine", "Théo"], ["Hugo", "Antoine", "Théo"]],
+  ["Sous quel pseudo Norman Thavaud s'est-il fait connaître ?", "Under which name did Norman Thavaud rise to fame?", "Norman fait des vidéos", "Norman fait des vidéos", ["Cyprien", "Mister V", "Squeezie"], ["Cyprien", "Mister V", "Squeezie"]],
+  ["Quelle app de vidéos courtes s'appelait Musical.ly avant 2018 ?", "Which short-video app was called Musical.ly before 2018?", "TikTok", "TikTok", ["Snapchat", "Vine", "Triller"], ["Snapchat", "Vine", "Triller"]],
+  ["Sous quel pseudo Jimmy Donaldson est-il connu ?", "What's Jimmy Donaldson's online alias?", "MrBeast", "MrBeast", ["PewDiePie", "Markiplier", "Dream"], ["PewDiePie", "Markiplier", "Dream"]],
 ];
 
 /* ── Medium (Or · 1400 ELO) ───────────────────────────────────────── */
@@ -119,6 +132,19 @@ const medium: CuratedFact[] = [
   ["Quel acronyme désigne la mémoire morte ?", "Which acronym means read-only memory?", "ROM", "ROM", ["RAM", "DRAM", "SRAM"], ["RAM", "DRAM", "SRAM"]],
   ["Quelle entreprise possède Instagram ?", "Which company owns Instagram?", "Meta (Facebook)", "Meta (Facebook)", ["Google", "Microsoft", "Amazon"], ["Google", "Microsoft", "Amazon"]],
   ["Quelle entreprise possède YouTube ?", "Which company owns YouTube?", "Google (Alphabet)", "Google (Alphabet)", ["Meta", "Apple", "Microsoft"], ["Meta", "Apple", "Microsoft"]],
+  // Créateurs francophones / mèmes (12)
+  ["Quel sommet Inoxtag a-t-il escaladé pour son documentaire Kaizen ?", "Which mountain did Inoxtag climb for the Kaizen documentary?", "Everest", "Everest", ["K2", "Mont Blanc", "Kilimandjaro"], ["K2", "Mont Blanc", "Kilimanjaro"]],
+  ["Quel évènement de course automobile Squeezie a-t-il créé en 2022 ?", "Which motor-racing event did Squeezie launch in 2022?", "GP Explorer", "GP Explorer", ["ZEvent", "Trackmania World Tour", "Forza Cup"], ["ZEvent", "Trackmania World Tour", "Forza Cup"]],
+  ["Quel single de Drake a inspiré le mème des deux poses ?", "Which Drake single inspired the two-pose meme?", "Hotline Bling", "Hotline Bling", ["God's Plan", "In My Feelings", "One Dance"], ["God's Plan", "In My Feelings", "One Dance"]],
+  ["Comment s'appelle le mème d'un homme regardant une autre fille devant sa copine ?", "What's the meme of a guy eyeing another woman next to his girlfriend?", "Distracted Boyfriend", "Distracted Boyfriend", ["Roll Safe", "Hide the Pain Harold", "Two Buttons"], ["Roll Safe", "Hide the Pain Harold", "Two Buttons"]],
+  ["Quelle vidéaste française est connue pour son podcast 'Canapé Six Places' ?", "Which French creator hosts the podcast 'Canapé Six Places'?", "Léna Situations", "Léna Situations", ["EnjoyPhoenix", "Natoo", "Andy Raconte"], ["EnjoyPhoenix", "Natoo", "Andy Raconte"]],
+  ["Quel évènement caritatif annuel ZeratoR organise-t-il ?", "Which annual charity event does ZeratoR run?", "ZEvent", "ZEvent", ["GP Explorer", "Speedons", "Restaus du Cœur Stream"], ["GP Explorer", "Speedons", "Restaus du Cœur Stream"]],
+  ["Comment s'appelle le mème d'une fillette rousse souriant devant une maison en feu ?", "What's the meme of a smiling redhead girl in front of a burning house?", "Disaster Girl", "Disaster Girl", ["Bad Luck Brian", "Side Eyeing Chloe", "Success Kid"], ["Bad Luck Brian", "Side Eyeing Chloe", "Success Kid"]],
+  ["Quel youtubeur anime 'Le Joueur du Grenier' ?", "Who plays Le Joueur du Grenier?", "Frédéric Molas", "Frédéric Molas", ["Antoine Daniel", "Karim Debbache", "Adrien Ménielle"], ["Antoine Daniel", "Karim Debbache", "Adrien Ménielle"]],
+  ["Quel jeu Among Us a explosé en popularité pendant la pandémie ?", "Which game blew up during the pandemic alongside lockdowns?", "Among Us", "Among Us", ["Fall Guys", "Phasmophobia", "Valheim"], ["Fall Guys", "Phasmophobia", "Valheim"]],
+  ["Quel mème d'un panneau 'Tout va bien' montre un chien dans une maison en feu ?", "Which 'This Is Fine' meme shows a dog in a burning room?", "This Is Fine", "This Is Fine", ["Disaster Girl", "Bad Luck Brian", "Side Eyeing Chloe"], ["Disaster Girl", "Bad Luck Brian", "Side Eyeing Chloe"]],
+  ["Quel youtubeur français a co-créé l'agence d'influenceurs Bump avec Hugo Bonemer ?", "Which French YouTuber co-founded the Bump talent agency?", "Squeezie", "Squeezie", ["Cyprien", "Mister V", "Norman Thavaud"], ["Cyprien", "Mister V", "Norman Thavaud"]],
+  ["Quelle plateforme de podcasts vidéo a explosé via Joe Rogan en 2020 ?", "Which podcast platform was supercharged by Joe Rogan in 2020?", "Spotify", "Spotify", ["Apple Podcasts", "Audible", "SoundCloud"], ["Apple Podcasts", "Audible", "SoundCloud"]],
 ];
 
 /* ── Hard (Platine · 1800 ELO) ────────────────────────────────────── */
@@ -180,6 +206,19 @@ const hard: CuratedFact[] = [
   ["Quel format vidéo standard a remplacé le H.263 ?", "Which video codec replaced H.263?", "H.264 (AVC)", "H.264 (AVC)", ["VP8", "AV1", "MPEG-2"], ["VP8", "AV1", "MPEG-2"]],
   ["Quel SGBD open-source dirigé par Oracle est très utilisé ?", "Which Oracle-owned open-source DB is widely used?", "MySQL", "MySQL", ["PostgreSQL", "SQLite", "MariaDB"], ["PostgreSQL", "SQLite", "MariaDB"]],
   ["Quelle méthode d'IA a marqué AlphaGo en 2016 ?", "Which AI method powered AlphaGo in 2016?", "Apprentissage par renforcement profond", "Deep reinforcement learning", ["Algorithmes génétiques", "Logique floue", "Systèmes experts"], ["Genetic algorithms", "Fuzzy logic", "Expert systems"]],
+  // Histoire des plateformes / mèmes anciens (12)
+  ["Quelle chanson roumaine est devenue le mème 'Numa Numa' en 2004 ?", "Which Romanian song became the 'Numa Numa' meme in 2004?", "Dragostea Din Tei", "Dragostea Din Tei", ["Ma Ya Hi", "Mai Ai Hee", "Crazy Frog"], ["Ma Ya Hi", "Mai Ai Hee", "Crazy Frog"]],
+  ["Quelle entreprise a racheté Vine avant son lancement en 2013 ?", "Who bought Vine before its 2013 launch?", "Twitter", "Twitter", ["Facebook", "Google", "Yahoo"], ["Facebook", "Google", "Yahoo"]],
+  ["Quel réseau social pré-Facebook a été lancé en 2003 par Tom Anderson ?", "Which pre-Facebook social network launched in 2003?", "MySpace", "MySpace", ["Friendster", "Orkut", "hi5"], ["Friendster", "Orkut", "hi5"]],
+  ["Quelle vidéo de Despacito ou Baby Shark détient le record YouTube ?", "Which video holds the all-time YouTube view record?", "Baby Shark Dance", "Baby Shark Dance", ["Despacito", "See You Again", "Gangnam Style"], ["Despacito", "See You Again", "Gangnam Style"]],
+  ["Comment s'appelle le service originel à partir duquel Twitch a été lancé en 2011 ?", "Which 2007 platform did Twitch spin off from in 2011?", "Justin.tv", "Justin.tv", ["Ustream", "Stickam", "Livestream.com"], ["Ustream", "Stickam", "Livestream.com"]],
+  ["En quelle année PewDiePie a-t-il atteint 100 M d'abonnés YouTube ?", "When did PewDiePie hit 100M YouTube subscribers?", "2019", "2019", ["2017", "2018", "2020"], ["2017", "2018", "2020"]],
+  ["Qui a créé Reddit en 2005 avec Steve Huffman ?", "Who co-founded Reddit with Steve Huffman in 2005?", "Alexis Ohanian", "Alexis Ohanian", ["Aaron Swartz", "Christopher Slowe", "Yishan Wong"], ["Aaron Swartz", "Christopher Slowe", "Yishan Wong"]],
+  ["Quelle chaîne indienne PewDiePie a-t-il combattue pour la 1re place ?", "Which Indian channel did PewDiePie battle for the #1 spot?", "T-Series", "T-Series", ["SET India", "Zee Music", "Cocomelon"], ["SET India", "Zee Music", "Cocomelon"]],
+  ["Quelle marque détient l'iconique mème 'Drakeposting' via une chanson ?", "Which artist's song spawned the 'Drakeposting' meme template?", "Drake", "Drake", ["Kanye West", "Travis Scott", "The Weeknd"], ["Kanye West", "Travis Scott", "The Weeknd"]],
+  ["Quel vidéaste américain a popularisé en 2007 la vidéo 'Charlie Bit My Finger' ?", "Whose home video became 2007 viral hit 'Charlie Bit My Finger'?", "Howard Davies-Carr", "Howard Davies-Carr", ["Casey Neistat", "Logan Paul", "Jake Paul"], ["Casey Neistat", "Logan Paul", "Jake Paul"]],
+  ["Quel défi viral de 2014 a levé des fonds pour la SLA (ALS) ?", "Which 2014 viral challenge raised funds for ALS?", "Ice Bucket Challenge", "Ice Bucket Challenge", ["Mannequin Challenge", "Cinnamon Challenge", "Harlem Shake"], ["Mannequin Challenge", "Cinnamon Challenge", "Harlem Shake"]],
+  ["Quel mème de 2010 met en scène un bébé tendant le poing au bord de la mer ?", "Which 2010 meme is a fist-pumping baby on a beach?", "Success Kid", "Success Kid", ["Bad Luck Brian", "Disaster Girl", "Scumbag Steve"], ["Bad Luck Brian", "Disaster Girl", "Scumbag Steve"]],
 ];
 
 /* ── Expert (Diamant · 2200 ELO) ──────────────────────────────────── */
@@ -241,6 +280,19 @@ const expert: CuratedFact[] = [
   ["Quel modèle théorique d'Alonzo Church précède la machine de Turing ?", "Which Alonzo Church model preceded the Turing machine?", "Lambda-calcul", "Lambda calculus", ["Algèbre de Boole", "Calcul des prédicats", "Récursivité primitive"], ["Boolean algebra", "Predicate calculus", "Primitive recursion"]],
   ["Quel langage théorique d'Iverson a inspiré J et K ?", "Which Iverson language inspired J and K?", "APL", "APL", ["FP de Backus", "Plankalkül", "Speedcoding"], ["Backus' FP", "Plankalkül", "Speedcoding"]],
   ["Quel hyperviseur de Stanford a été commercialisé sous le nom Xen ?", "Which Stanford hypervisor became Xen?", "Xen Project (Univ. Cambridge)", "Xen Project (Univ. Cambridge)", ["VMware", "VirtualBox", "Hyper-V"], ["VMware", "VirtualBox", "Hyper-V"]],
+  // Histoire profonde du Web et des créateurs (12)
+  ["Quel est le titre de la toute première vidéo uploadée sur YouTube ?", "What was the very first YouTube video?", "Me at the zoo", "Me at the zoo", ["Charlie Bit My Finger", "Evolution of Dance", "Numa Numa"], ["Charlie Bit My Finger", "Evolution of Dance", "Numa Numa"]],
+  ["Qui a uploadé la première vidéo de YouTube en 2005 ?", "Who uploaded YouTube's first video in 2005?", "Jawed Karim", "Jawed Karim", ["Steve Chen", "Chad Hurley", "Susan Wojcicki"], ["Steve Chen", "Chad Hurley", "Susan Wojcicki"]],
+  ["Quel photographe espagnol est l'auteur de la photo 'Distracted Boyfriend' ?", "Which Spanish photographer shot 'Distracted Boyfriend'?", "Antonio Guillem", "Antonio Guillem", ["Pedro Almodóvar", "Joan Cros", "Manuel Outumuro"], ["Pedro Almodóvar", "Joan Cros", "Manuel Outumuro"]],
+  ["Quel est le vrai nom de l'auteur du mème 'Numa Numa' ?", "What's the real name of the original 'Numa Numa' guy?", "Gary Brolsma", "Gary Brolsma", ["Eduardo Saverin", "Howard Davies-Carr", "Tay Zonday"], ["Eduardo Saverin", "Howard Davies-Carr", "Tay Zonday"]],
+  ["Quel cofondateur de Reddit s'est suicidé en 2013 après poursuites pour JSTOR ?", "Which Reddit co-founder died by suicide in 2013 after the JSTOR case?", "Aaron Swartz", "Aaron Swartz", ["Alexis Ohanian", "Steve Huffman", "Christopher Slowe"], ["Alexis Ohanian", "Steve Huffman", "Christopher Slowe"]],
+  ["En quelle année AOL a-t-il acquis Time Warner pour 165 Md $ ?", "When did AOL acquire Time Warner for $165B?", "2000", "2000", ["1998", "2002", "2004"], ["1998", "2002", "2004"]],
+  ["En quelle année Logan Paul a-t-il filmé la 'Suicide Forest' au Japon ?", "When did Logan Paul film the 'Suicide Forest' in Japan?", "2017", "2017", ["2015", "2018", "2019"], ["2015", "2018", "2019"]],
+  ["Quel est le tout premier réseau social en ligne, lancé en 1997 ?", "Which 1997 site is widely considered the first online social network?", "SixDegrees.com", "SixDegrees.com", ["Friendster", "MySpace", "LiveJournal"], ["Friendster", "MySpace", "LiveJournal"]],
+  ["Quel duo a fondé la chaîne YouTube Smosh en 2005 ?", "Which duo founded the YouTube channel Smosh in 2005?", "Anthony Padilla et Ian Hecox", "Anthony Padilla and Ian Hecox", ["Rhett et Link", "Phil et Dan", "Logan et Jake Paul"], ["Rhett and Link", "Phil and Dan", "Logan and Jake Paul"]],
+  ["Quel forum a popularisé en 2008 les Rage Comics ?", "Which forum popularized Rage Comics around 2008?", "4chan", "4chan", ["Reddit", "Something Awful", "9GAG"], ["Reddit", "Something Awful", "9GAG"]],
+  ["Quel développeur a créé l'extension de blocage de pubs uBlock Origin ?", "Who created the ad-blocker uBlock Origin?", "Raymond Hill", "Raymond Hill", ["Wladimir Palant", "Eyal Gruner", "Henrik Aasted Sørensen"], ["Wladimir Palant", "Eyal Gruner", "Henrik Aasted Sørensen"]],
+  ["Quel pseudonyme a porté le mème 'Bad Luck Brian' dans la vraie vie ?", "What's the real name of 'Bad Luck Brian'?", "Kyle Craven", "Kyle Craven", ["Zeddie Little", "Laina Morris", "Maggie Goldenberger"], ["Zeddie Little", "Laina Morris", "Maggie Goldenberger"]],
 ];
 
 export const WEB_QUESTIONS = buildCuratedCategory(

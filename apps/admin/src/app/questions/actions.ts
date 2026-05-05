@@ -29,6 +29,12 @@ const updateSchema = z.object({
   explanation: z.string().nullable(),
 });
 
+/**
+ * Every admin action stamps `lintReviewedAt = now()`. The seed
+ * pipeline reads that column on `ON CONFLICT` and skips rewriting
+ * `lintReason` / `active` when it's non-null, making admin verdicts
+ * survive `pnpm db:seed` runs.
+ */
 export async function updateQuestionAction(id: string, raw: unknown) {
   await ensureAdmin();
   const data = updateSchema.parse(raw);
@@ -50,6 +56,8 @@ export async function updateQuestionAction(id: string, raw: unknown) {
       eloTarget: data.eloTarget,
       active: data.active,
       explanation: data.explanation,
+      // Editing = reviewing. The admin saw the row and made a call.
+      lintReviewedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(questions.id, id));
@@ -60,14 +68,52 @@ export async function updateQuestionAction(id: string, raw: unknown) {
 
 export async function toggleQuestionActiveAction(id: string, active: boolean) {
   await ensureAdmin();
-  await db.update(questions).set({ active, updatedAt: new Date() }).where(eq(questions.id, id));
+  await db
+    .update(questions)
+    .set({ active, lintReviewedAt: new Date(), updatedAt: new Date() })
+    .where(eq(questions.id, id));
   revalidatePath("/questions");
 }
 
 export async function deleteQuestionAction(id: string) {
   await ensureAdmin();
   // We soft-delete via active=false because match_answers FK references
-  // questions.id and we don't want to break history.
-  await db.update(questions).set({ active: false, updatedAt: new Date() }).where(eq(questions.id, id));
+  // questions.id and we don't want to break history. Stamp
+  // `lintReviewedAt` so the seed pipeline doesn't try to resurrect
+  // it on the next run.
+  await db
+    .update(questions)
+    .set({
+      active: false,
+      lintReviewedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(questions.id, id));
   revalidatePath("/questions");
+}
+
+/**
+ * Clear a shape-leak flag and reactivate the question. Used from the
+ * "Needs review" page when the admin has decided that a flagged
+ * question is fine as-is (e.g., the linter caught a legitimate
+ * comma in "Marie, reine d'Écosse" but the distractors actually do
+ * follow the same `Title, role` template — the rule fired on a real
+ * shape mismatch but the curator decided to ship it anyway).
+ *
+ * Stamps `lintReviewedAt` so the next `db:seed` won't re-flag the
+ * same row.
+ */
+export async function approveQuestionAction(id: string) {
+  await ensureAdmin();
+  await db
+    .update(questions)
+    .set({
+      active: true,
+      lintReason: null,
+      lintReviewedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(questions.id, id));
+  revalidatePath("/questions");
+  revalidatePath(`/questions/${id}`);
 }

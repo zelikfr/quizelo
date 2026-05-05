@@ -41,6 +41,34 @@ function pad(n: number, width = 3): string {
 }
 
 /**
+ * If the correct answer is decorated with parenthesized context that
+ * none of the distractors carry — e.g. `"12 ans (1400-1412)"` against
+ * `["10 ans", "15 ans", "20 ans"]` — strip those parens. Otherwise the
+ * correct answer is trivially identifiable by shape alone, even to a
+ * player who has no idea about the question.
+ *
+ * Bilateral safe: if any distractor also uses parens, we leave
+ * everything alone (the format is consistent across choices, no leak).
+ * Bracket pairs `[…]` are normalized the same way for symmetry.
+ */
+const PAREN_RE = /\s*[(\[][^)\]]*[)\]]/g;
+
+export function deLeakAnswerShape(
+  answer: string,
+  distractors: readonly string[],
+): string {
+  if (!PAREN_RE.test(answer)) return answer;
+  PAREN_RE.lastIndex = 0;
+  const anyDistractorHasParens = distractors.some((d) => {
+    PAREN_RE.lastIndex = 0;
+    return PAREN_RE.test(d);
+  });
+  PAREN_RE.lastIndex = 0;
+  if (anyDistractorHasParens) return answer;
+  return answer.replace(PAREN_RE, "").trim();
+}
+
+/**
  * Expand a 4-bucket curated category into bilingual `SeedQuestion[]`.
  * Correct-answer position is hash-derived from the fact text, so it
  * varies across questions but stays stable across re-seeds.
@@ -57,13 +85,17 @@ export function buildCuratedCategory(
     for (let i = 0; i < facts.length; i++) {
       const fact = facts[i]!;
       const [qFr, qEn, aFr, aEn, distFr, distEn] = fact;
+      // Normalize each locale independently — a fact's FR distractors
+      // may use parens while the EN ones don't (or vice versa).
+      const aFrSafe = deLeakAnswerShape(aFr, distFr);
+      const aEnSafe = deLeakAnswerShape(aEn, distEn);
       const seed = hashString(`${category}:${difficulty}:${qFr}`);
       const idxFr = seed % 4;
       const idxEn = (seed >>> 8) % 4;
       const choicesFr = [...distFr];
-      choicesFr.splice(idxFr, 0, aFr);
+      choicesFr.splice(idxFr, 0, aFrSafe);
       const choicesEn = [...distEn];
-      choicesEn.splice(idxEn, 0, aEn);
+      choicesEn.splice(idxEn, 0, aEnSafe);
       const idStr = pad(i);
       out.push({
         id: `fr-${shortId}-${difficulty}-${idStr}`,

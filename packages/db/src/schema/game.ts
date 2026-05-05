@@ -64,6 +64,33 @@ export const questions = pgTable("questions", {
   /** seconds to answer */
   timeLimit: integer("time_limit").default(15).notNull(),
   active: boolean("active").default(true).notNull(),
+  /**
+   * If non-null, the seed pipeline's shape-leak linter flagged this
+   * question and forced `active = false`. The string is short
+   * machine-readable code (e.g. "comma-only-on-correct") plus, where
+   * applicable, the leaking token in quotes — surfaced to the
+   * backoffice "Needs review" page so an admin can decide whether to
+   * edit and re-activate, or delete (soft-delete via `active`).
+   *
+   * NULL on questions that never tripped the linter; the admin
+   * toggle in /questions/[id] does NOT clear this on activation
+   * (we want the historical reason to remain visible) — clearing
+   * happens explicitly via the "approve" action.
+   */
+  lintReason: text("lint_reason"),
+  /**
+   * Set by the backoffice every time an admin acts on this question
+   * (approve / edit / toggle / delete). Once non-null, the seed
+   * pipeline treats the row as reviewed and stops overwriting
+   * `lintReason` + `active` — admin decisions become sticky across
+   * `pnpm db:seed` runs.
+   *
+   * If the curator later edits the bank source for this question in
+   * a way that should re-trigger review, they can null this column
+   * manually (or via a future "request re-review" admin action) so
+   * the next seed re-applies the lint.
+   */
+  lintReviewedAt: timestamp("lint_reviewed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
