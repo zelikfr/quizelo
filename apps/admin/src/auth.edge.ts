@@ -10,16 +10,10 @@
  * `req.auth.user.isAdmin` is populated. Without it the middleware
  * always sees undefined and bounces every admin to /forbidden.
  */
-import NextAuth, { type DefaultSession, type NextAuthConfig } from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      isAdmin: boolean;
-    } & DefaultSession["user"];
-  }
-}
+// No `Session` augmentation here — see `auth.ts` for the rationale.
+// The middleware reads `auth.user.isAdmin` via a local cast.
 
 // Must match the cookie names written by `auth.ts`, otherwise the
 // middleware reads the wrong cookie (or none at all) and bounces every
@@ -58,12 +52,14 @@ export const edgeConfig: NextAuthConfig = {
         if (typeof token.userId === "string") {
           session.user.id = token.userId;
         }
-        session.user.isAdmin = !!token.isAdmin;
+        // Cast — see auth.ts for the augmentation-conflict rationale.
+        (session.user as { isAdmin?: boolean }).isAdmin = !!token.isAdmin;
       }
       return session;
     },
     authorized({ auth }) {
-      return !!auth && !!auth.user?.isAdmin;
+      const u = auth?.user as { isAdmin?: boolean } | undefined;
+      return !!auth && !!u?.isAdmin;
     },
   },
 };

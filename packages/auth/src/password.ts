@@ -1,7 +1,18 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 
-const scrypt = promisify(scryptCb);
+// `promisify(scryptCb)`'s default type signature only exposes the
+// 3-arg overload `(password, salt, keylen) => Promise<Buffer>`. The
+// node:crypto callback variant accepts an `options` 4th argument
+// (N / r / p tuning) which `promisify` carries through fine at
+// runtime, but TS can't pick the right overload through `promisify`.
+// We re-type it manually so the calls below stop erroring.
+const scrypt = promisify(scryptCb) as (
+  password: string | Buffer,
+  salt: string | Buffer,
+  keylen: number,
+  options?: { N?: number; r?: number; p?: number; maxmem?: number },
+) => Promise<Buffer>;
 
 /**
  * Password hashing — scrypt via node:crypto.

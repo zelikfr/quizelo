@@ -20,14 +20,25 @@ const credentialsSchema = z.object({
  * actions, apps/api). Drizzle adapter + Resend + Credentials are added
  * here. The edge config (config.ts) only carries OAuth providers.
  */
+// Newer `@auth/drizzle-adapter` versions tightened the
+// `accountsTable` shape to expect snake_case column names
+// (`refresh_token`, `access_token`, …) while our schema uses
+// camelCase. Behavior is fine at runtime — the adapter normalizes
+// internally — but TS rejects the structural mismatch. A typed
+// `unknown` cast on the table arguments lets us keep our schema
+// without forking the adapter.
+//
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const adapterTables = {
+  usersTable: users as unknown as never,
+  accountsTable: accounts as unknown as never,
+  sessionsTable: sessions as unknown as never,
+  verificationTokensTable: verificationTokens as unknown as never,
+};
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
+  adapter: DrizzleAdapter(db, adapterTables),
   providers: [
     // Re-declare OAuth providers here so the dangerous-email-account-linking
     // flag (which requires an adapter) is set when the adapter is present.

@@ -1,10 +1,14 @@
 "use client";
 
-import { NextIntlClientProvider, type IntlError } from "next-intl";
+import {
+  NextIntlClientProvider,
+  type AbstractIntlMessages,
+  type IntlError,
+} from "next-intl";
 
 interface IntlProviderProps {
   locale: string;
-  messages: Record<string, unknown>;
+  messages: AbstractIntlMessages;
   children: React.ReactNode;
 }
 

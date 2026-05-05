@@ -28,6 +28,15 @@
     "home": "Back to home",
     "details": "Technical details"
   },
+  "pwa": {
+    "install": {
+      "title": "Install Quizelo",
+      "body": "Add the app to your home screen for quick access and full-screen play.",
+      "iosTip": "On iPhone: tap Share ⇪, then \"Add to Home Screen\".",
+      "install": "Install",
+      "dismiss": "Dismiss"
+    }
+  },
   "nav": {
     "howItWorks": "How it works",
     "categories": "Categories",

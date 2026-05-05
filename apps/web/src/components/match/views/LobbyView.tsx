@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { QAAvatar } from "@/components/shared/QAAvatar";
 import { NextPhaseBrief } from "@/components/match/NextPhaseBrief";
 import { TransitionCountdown } from "@/components/match/TransitionCountdown";
-import { cn } from "@/lib/cn";
 import { formatSeasonNumber, getCurrentSeason } from "@/lib/season";
 import type { MatchClientState } from "@/match/match-state";
 
@@ -38,8 +37,10 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
 
   // First 4 hex chars of the (UUID) matchId, uppercased — short room code.
   const roomCode =
-    (state.matchId ?? "").replace(/[^a-f0-9]/gi, "").slice(0, 4).toUpperCase() ||
-    "----";
+    (state.matchId ?? "")
+      .replace(/[^a-f0-9]/gi, "")
+      .slice(0, 4)
+      .toUpperCase() || "----";
   const modeLabel = state.mode === "ranked" ? t("modeRanked") : t("modeQuick");
 
   return (
@@ -135,7 +136,9 @@ export function LobbyView({ state, onLeave }: LobbyViewProps) {
         {/* Bottom strip */}
         <div className="relative z-10 flex items-center justify-between border-t border-white/[0.08] bg-black/30 px-14 py-4">
           <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">{tStart("tip")}</span>
-          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">QUIZELO · {SEASON_LABEL}</span>
+          <span className="text-fg-3 font-mono text-[10px] tracking-[0.2em]">
+            QUIZELO · {SEASON_LABEL}
+          </span>
         </div>
       </div>
 

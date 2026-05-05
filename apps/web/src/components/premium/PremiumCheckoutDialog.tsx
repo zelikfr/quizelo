@@ -107,7 +107,7 @@ export function PremiumCheckoutDialog({
   const handleSuccess = onSuccess ?? onClose;
 
   const [pending, startTransition] = useTransition();
-  const [init, setInit] = useState<SubscriptionInitResult | null>(null);
+  const [init, setInit] = useState<Extract<SubscriptionInitResult, { ok: true }> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 

@@ -42,6 +42,7 @@ export interface MatchClientState {
       chosenChoiceId: string | null;
       isCorrect: boolean;
       skipped: boolean;
+      responseMs: number | null;
       scoreDelta: number;
       score: number;
       livesDelta: number;

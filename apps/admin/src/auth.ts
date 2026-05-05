@@ -20,18 +20,17 @@
 import { adminUsers, db } from "@quizelo/db";
 import { verifyPassword } from "@quizelo/auth";
 import { eq } from "drizzle-orm";
-import NextAuth, { type DefaultSession, type NextAuthConfig } from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      isAdmin: boolean;
-    } & DefaultSession["user"];
-  }
-}
+// We deliberately do NOT augment `next-auth`'s `Session` interface
+// here — `@quizelo/auth` (loaded transitively via `verifyPassword`)
+// already declares its own `Session.user` shape with `emailVerified`,
+// and TypeScript refuses to merge two `user` properties of different
+// types (TS2717). We work around it with `getAdminSession` below,
+// which casts the session into the admin-flavored shape every
+// consumer in this app should use.
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -130,16 +129,54 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         if (typeof token.userId === "string") {
+          // @quizelo/auth's augmentation makes `id` non-optional but
+          // its type matches; the cast below is just for `isAdmin`.
           session.user.id = token.userId;
         }
-        session.user.isAdmin = !!token.isAdmin;
+        // Augmentation conflict — see comment at top of the file.
+        // We cast through a minimal local shape rather than augmenting
+        // globally and breaking the player app.
+        (session.user as { isAdmin?: boolean }).isAdmin = !!token.isAdmin;
       }
       return session;
     },
     authorized({ auth }) {
-      return !!auth && !!auth.user?.isAdmin;
+      const u = auth?.user as { isAdmin?: boolean } | undefined;
+      return !!auth && !!u?.isAdmin;
     },
   },
 };
 
 export const { auth, handlers, signIn, signOut } = NextAuth(authConfig);
+
+/**
+ * Typed shape of an admin session as seen by this app.
+ *
+ * The next-auth `Session` interface gets augmented in two places:
+ * here, AND inside `@quizelo/auth/config.ts` (player web app). When
+ * both are loaded into the same TypeScript program (which happens
+ * via `verifyPassword` re-exporting from `@quizelo/auth`), the two
+ * `user` property declarations conflict and TS picks one — without
+ * the `isAdmin` claim.
+ *
+ * `getAdminSession` works around that by reading the raw session
+ * and re-asserting the shape inline. Use it instead of `auth()`
+ * everywhere we need `user.isAdmin` (layout gate, server actions).
+ */
+export interface AdminSession {
+  user: {
+    id: string;
+    email: string | null | undefined;
+    name?: string | null;
+    isAdmin: boolean;
+  };
+}
+
+export async function getAdminSession(): Promise<AdminSession | null> {
+  const session = await auth();
+  if (!session?.user) return null;
+  // Cast through unknown — the augmentation conflict means TS sees
+  // `Session.user` with the player shape; we know the admin JWT
+  // callback set `isAdmin` and that's what we hand back.
+  return session as unknown as AdminSession;
+}

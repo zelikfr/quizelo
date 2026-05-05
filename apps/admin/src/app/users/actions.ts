@@ -4,10 +4,10 @@ import { hashPassword } from "@quizelo/auth";
 import { db, users } from "@quizelo/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
+import { getAdminSession } from "@/auth";
 
 async function ensureAdmin() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user?.isAdmin) throw new Error("FORBIDDEN");
   return session.user;
 }

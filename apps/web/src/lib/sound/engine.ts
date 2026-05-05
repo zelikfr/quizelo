@@ -16,7 +16,10 @@
  *   - playSfx(name)           — fire-and-forget gameplay feedback
  */
 
+import type * as EngineImpl from "./engine-impl";
 import { getSfxMuted } from "./store";
+
+type EngineImplModule = typeof EngineImpl;
 
 export type SfxName =
   | "click"
@@ -30,10 +33,10 @@ export type SfxName =
 
 export type Scene = "lobby" | "phase1" | "phase2" | "phase3" | null;
 
-let implPromise: Promise<typeof import("./engine-impl")> | null = null;
+let implPromise: Promise<EngineImplModule> | null = null;
 let pendingScene: Scene = null;
 
-function loadImpl(): Promise<typeof import("./engine-impl")> {
+function loadImpl(): Promise<EngineImplModule> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("ssr"));
   }

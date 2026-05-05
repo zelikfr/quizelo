@@ -74,7 +74,7 @@ export function CreditPackDialog({ open, packId, onClose }: CreditPackDialogProp
   const locale = useLocale();
 
   const [pending, startTransition] = useTransition();
-  const [init, setInit] = useState<CreditPackInitResult | null>(null);
+  const [init, setInit] = useState<Extract<CreditPackInitResult, { ok: true }> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 

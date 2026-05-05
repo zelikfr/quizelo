@@ -24,7 +24,7 @@ export function stripe(): Stripe {
         "STRIPE_SECRET_KEY missing — Stripe Checkout cannot run. Add it to .env.",
       );
     }
-    cached = new Stripe(key, { apiVersion: "2025-01-27.acacia" });
+    cached = new Stripe(key, { apiVersion: "2025-02-24.acacia" });
   }
   return cached;
 }

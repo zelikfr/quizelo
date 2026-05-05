@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+import { getAdminSession } from "@/auth";
 import { Sidebar } from "@/components/Sidebar";
 import "./globals.css";
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const session = await getAdminSession();
   // If no admin session, render bare (login + forbidden pages handle their
   // own chrome). Once authenticated as admin, the sidebar wraps everything.
   const isAdmin = !!session?.user?.isAdmin;

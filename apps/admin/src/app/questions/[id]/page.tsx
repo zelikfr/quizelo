@@ -121,9 +121,9 @@ export default async function QuestionDetailPage({
             <strong className="font-semibold">Shape-leak lint:</strong>{" "}
             {q.lintReason}. Cette question a été désactivée
             automatiquement par le seed. Vérifie que la bonne réponse
-            n'est pas devinable par forme, puis sauvegarde avec{" "}
+            n&rsquo;est pas devinable par forme, puis sauvegarde avec{" "}
             <em>active = true</em> pour la réactiver — ou utilise
-            l'action “Approuver” ci-dessous pour effacer le drapeau
+            l&rsquo;action “Approuver” ci-dessous pour effacer le drapeau
             sans toucher au contenu.
           </div>
         )}

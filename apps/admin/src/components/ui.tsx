@@ -116,6 +116,19 @@ export function TH({ children, className = "" }: { children: ReactNode; classNam
   return <th className={`px-4 py-2.5 font-medium ${className}`}>{children}</th>;
 }
 
-export function TD({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <td className={`px-4 py-2.5 align-middle ${className}`}>{children}</td>;
+export function TD({
+  children,
+  className = "",
+  colSpan,
+}: {
+  children?: ReactNode;
+  className?: string;
+  /** Native `<td colspan>` — used for empty-state rows that span the full table. */
+  colSpan?: number;
+}) {
+  return (
+    <td className={`px-4 py-2.5 align-middle ${className}`} colSpan={colSpan}>
+      {children}
+    </td>
+  );
 }

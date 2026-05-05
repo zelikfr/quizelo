@@ -25,9 +25,14 @@ export default edgeAuth((req) => {
     return NextResponse.next();
   }
 
+  // Augmentation conflict (see auth.ts comment) — Session.user
+  // doesn't statically expose `isAdmin`, but our edge session
+  // callback writes it. Cast through a minimal local shape.
+  const sessionUser = req.auth?.user as { isAdmin?: boolean } | undefined;
+
   if (pathname === "/login") {
     // If already signed in as admin, bounce off /login.
-    if (req.auth?.user?.isAdmin) {
+    if (sessionUser?.isAdmin) {
       const url = req.nextUrl.clone();
       url.pathname = "/";
       url.search = "";
@@ -43,7 +48,7 @@ export default edgeAuth((req) => {
     return NextResponse.redirect(url);
   }
 
-  if (!req.auth.user?.isAdmin) {
+  if (!sessionUser?.isAdmin) {
     const url = req.nextUrl.clone();
     url.pathname = "/forbidden";
     url.search = "";

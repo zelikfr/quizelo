@@ -28,6 +28,15 @@
     "home": "Retour à l'accueil",
     "details": "Détails techniques"
   },
+  "pwa": {
+    "install": {
+      "title": "Installer Quizelo",
+      "body": "Ajoute l'app à ton écran d'accueil pour un accès rapide et une expérience plein écran.",
+      "iosTip": "Sur iPhone : ouvre Partager ⇪, puis « Sur l'écran d'accueil ».",
+      "install": "Installer",
+      "dismiss": "Fermer"
+    }
+  },
   "nav": {
     "howItWorks": "Comment ça marche",
     "categories": "Catégories",

@@ -237,7 +237,7 @@ class LobbyTrack {
       { time: "2:0:0", chord: ["F3", "Ab3", "C4"] },
       { time: "3:0:0", chord: ["G3", "B3", "D4"] },
     ];
-    const padPart = new Tone.Part<{ chord: string[] }>(
+    const padPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.pad.triggerAttackRelease(value.chord, "1m", time);
       },
@@ -254,7 +254,7 @@ class LobbyTrack {
       { time: "2:0:0", note: "F1" },
       { time: "3:0:0", note: "G1" },
     ];
-    const bassPart = new Tone.Part<{ note: string }>(
+    const bassPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.bass.triggerAttackRelease(value.note, "2n", time);
       },
@@ -275,7 +275,7 @@ class LobbyTrack {
       { time: "1:2:0", note: "Eb5" },
       { time: "1:3:2", note: "Bb4" },
     ];
-    const arpPart = new Tone.Part<{ note: string }>(
+    const arpPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.arp.triggerAttackRelease(value.note, "16n", time, 0.6);
       },
@@ -470,7 +470,7 @@ class Phase1Track {
         });
       }
     }
-    const subPart = new Tone.Part<{ note: string }>(
+    const subPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.sub.triggerAttackRelease(value.note, "8n", time, 0.65);
       },
@@ -487,7 +487,7 @@ class Phase1Track {
       { time: "2:0:0", chord: ["F3", "Ab3", "C4"] },
       { time: "3:0:0", chord: ["G3", "B3", "D4"] },
     ];
-    const padPart = new Tone.Part<{ chord: string[] }>(
+    const padPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.pad.triggerAttackRelease(value.chord, "1m", time);
       },
@@ -513,7 +513,7 @@ class Phase1Track {
       { time: "3:2:0", note: "D5" },
       { time: "3:3:2", note: "C5" },
     ];
-    const leadPart = new Tone.Part<{ note: string }>(
+    const leadPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.lead.triggerAttackRelease(value.note, "4n", time, 0.55);
       },
@@ -730,7 +730,7 @@ class Phase2Track {
         }
       }
     }
-    const subPart = new Tone.Part<{ note: string }>(
+    const subPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.sub.triggerAttackRelease(value.note, "16n", time, 0.65);
       },
@@ -747,7 +747,7 @@ class Phase2Track {
       { time: "2:0:0", chord: ["F3", "Ab3", "C4"] },
       { time: "3:0:0", chord: ["G3", "B3", "D4"] },
     ];
-    const padPart = new Tone.Part<{ chord: string[] }>(
+    const padPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.pad.triggerAttackRelease(value.chord, "1m", time);
       },
@@ -773,7 +773,7 @@ class Phase2Track {
       { time: "3:1:2", note: "D5" },
       { time: "3:3:0", note: "C5" },
     ];
-    const leadPart = new Tone.Part<{ note: string }>(
+    const leadPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.lead.triggerAttackRelease(value.note, "4n", time, 0.55);
       },
@@ -790,7 +790,7 @@ class Phase2Track {
       { time: "2:3:2", chord: ["G3", "B3", "D4"] },
       { time: "3:3:2", chord: ["C4", "Eb4", "G4"] },
     ];
-    const stabPart = new Tone.Part<{ chord: string[] }>(
+    const stabPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.stab.triggerAttackRelease(value.chord, "16n", time, 0.6);
       },
@@ -992,7 +992,7 @@ class Phase3Track {
         });
       }
     }
-    const hatPart = new Tone.Part<{ vel: number }>(
+    const hatPart = new Tone.Part<{ time: string; vel: number }>(
       (time, value) => this.hat.triggerAttackRelease("32n", time, value.vel),
       hatHits,
     );
@@ -1017,7 +1017,7 @@ class Phase3Track {
         }
       }
     }
-    const subPart = new Tone.Part<{ note: string }>(
+    const subPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.sub.triggerAttackRelease(value.note, "32n", time, 0.55);
       },
@@ -1034,7 +1034,7 @@ class Phase3Track {
       { time: "2:0:0", chord: ["F3", "Ab3", "C4", "G4"] },
       { time: "3:0:0", chord: ["G3", "B3", "D4", "A4"] },
     ];
-    const padPart = new Tone.Part<{ chord: string[] }>(
+    const padPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.pad.triggerAttackRelease(value.chord, "1m", time);
       },
@@ -1064,7 +1064,7 @@ class Phase3Track {
         }
       }
     }
-    const leadPart = new Tone.Part<{ note: string }>(
+    const leadPart = new Tone.Part<{ time: string; note: string }>(
       (time, value) => {
         this.lead.triggerAttackRelease(value.note, "8n", time, 0.5);
       },
@@ -1081,7 +1081,7 @@ class Phase3Track {
       { time: "2:0:0", chord: ["F2", "Ab2", "C3"] },
       { time: "3:0:0", chord: ["G2", "B2", "D3"] },
     ];
-    const brassPart = new Tone.Part<{ chord: string[] }>(
+    const brassPart = new Tone.Part<{ time: string; chord: string[] }>(
       (time, value) => {
         this.brass.triggerAttackRelease(value.chord, "8n", time, 0.55);
       },

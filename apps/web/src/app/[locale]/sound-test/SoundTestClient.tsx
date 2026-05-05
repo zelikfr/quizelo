@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
@@ -264,9 +265,9 @@ export function SoundTestClient() {
 
         <footer className="mt-8 text-center font-mono text-[10px] tracking-[0.2em] text-fg-3">
           quizelo · sound-test ·{" "}
-          <a href="/home" className="text-violet hover:underline">
+          <Link href="/home" className="text-violet hover:underline">
             ← back
-          </a>
+          </Link>
         </footer>
       </div>
     </main>

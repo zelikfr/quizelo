@@ -8,7 +8,7 @@ import { QAChoice, type ChoiceState } from "@/components/shared/QAChoice";
 import { QALives } from "@/components/shared/QALives";
 import { QATimerRing } from "@/components/shared/QATimerRing";
 import { LiveCatChip } from "@/components/match/LiveCatChip";
-import { LivePlayerChip } from "@/components/match/LivePlayerChip";
+import { LivePlayerChip, type LiveChipStatus } from "@/components/match/LivePlayerChip";
 import { cn } from "@/lib/cn";
 import type { MatchClientState } from "@/match/match-state";
 
@@ -803,7 +803,7 @@ function chipStatusFor(
   player: PublicPlayer,
   state: MatchClientState,
   isReveal: boolean,
-): import("@/components/match/LivePlayerChip").LiveChipStatus {
+): LiveChipStatus {
   if (
     player.status === "eliminated_p1" ||
     player.status === "eliminated_p2" ||
