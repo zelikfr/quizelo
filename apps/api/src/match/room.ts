@@ -39,6 +39,15 @@ interface Connection {
 }
 
 /**
+ * Floor for the time elapsed between a question reveal and a real
+ * human's answer. Anything faster has to be a bot or a tampered
+ * client — the fastest documented fair-play reaction time on a
+ * read+choose task is around 250 ms; we drop to 200 ms to leave a
+ * margin for network jitter on the ack of `question_start`.
+ */
+const MIN_HUMAN_RESPONSE_MS = 200;
+
+/**
  * MatchRoom owns one match's lifecycle:
  *   - WS broadcast bus
  *   - timer-driven phase progression
@@ -610,6 +619,31 @@ export class MatchRoom {
 
     const startedAt = this.state.currentQuestionStartedAt!;
     const responseMs = overrideResponseMs ?? Math.max(0, Date.now() - startedAt);
+
+    // Anti-cheat: reject answers that arrive faster than a human could
+    // read + click. 200 ms covers the fastest known fair-play reaction
+    // time minus generous network jitter; anything below has to be a
+    // bot or a tampered client. We don't lock the player out — just
+    // refuse this answer so the timer carries them to a timeout, same
+    // outcome as not clicking at all.
+    //
+    // Shadow players bypass the check (they're driven by the server
+    // and may legitimately fire with responseMs in the low hundreds).
+    if (!fromShadow && responseMs < MIN_HUMAN_RESPONSE_MS) {
+      this.log.warn(
+        { userId, responseMs, questionIndex },
+        "answer rejected: too fast (anti-cheat)",
+      );
+      // Send the same `answer_ack` we'd send on success so the client
+      // locks the UI without revealing that the server discarded the
+      // payload — makes scripted clients harder to feedback-loop on.
+      this.sendTo(userId, {
+        type: "answer_ack",
+        questionIndex,
+        locked: true,
+      });
+      return;
+    }
     this.state.currentAnswers.set(userId, {
       choiceId,
       responseMs,
