@@ -5,6 +5,7 @@ import { db, users } from "@quizelo/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { isNameBlocked } from "@/lib/name-moderation";
 
 export type UserActionResult =
   | { ok: true }
@@ -96,6 +97,19 @@ export async function updateUserFieldAction(
   }
 
   const value = parsed.data;
+
+  // Content moderation pass — only on the public-facing display name.
+  // The other fields (phone, address, …) are private to the user and
+  // never shown to other players, so they don't need this filter.
+  // Errors are kept generic on purpose so a bad-faith user can't
+  // probe the blocklist by trial and error.
+  if (field === "displayName" && isNameBlocked(value)) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "Ce nom n'est pas autorisé. Choisis-en un autre.",
+    };
+  }
   // Optional fields: empty string → NULL; required (displayName) → keep value.
   const nextValue =
     field === "displayName" ? value : value.length === 0 ? null : value;

@@ -105,6 +105,26 @@ export interface MatchState {
   /** Phase 2 only: ms epoch when the global 60s clock ends. */
   phase2EndsAt?: number;
 
+  /**
+   * ms epoch when the current transition (between phases) ends — set
+   * when entering `transition_p1_p2` / `transition_p2_p3`, cleared when
+   * the next phase starts. Used to re-emit a `phase_end` with a still-
+   * accurate `nextPhaseAt` to a reconnecting client mid-transition.
+   */
+  transitionEndsAt?: number;
+
+  /**
+   * Final podium snapshot — captured once the match enters `results`
+   * so a client reconnecting before the room is GC'd can be told the
+   * outcome instead of being shown a blank state.
+   */
+  lastPodium?: Array<{
+    userId: string;
+    rank: number;
+    score: number;
+    eloDelta: number;
+  }>;
+
   /** Pending events to persist at next phase boundary. */
   answersBuffer: AnswerRecord[];
 

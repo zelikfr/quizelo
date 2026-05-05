@@ -16,6 +16,46 @@ export type EnqueueResult =
   | { ok: false; reason: "unauthorized" | "api_down" | "unknown"; message?: string };
 
 /**
+ * Ask the API whether the current user has a match in progress (lobby,
+ * any phase, finalist seat). Returns `null` when:
+ *   - no session
+ *   - API down (we don't want a transient outage to bounce people)
+ *   - user is not in any active room
+ *
+ * Used as a server-side guard on /home to redirect players back to
+ * their ongoing match instead of letting them sit on a static
+ * landing while their seat ticks down without them.
+ */
+export async function getActiveMatchAction(): Promise<{
+  matchId: string;
+} | null> {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const cookieHeader = (await cookies()).toString();
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/match/active`, {
+      method: "GET",
+      headers: { cookie: cookieHeader },
+      cache: "no-store",
+    });
+  } catch {
+    // API unreachable — fail open. The player can still navigate
+    // anywhere; the worst case is a missed redirect for one render.
+    return null;
+  }
+
+  if (!res.ok) return null;
+  const body = (await res.json().catch(() => null)) as
+    | { matchId: string | null }
+    | null;
+  if (!body || !body.matchId) return null;
+  return { matchId: body.matchId };
+}
+
+/**
  * Enqueue the current user into a match lobby (or join an open one).
  * Forwards the Auth.js cookie so apps/api can decode the session.
  *

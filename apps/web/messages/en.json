@@ -20,7 +20,14 @@
     "backHome": "HOME",
     "signOut": "Sign out"
   },
-
+  "errorBoundary": {
+    "title": "Something crashed",
+    "bodyHome": "We lost the thread. Try again or refresh the page.",
+    "bodyMatch": "The match crashed on your end. You can retry or head back home — your seat is held as long as the match is live.",
+    "retry": "Try again",
+    "home": "Back to home",
+    "details": "Technical details"
+  },
   "nav": {
     "howItWorks": "How it works",
     "categories": "Categories",
@@ -28,7 +35,6 @@
     "premium": "Premium",
     "discord": "Discord"
   },
-
   "hero": {
     "seasonBadge": "SEASON 03 · LIVE",
     "line1": "10 players.",
@@ -45,7 +51,6 @@
     "liveLabel": "LIVE · PHASE 1",
     "question": "What is the capital of Australia?"
   },
-
   "hiw": {
     "badge": "HOW IT WORKS",
     "h2a": "Three phases.",
@@ -80,7 +85,6 @@
       }
     ]
   },
-
   "categories": {
     "badge": "CATEGORIES",
     "h2a": "Eight grounds.",
@@ -100,7 +104,6 @@
       "fun": "Curiosities"
     }
   },
-
   "ranks": {
     "badge": "RANKS & SEASON",
     "h2a": "From Bronze to",
@@ -115,16 +118,29 @@
     "days": "DAYS LEFT",
     "seasonLbl": "SEASON",
     "rewards": [
-      { "tier": "1ST PLACE", "gift": "Latest iPhone",                   "sub": "+ Animated Mythic frame · 1 year Premium", "glyph": "★" },
-      { "tier": "2ND PLACE", "gift": "AirPods Pro",                     "sub": "+ Exclusive frame · 6 months Premium",     "glyph": "✦" },
-      { "tier": "3RD PLACE", "gift": "Unlimited Premium subscription",  "sub": "+ Seasonal profile banner",                "glyph": "◆" }
+      {
+        "tier": "1ST PLACE",
+        "gift": "Latest iPhone",
+        "sub": "+ Animated Mythic frame · 1 year Premium",
+        "glyph": "★"
+      },
+      {
+        "tier": "2ND PLACE",
+        "gift": "AirPods Pro",
+        "sub": "+ Exclusive frame · 6 months Premium",
+        "glyph": "✦"
+      },
+      {
+        "tier": "3RD PLACE",
+        "gift": "Unlimited Premium subscription",
+        "sub": "+ Seasonal profile banner",
+        "glyph": "◆"
+      }
     ]
   },
-
   "footer": {
     "copy": "ALL RIGHTS RESERVED"
   },
-
   "home": {
     "nav": {
       "home": "Home",
@@ -176,7 +192,6 @@
       }
     }
   },
-
   "match": {
     "phaseLabel": "PHASE",
     "question": "QUESTION",
@@ -287,31 +302,70 @@
           "label": "PHASE 1 · ELIMINATION",
           "title": "15 multiple-choice questions",
           "rules": [
-            { "label": "Time per question", "value": "15s" },
-            { "label": "Lives", "value": "3" },
-            { "label": "Wrong answer", "value": "−1 life" },
-            { "label": "Survivors", "value": "Top 5 fastest" }
+            {
+              "label": "Time per question",
+              "value": "15s"
+            },
+            {
+              "label": "Lives",
+              "value": "3"
+            },
+            {
+              "label": "Wrong answer",
+              "value": "−1 life"
+            },
+            {
+              "label": "Survivors",
+              "value": "Top 5 fastest"
+            }
           ]
         },
         "phase2": {
           "label": "PHASE 2 · 60s SPRINT",
           "title": "One minute. As many questions as you can.",
           "rules": [
-            { "label": "Total time", "value": "60s" },
-            { "label": "Correct", "value": "+1" },
-            { "label": "Wrong", "value": "−1" },
-            { "label": "Streak", "value": "×2" },
-            { "label": "Survivors", "value": "Top 3 scores" }
+            {
+              "label": "Total time",
+              "value": "60s"
+            },
+            {
+              "label": "Correct",
+              "value": "+1"
+            },
+            {
+              "label": "Wrong",
+              "value": "−1"
+            },
+            {
+              "label": "Streak",
+              "value": "×2"
+            },
+            {
+              "label": "Survivors",
+              "value": "Top 3 scores"
+            }
           ]
         },
         "phase3": {
           "label": "PHASE 3 · FINALE",
           "title": "Sudden death. Slowest loses a life.",
           "rules": [
-            { "label": "Time per question", "value": "10s" },
-            { "label": "Lives", "value": "2" },
-            { "label": "All correct", "value": "Slowest loses 1 life" },
-            { "label": "First to zero", "value": "Out" }
+            {
+              "label": "Time per question",
+              "value": "10s"
+            },
+            {
+              "label": "Lives",
+              "value": "2"
+            },
+            {
+              "label": "All correct",
+              "value": "Slowest loses 1 life"
+            },
+            {
+              "label": "First to zero",
+              "value": "Out"
+            }
           ]
         }
       },
@@ -408,7 +462,6 @@
       }
     }
   },
-
   "referral": {
     "badge": "REFERRAL",
     "title": "Invite, play, earn credits.",
@@ -454,7 +507,6 @@
       "empty": "No friends yet. Share your code to get started."
     }
   },
-
   "shop": {
     "title": "Shop",
     "balanceLabel": "BALANCE",
@@ -543,7 +595,6 @@
     "labelSuffix": " and waive my right of withdrawal so the service starts immediately.",
     "blocked": "Tick the box to continue."
   },
-
   "premium": {
     "badge": "PREMIUM",
     "titleA": "Unlock",
@@ -616,7 +667,6 @@
       }
     }
   },
-
   "settings": {
     "title": "Settings",
     "back": "Back",
@@ -792,7 +842,6 @@
       }
     }
   },
-
   "profile": {
     "settings": "SETTINGS",
     "joined": "Joined {date}",
@@ -824,7 +873,6 @@
       "win": "WIN"
     }
   },
-
   "leaderboard": {
     "badge": "LEADERBOARD",
     "season": "Season",
@@ -847,7 +895,6 @@
       "empty": "No ranked players yet."
     }
   },
-
   "lobby": {
     "rankedTitle": "RANKED MATCHMAKING",
     "normalTitle": "NORMAL MATCH",
@@ -866,7 +913,6 @@
       "starting": "Match starting soon"
     }
   },
-
   "auth": {
     "orWith": "OR",
     "fields": {

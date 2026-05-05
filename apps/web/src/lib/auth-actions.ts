@@ -6,6 +6,7 @@ import { eq, or } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { isNameBlocked } from "@/lib/name-moderation";
 
 // ─── Schemas ────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -97,6 +98,19 @@ export async function signUpWithCredentialsAction(
   const { handle, email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase();
   const normalizedHandle = handle.toLowerCase();
+
+  // Block obviously inappropriate handles before we even look at
+  // duplicate / password concerns. The handle becomes the user's
+  // initial `displayName`, so the moderation guard here mirrors the
+  // one in `updateUserFieldAction` — same rule, applied at the
+  // earliest entry point so a bad name can't even reach the DB.
+  if (isNameBlocked(normalizedHandle)) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "Ce pseudo n'est pas autorisé. Choisis-en un autre.",
+    };
+  }
 
   // Conflict check
   const existing = await db.query.users.findFirst({

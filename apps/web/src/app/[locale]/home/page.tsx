@@ -1,10 +1,12 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { redirect } from "@/i18n/routing";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { HomeMobileHeader } from "@/components/home/HomeMobileHeader";
 import { HomeMobileBottomNav } from "@/components/home/HomeMobileBottomNav";
 import { PlayerStatusCard } from "@/components/home/PlayerStatusCard";
 import { QuickPlayCard } from "@/components/home/QuickPlayCard";
 import { RankedCard } from "@/components/home/RankedCard";
+import { getActiveMatchAction } from "@/lib/match-actions";
 
 interface HomePageProps {
   params: Promise<{ locale: string }>;
@@ -13,6 +15,16 @@ interface HomePageProps {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  // If the user is mid-match (lobby, any phase, finalist seat) bounce
+  // them straight back to their match. Prevents a player who reloaded
+  // or navigated away by mistake from missing the rest of their game.
+  // Defeated / winner / left players aren't caught here — the API
+  // endpoint filters to status `active|finalist` only.
+  const active = await getActiveMatchAction();
+  if (active) {
+    redirect({ href: `/match/${active.matchId}`, locale });
+  }
 
   const t = await getTranslations("home");
 

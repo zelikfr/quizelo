@@ -26,6 +26,15 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
   const wsRef = useRef<WebSocket | null>(null);
   /** Once true, all incoming messages are silently dropped and we won't reconnect. */
   const frozenRef = useRef(false);
+  /**
+   * FIFO queue of messages typed while the socket was not OPEN
+   * (initial connect, reconnect after a network drop, etc). Drained
+   * inside `onopen` right after the `ready` handshake so the server
+   * sees them in the order they were produced. The server already
+   * dedups by `currentQuestionIndex`, so flushing entries that became
+   * stale during the drop is safe.
+   */
+  const outboxRef = useRef<ClientMessage[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +61,15 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
         if (cancelled || activeWs !== ws) return;
         backoff = 800;
         setConnection("open");
+        // 1. Tell the server we're ready. The server replies with a
+        //    fresh hello + state-appropriate snapshot (sendResyncTo).
         send({ type: "ready" });
+        // 2. Flush anything the user typed while the socket was down.
+        //    Order is preserved because we splice the whole array in
+        //    one shot — late-arriving sendAnswer/sendPass calls during
+        //    this microtask would re-queue, not interleave.
+        const queued = outboxRef.current.splice(0);
+        for (const msg of queued) send(msg);
         pingTimer = setInterval(() => send({ type: "ping" }), 25_000);
       };
 
@@ -124,32 +141,48 @@ export function useMatchSocket(matchId: string): UseMatchSocketResult {
   }, [matchId]);
 
   const sendAnswer = useCallback((questionIndex: number, choiceId: string) => {
+    // Optimistic local lock — happens whether we're online or not so
+    // the user sees "your answer was registered" immediately and the
+    // UI doesn't keep flashing the picker during a 3s drop.
     dispatch({ type: "_local/answer_pick", questionIndex, choiceId });
 
+    const msg: ClientMessage = {
+      type: "answer",
+      questionIndex,
+      choiceId,
+      clientTime: Date.now(),
+    };
+
     const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(
-      JSON.stringify({
-        type: "answer",
-        questionIndex,
-        choiceId,
-        clientTime: Date.now(),
-      } satisfies ClientMessage),
-    );
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg));
+      return;
+    }
+    // Socket is closed/connecting — buffer for the next onopen flush.
+    // The server's per-question dedup will discard this entry if it's
+    // already stale by the time we reconnect, but it'll land if we
+    // make it back inside the question window.
+    outboxRef.current.push(msg);
   }, []);
 
   const sendPass = useCallback((questionIndex: number) => {
+    const msg: ClientMessage = { type: "pass", questionIndex };
     const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(
-      JSON.stringify({ type: "pass", questionIndex } satisfies ClientMessage),
-    );
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(msg));
+      return;
+    }
+    outboxRef.current.push(msg);
   }, []);
 
   const leave = useCallback(() => {
     // Lock down the hook: ignore everything that may still be in flight,
     // don't retry, don't dispatch.
     frozenRef.current = true;
+    // Drop any queued answers — the user is bailing out, we
+    // shouldn't surprise them by replaying a stale outbox if the
+    // hook ever reconnects.
+    outboxRef.current = [];
     const ws = wsRef.current;
     if (ws) {
       try {

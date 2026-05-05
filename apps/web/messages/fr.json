@@ -20,7 +20,14 @@
     "backHome": "ACCUEIL",
     "signOut": "Se déconnecter"
   },
-
+  "errorBoundary": {
+    "title": "Quelque chose a planté",
+    "bodyHome": "On a perdu le fil. Réessaie ou recharge la page.",
+    "bodyMatch": "Le match a planté de ton côté. Tu peux réessayer ou retourner à l'accueil — ton siège est conservé tant que la partie tourne.",
+    "retry": "Réessayer",
+    "home": "Retour à l'accueil",
+    "details": "Détails techniques"
+  },
   "nav": {
     "howItWorks": "Comment ça marche",
     "categories": "Catégories",
@@ -28,7 +35,6 @@
     "premium": "Premium",
     "discord": "Discord"
   },
-
   "hero": {
     "seasonBadge": "SAISON 03 · LIVE",
     "line1": "10 joueurs.",
@@ -45,7 +51,6 @@
     "liveLabel": "LIVE · PHASE 1",
     "question": "Quelle est la capitale de l'Australie ?"
   },
-
   "hiw": {
     "badge": "COMMENT ÇA MARCHE",
     "h2a": "Trois phases.",
@@ -80,7 +85,6 @@
       }
     ]
   },
-
   "categories": {
     "badge": "CATÉGORIES",
     "h2a": "Huit terrains.",
@@ -100,7 +104,6 @@
       "fun": "Insolite"
     }
   },
-
   "ranks": {
     "badge": "RANGS & SAISON",
     "h2a": "De Bronze à",
@@ -115,16 +118,29 @@
     "days": "JOURS RESTANTS",
     "seasonLbl": "SAISON",
     "rewards": [
-      { "tier": "1ʳᵉ PLACE", "gift": "iPhone dernière génération",  "sub": "+ cadre Mythique animé · 1 an Premium", "glyph": "★" },
-      { "tier": "2ᵉ PLACE",  "gift": "AirPods Pro",                 "sub": "+ cadre exclusif · 6 mois Premium",     "glyph": "✦" },
-      { "tier": "3ᵉ PLACE",  "gift": "Abonnement Premium illimité", "sub": "+ bannière de profil saison",           "glyph": "◆" }
+      {
+        "tier": "1ʳᵉ PLACE",
+        "gift": "iPhone dernière génération",
+        "sub": "+ cadre Mythique animé · 1 an Premium",
+        "glyph": "★"
+      },
+      {
+        "tier": "2ᵉ PLACE",
+        "gift": "AirPods Pro",
+        "sub": "+ cadre exclusif · 6 mois Premium",
+        "glyph": "✦"
+      },
+      {
+        "tier": "3ᵉ PLACE",
+        "gift": "Abonnement Premium illimité",
+        "sub": "+ bannière de profil saison",
+        "glyph": "◆"
+      }
     ]
   },
-
   "footer": {
     "copy": "TOUS DROITS RÉSERVÉS"
   },
-
   "home": {
     "nav": {
       "home": "Accueil",
@@ -176,7 +192,6 @@
       }
     }
   },
-
   "match": {
     "phaseLabel": "PHASE",
     "question": "QUESTION",
@@ -287,31 +302,70 @@
           "label": "PHASE 1 · ÉLIMINATION",
           "title": "15 questions à choix multiple",
           "rules": [
-            { "label": "Durée par question", "value": "15s" },
-            { "label": "Vies", "value": "3" },
-            { "label": "Mauvaise réponse", "value": "−1 vie" },
-            { "label": "Survivants", "value": "Les 5 plus rapides" }
+            {
+              "label": "Durée par question",
+              "value": "15s"
+            },
+            {
+              "label": "Vies",
+              "value": "3"
+            },
+            {
+              "label": "Mauvaise réponse",
+              "value": "−1 vie"
+            },
+            {
+              "label": "Survivants",
+              "value": "Les 5 plus rapides"
+            }
           ]
         },
         "phase2": {
           "label": "PHASE 2 · SPRINT 60s",
           "title": "Une minute. Autant de questions que possible.",
           "rules": [
-            { "label": "Durée totale", "value": "60s" },
-            { "label": "Bonne réponse", "value": "+1" },
-            { "label": "Mauvaise réponse", "value": "−1" },
-            { "label": "Streak", "value": "×2" },
-            { "label": "Survivants", "value": "Les 3 meilleurs scores" }
+            {
+              "label": "Durée totale",
+              "value": "60s"
+            },
+            {
+              "label": "Bonne réponse",
+              "value": "+1"
+            },
+            {
+              "label": "Mauvaise réponse",
+              "value": "−1"
+            },
+            {
+              "label": "Streak",
+              "value": "×2"
+            },
+            {
+              "label": "Survivants",
+              "value": "Les 3 meilleurs scores"
+            }
           ]
         },
         "phase3": {
           "label": "PHASE 3 · FINALE",
           "title": "Mort subite. Le plus lent perd une vie.",
           "rules": [
-            { "label": "Durée par question", "value": "10s" },
-            { "label": "Vies", "value": "2" },
-            { "label": "Tout juste", "value": "Le plus lent perd 1 vie" },
-            { "label": "Premier à 0", "value": "Éliminé" }
+            {
+              "label": "Durée par question",
+              "value": "10s"
+            },
+            {
+              "label": "Vies",
+              "value": "2"
+            },
+            {
+              "label": "Tout juste",
+              "value": "Le plus lent perd 1 vie"
+            },
+            {
+              "label": "Premier à 0",
+              "value": "Éliminé"
+            }
           ]
         }
       },
@@ -408,7 +462,6 @@
       }
     }
   },
-
   "referral": {
     "badge": "PARRAINAGE",
     "title": "Invite, joue, gagne des crédits.",
@@ -454,7 +507,6 @@
       "empty": "Aucun filleul pour l'instant. Partage ton code pour commencer."
     }
   },
-
   "shop": {
     "title": "Boutique",
     "balanceLabel": "TON SOLDE",
@@ -543,7 +595,6 @@
     "labelSuffix": " et je renonce à mon droit de rétractation pour bénéficier du service immédiatement.",
     "blocked": "Coche la case pour continuer."
   },
-
   "premium": {
     "badge": "PREMIUM",
     "titleA": "Débloque",
@@ -616,7 +667,6 @@
       }
     }
   },
-
   "settings": {
     "title": "Paramètres",
     "back": "Retour",
@@ -792,7 +842,6 @@
       }
     }
   },
-
   "profile": {
     "settings": "PARAMÈTRES",
     "joined": "Membre depuis {date}",
@@ -824,7 +873,6 @@
       "win": "VICTOIRE"
     }
   },
-
   "leaderboard": {
     "badge": "CLASSEMENT",
     "season": "Saison",
@@ -847,7 +895,6 @@
       "empty": "Aucun joueur classé pour le moment."
     }
   },
-
   "lobby": {
     "rankedTitle": "MATCHMAKING CLASSÉ",
     "normalTitle": "PARTIE NORMALE",
@@ -866,7 +913,6 @@
       "starting": "Match imminent"
     }
   },
-
   "auth": {
     "orWith": "OU",
     "fields": {

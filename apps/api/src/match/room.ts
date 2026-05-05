@@ -131,6 +131,11 @@ export class MatchRoom {
         this.sendTo(userId, { type: "pong", ts: Date.now() });
         return;
       case "ready":
+        // Client just (re)connected and finished its handshake — push
+        // the state slices it would otherwise be missing after a
+        // network drop: lobby roster, current question, transition
+        // countdown, or final podium depending on where we are.
+        this.sendResyncTo(userId);
         return;
       case "answer":
         if (this.state.currentPhase === "phase2") {
@@ -253,6 +258,9 @@ export class MatchRoom {
     this.state.status = phase;
     this.state.currentPhase = phase;
     this.state.lobbyStartsAt = null;
+    // Transition is over — if a client reconnects from here on it
+    // should get phase_start, not the stale phase_end.
+    this.state.transitionEndsAt = undefined;
 
     // Consume each non-shadow player's daily quota at the moment the match
     // *actually* starts (lobby → phase 1, quick mode only). Players who
@@ -979,6 +987,10 @@ export class MatchRoom {
     );
 
     const nextPhaseAt = Date.now() + MATCH_CONFIG.transitionMs;
+    // Remember the transition deadline so a client reconnecting
+    // mid-transition can be re-served the same `phase_end` payload
+    // with a still-accurate `nextPhaseAt`.
+    this.state.transitionEndsAt = nextPhaseAt;
     this.broadcast({
       type: "phase_end",
       phase,
@@ -1070,6 +1082,9 @@ export class MatchRoom {
     });
 
     this.state.status = "results";
+    // Snapshot the final result so clients reconnecting before GC see
+    // the same podium everyone else got at end-of-match.
+    this.state.lastPodium = podium;
     this.broadcast({ type: "match_end", podium });
 
     await persistMatchEnd(this.state.matchId, this.state.mode, podium).catch(
@@ -1165,6 +1180,154 @@ export class MatchRoom {
   private sendTo(userId: string, msg: ServerMessage): void {
     const conn = this.conns.get(userId);
     if (conn) this.send(conn.socket, msg);
+  }
+
+  /**
+   * Re-emit enough state to a single user so their client can pick up
+   * exactly where it left off after a network drop. Triggered by a
+   * `ready` message — the client sends it on every (re)connect.
+   *
+   * We do not try to replay history. The reducer is structured so each
+   * of these snapshots is sufficient to repaint the right screen:
+   *   - `hello`        : roster + selfId + status
+   *   - `lobby`        : lobby presence + countdown
+   *   - `phase_start`  : switches the screen to the right phase
+   *   - `question`     : current question with the original deadline
+   *   - `phase_end`    : transition screen with countdown
+   *   - `match_end`    : podium
+   *
+   * Server-side anti-replay (currentQuestionIndex check, dedup of
+   * answers via currentAnswers Set) makes it safe for the client to
+   * also flush its outbox of in-flight answers immediately after.
+   */
+  private sendResyncTo(userId: string): void {
+    const conn = this.conns.get(userId);
+    if (!conn) return;
+    const socket = conn.socket;
+
+    // Always start with a fresh hello — the roster, self status, and
+    // server time may all have shifted since the original connect.
+    this.send(socket, {
+      type: "hello",
+      matchId: this.state.matchId,
+      selfId: userId,
+      status: this.state.status,
+      mode: this.state.mode,
+      serverTime: Date.now(),
+      players: this.publicPlayers(userId),
+    });
+
+    switch (this.state.status) {
+      case "lobby": {
+        this.send(socket, {
+          type: "lobby",
+          players: this.publicPlayers(),
+          startsAt: this.state.lobbyStartsAt,
+        });
+        return;
+      }
+
+      case "phase1":
+      case "phase3": {
+        const phase = this.state.currentPhase;
+        if (!phase) return;
+        this.send(socket, {
+          type: "phase_start",
+          phase,
+          players: this.publicPlayers(),
+        });
+        // If a question is currently in flight, re-send it with the
+        // original deadline so the client clock keeps the same target.
+        const q = this.publicQuestion();
+        if (q) this.send(socket, { type: "question", question: q });
+        return;
+      }
+
+      case "phase2": {
+        this.send(socket, {
+          type: "phase_start",
+          phase: "phase2",
+          players: this.publicPlayers(),
+          ...(this.state.phase2EndsAt
+            ? { phaseEndsAt: this.state.phase2EndsAt }
+            : {}),
+        });
+        // Phase 2 is per-player — re-send THIS user's pending question.
+        const p = this.state.players.find((x) => x.userId === userId);
+        if (p && p.status === "active") {
+          const idx = p.phase2Index;
+          if (idx < this.state.questionPool.length) {
+            const qid = this.state.questionPool[idx]!;
+            const dbq = this.state.questions.get(qid);
+            if (dbq) {
+              this.send(socket, {
+                type: "question",
+                question: {
+                  index: idx,
+                  phase: "phase2",
+                  category: dbq.category,
+                  prompt: dbq.prompt,
+                  choices: dbq.choices.map(({ id, label }) => ({ id, label })),
+                  deadline:
+                    this.state.phase2EndsAt ?? Date.now() + 60_000,
+                },
+              });
+            }
+          }
+        }
+        return;
+      }
+
+      case "transition_p1_p2":
+      case "transition_p2_p3": {
+        const fromPhase: MatchPhase =
+          this.state.status === "transition_p1_p2" ? "phase1" : "phase2";
+        // Survivors are players still active (p1→p2) or finalists
+        // (p2→p3); the eliminated bucket is the matching status set
+        // by endPhase.
+        const survivors = this.state.players
+          .filter((p) =>
+            this.state.status === "transition_p1_p2"
+              ? p.status === "active"
+              : p.status === "finalist",
+          )
+          .map((p) => p.userId);
+        const eliminatedStatus =
+          this.state.status === "transition_p1_p2"
+            ? "eliminated_p1"
+            : "eliminated_p2";
+        const eliminated = this.state.players
+          .filter((p) => p.status === eliminatedStatus)
+          .map((p) => p.userId);
+        this.send(socket, {
+          type: "phase_end",
+          phase: fromPhase,
+          survivors,
+          eliminated,
+          nextStatus: this.state.status,
+          // Fall back to "now" if we somehow missed snapshotting — the
+          // transition screen will simply skip straight to the next
+          // phase_start, which the timer is already racing to fire.
+          nextPhaseAt: this.state.transitionEndsAt ?? Date.now(),
+        });
+        return;
+      }
+
+      case "results": {
+        if (this.state.lastPodium) {
+          this.send(socket, {
+            type: "match_end",
+            podium: this.state.lastPodium,
+          });
+        }
+        return;
+      }
+
+      case "abandoned":
+        // No further state to push — `hello` is enough for the client
+        // to render the appropriate end-of-match fallback.
+        return;
+    }
   }
 
   private publicPlayers(selfId?: string): PublicPlayer[] {

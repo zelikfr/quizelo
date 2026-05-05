@@ -42,6 +42,37 @@ export async function registerMatchRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  /**
+   * Returns the user's active match if any — used by /home (and any
+   * other landing surface) to bounce a player who left mid-match back
+   * to where they were instead of leaving them stuck on a navigation
+   * away. "Active" means the registry holds a room where the user is
+   * still `active` or `finalist`; eliminated and `left` players don't
+   * trigger the redirect.
+   */
+  app.get("/match/active", async (req, reply) => {
+    const session = await readSession(req);
+    if (!session) return reply.code(401).send({ error: "UNAUTHORIZED" });
+
+    for (const room of registry.list()) {
+      const me = room.state.players.find(
+        (p) => p.userId === session.userId,
+      );
+      if (!me) continue;
+      // Same condition matchmaker uses to "resume" a player: only true
+      // mid-game states count. `winner` and elim statuses don't trap
+      // the user in their previous match.
+      if (me.status === "active" || me.status === "finalist") {
+        return {
+          matchId: room.state.matchId,
+          status: room.state.status,
+          mode: room.state.mode,
+        };
+      }
+    }
+    return { matchId: null };
+  });
+
   app.get("/match/:matchId", async (req, reply) => {
     const session = await readSession(req);
     if (!session) return reply.code(401).send({ error: "UNAUTHORIZED" });

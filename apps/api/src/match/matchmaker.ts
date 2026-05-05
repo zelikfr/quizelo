@@ -76,7 +76,7 @@ class Matchmaker {
     }
 
     pending = await this.openLobby(locale, mode, log);
-    await this.addPlayerToLobby(pending.room, userId, log);
+    await this.addPlayerToLobby(pending.room, userId, boost ?? null, log);
     pending.room.startLobby();
     pending.room.onPlayerJoined();
 
