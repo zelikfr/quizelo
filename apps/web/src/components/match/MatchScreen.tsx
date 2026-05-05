@@ -21,8 +21,24 @@ interface MatchScreenProps {
 export function MatchScreen({ matchId }: MatchScreenProps) {
   const t = useTranslations("match.shell");
   const router = useRouter();
-  const { state, connection, sendAnswer, sendPass, leave } =
+  const { state, connection, fatalReason, sendAnswer, sendPass, leave } =
     useMatchSocket(matchId);
+
+  // The server closed the WS with a code we can't recover from
+  // (match doesn't exist / GC'd, user kicked out, expired session).
+  // Bounce instead of leaving the user on a frozen "Reconnexion" UI.
+  // `superseded` (4003) means another tab took over the same match —
+  // we deliberately don't redirect there; the user picks which tab
+  // to keep.
+  useEffect(() => {
+    if (!fatalReason || fatalReason === "superseded") return;
+    if (fatalReason === "unauthorized") {
+      router.replace(`/auth/login?from=/match/${matchId}`);
+      return;
+    }
+    // not_in_match / not_found → home
+    router.replace("/home");
+  }, [fatalReason, matchId, router]);
 
   // Drive the music + reveal/transition/match-end SFX from match state.
   useMatchSound(state);
@@ -102,6 +118,10 @@ export function MatchScreen({ matchId }: MatchScreenProps) {
       {connection !== "open" &&
         !wsFrozenRef.current &&
         !showDefeat &&
+        // Skip while we're already routing the user away from a dead
+        // match — showing "Reconnexion" then flashing /home would feel
+        // glitchy.
+        !fatalReason &&
         state.status !== "results" && (
           <div className="bg-surface-2/90 border-white/[0.08] text-fg-3 tracking-widest2 absolute top-3 left-1/2 z-50 -translate-x-1/2 rounded-pill border px-3 py-1 font-mono text-[10px] backdrop-blur">
             {connection === "connecting" && t("connecting")}
