@@ -196,7 +196,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
                 title={t("danger.title")}
                 tone="danger"
               />
-              <DangerCard />
+              <DangerCard email={user.email} />
             </section>
           </div>
         </div>

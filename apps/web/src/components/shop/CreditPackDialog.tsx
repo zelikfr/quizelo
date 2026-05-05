@@ -28,6 +28,7 @@ import {
   type CreditPackInitResult,
 } from "@/lib/shop-actions";
 import { Button } from "@/components/ui/button";
+import { ConsentCheckbox } from "@/components/legal/ConsentCheckbox";
 
 let stripePromise: Promise<Stripe | null> | null = null;
 function getStripe(): Promise<Stripe | null> {
@@ -205,6 +206,8 @@ function CreditCheckoutForm({
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  // Mandatory pre-payment consent (CGV + waiver of withdrawal right).
+  const [consent, setConsent] = useState(false);
 
   const formattedAmount = useMemo(
     () =>
@@ -224,6 +227,7 @@ function CreditCheckoutForm({
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+    if (!consent) return; // belt-and-braces, button is disabled too
 
     setSubmitting(true);
     setFormError(null);
@@ -293,12 +297,18 @@ function CreditCheckoutForm({
         </div>
       ) : null}
 
+      <ConsentCheckbox
+        checked={consent}
+        onChange={setConsent}
+        disabled={submitting}
+      />
+
       <Button
         type="submit"
         variant="primary"
         size="full"
         className="justify-center py-3 text-xs"
-        disabled={!stripe || !elements || submitting}
+        disabled={!stripe || !elements || submitting || !consent}
       >
         {submitting ? t("paying") : t("payCta", { amount: formattedAmount })}
       </Button>

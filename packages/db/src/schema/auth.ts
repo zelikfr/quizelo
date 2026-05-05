@@ -94,6 +94,13 @@ export const users = pgTable("users", {
 
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  /**
+   * Set when the user requests account deletion (RGPD right to erasure).
+   * The row is kept (so matches / match_answers FKs stay valid) but all
+   * PII columns are cleared at the same time. Authentication refuses
+   * any login attempt against a tombstoned row.
+   */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 export const accounts = pgTable(

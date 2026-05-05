@@ -537,6 +537,12 @@
       }
     }
   },
+  "consent": {
+    "labelPrefix": "I accept the ",
+    "labelLink": "Sales Terms",
+    "labelSuffix": " and waive my right of withdrawal so the service starts immediately.",
+    "blocked": "Tick the box to continue."
+  },
 
   "premium": {
     "badge": "PREMIUM",
@@ -762,7 +768,28 @@
       "deleteAction": "Delete",
       "comingSoon": "Coming soon",
       "signOutTitle": "Sign out",
-      "signOutSubtitle": "Come back any time, your data stays."
+      "signOutSubtitle": "Come back any time, your data stays.",
+      "dialog": {
+        "header": "Account deletion",
+        "closeAria": "Close",
+        "title": "Are you sure you want to delete your account?",
+        "body": "This action is permanent. Under GDPR, your right to erasure is applied immediately.",
+        "bullets": {
+          "session": "Your session will be closed and you won't be able to sign in with this account again.",
+          "subscription": "Your Premium subscription is canceled immediately (prorated refund handled by Stripe).",
+          "history": "Your personal information is wiped. The match history you participated in is kept for other players, but anonymized.",
+          "irreversible": "This action cannot be undone."
+        },
+        "retypeLabel": "To confirm, type your email: {email}",
+        "cancel": "Cancel",
+        "confirm": "Delete my account",
+        "deleting": "Deleting…",
+        "errors": {
+          "emailMismatch": "The email you entered doesn't match.",
+          "unauthorized": "You must be signed in to perform this action.",
+          "generic": "Something went wrong. Try again."
+        }
+      }
     }
   },
 
@@ -965,5 +992,211 @@
     "errors": {
       "generic": "Something went wrong. Try again."
     }
+  },
+  "legalNav": {
+    "ariaLabel": "Legal links",
+    "terms": "Terms",
+    "cgv": "Sales terms",
+    "privacy": "Privacy",
+    "mentions": "Legal",
+    "cookies": "Cookies"
+  },
+  "legal": {
+    "back": "Back",
+    "terms": {
+      "title": "Terms of Service",
+      "updatedAt": "Last updated: June 1, 2026",
+      "intro": "These Terms govern your access to and use of Quizelo (the \"Service\"). By creating an account or using Quizelo, you accept these Terms in full.",
+      "h": {
+        "acceptance": "1. Acceptance",
+        "account": "2. User account",
+        "subscription": "3. Premium subscription",
+        "fairplay": "4. Fair-play rules",
+        "ip": "5. Intellectual property",
+        "liability": "6. Limitation of liability",
+        "termination": "7. Termination",
+        "law": "8. Governing law",
+        "contact": "9. Contact"
+      },
+      "p": {
+        "acceptance": "Using the Service implies full acceptance of these Terms. If you don't accept any of the clauses, you must not use Quizelo.",
+        "account": "You are responsible for keeping your credentials confidential and for any activity carried out from your account. You agree to provide accurate information at sign-up.",
+        "subscription": "Quizelo Premium is a monthly or yearly auto-renewing subscription. Payment is processed by Stripe. You can cancel any time from /settings; you keep the benefits until the end of the current period, with no prorated refund.",
+        "fairplay": "Quizelo is a competitive game. Any cheating attempt leads to immediate account suspension without notice or refund.",
+        "ip": "All Service content (questions, design, code, sounds, marks) is the property of Quizelo or their respective owners. Any unauthorized reproduction is prohibited.",
+        "liability": "The Service is provided \"as is\", without any guarantee of uninterrupted availability. Quizelo cannot be held liable for indirect damages or data loss linked to the use of the Service.",
+        "termination": "You can delete your account any time from /settings (immediate effect, GDPR-compliant). Quizelo reserves the right to suspend any account in violation of these Terms.",
+        "law": "These Terms are governed by French law. Any dispute falls under the exclusive jurisdiction of French courts.",
+        "contact": "For any question, reach us at legal@quizelo.app."
+      },
+      "li": {
+        "account1": "One account per person.",
+        "account2": "You must be at least 13 to register.",
+        "account3": "Accounts are not transferable.",
+        "fair1": "No bot, automated script or third-party client.",
+        "fair2": "No answer-sharing or coordination in ranked matches.",
+        "fair3": "No buying or selling of accounts."
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "updatedAt": "Last updated: June 1, 2026",
+      "intro": "This policy describes how Quizelo collects, uses and protects your personal data, in line with the GDPR (Regulation (EU) 2016/679).",
+      "h": {
+        "controller": "Data controller",
+        "data": "Data we collect",
+        "purposes": "Processing purposes",
+        "basis": "Legal basis",
+        "processors": "Sub-processors",
+        "retention": "Retention period",
+        "rights": "Your rights",
+        "cookies": "Cookies",
+        "contact": "Contact"
+      },
+      "p": {
+        "controller": "The data controller is Mehdi GRAR, sole trader doing business under the trading name \"Quizelo\". Contact details are listed in the legal mentions.",
+        "data": "We only collect the data strictly necessary to operate the Service:",
+        "basis": "Processing is based on contract performance (article 6.1.b GDPR) for account and gameplay data, and on your consent (article 6.1.a) for non-essential cookies.",
+        "processors": "We share strictly necessary data with the following sub-processors:",
+        "retention": "Account data is kept as long as your account is active. On deletion, personal information is anonymised immediately (right to erasure). Technical logs are kept for 12 months max.",
+        "rights": "You have the following rights regarding your personal data:",
+        "cookies": "See the dedicated /legal/cookies page for the full list and the option to update your consent at any time.",
+        "contact": "To exercise your rights or ask a question: privacy@quizelo.app. You can also file a complaint with the CNIL (cnil.fr) or your local supervisory authority."
+      },
+      "li": {
+        "data1": "Identifiers: email, handle, password (hashed via scrypt).",
+        "data2": "Game profile: ELO, match history, ranking.",
+        "data3": "Payment: Premium status, Stripe customer ID (card data is handled exclusively by Stripe, never by us).",
+        "data4": "Technical logs: IP, user-agent (security purposes, kept for 30 days).",
+        "purpose1": "Provide the Service (matchmaking, ranking, gameplay).",
+        "purpose2": "Manage Premium billing and refunds.",
+        "purpose3": "Prevent fraud and abuse (anti-cheat, anti-spam).",
+        "purpose4": "Communicate about the Service (email verification, security alerts).",
+        "processor1": "Stripe Inc. (payments) — United States, GDPR safeguards via Standard Contractual Clauses.",
+        "processor2": "Resend (transactional emails) — EU.",
+        "processor3": "Hosting: see legal mentions for the full list.",
+        "right1": "Right of access: get a copy of your data.",
+        "right2": "Right to rectification: correct inaccurate data.",
+        "right3": "Right to erasure: delete your account (immediate from /settings).",
+        "right4": "Right to portability: receive your data in a structured format.",
+        "right5": "Right to object and to restriction of processing."
+      }
+    },
+    "mentions": {
+      "title": "Legal Mentions",
+      "updatedAt": "Last updated: June 1, 2026",
+      "h": {
+        "publisher": "Publisher",
+        "director": "Publication director",
+        "host": "Host",
+        "ip": "Intellectual property",
+        "takedown": "Content reporting",
+        "disputes": "Mediation"
+      },
+      "p": {
+        "publisherName": "Publisher: Mehdi GRAR, sole trader doing business under the trading name \"Quizelo\".",
+        "publisherForm": "Legal form: Sole trader (entreprise individuelle, French law). NAF / APE code: 6201Z – Computer programming. Date of creation: 29 December 2012.",
+        "publisherAddress": "Address: 136 rue de l'Église, 74970 Marignier, France.",
+        "publisherSiret": "SIREN: 790 231 468 — SIRET (head office): 790 231 468 00030.",
+        "publisherVat": "EU VAT number: FR60 790 231 468.",
+        "publisherEmail": "Email: contact@quizelo.app",
+        "director": "Mehdi GRAR, in their capacity as sole trader.",
+        "hostName": "Host: [Hosting provider, e.g. Vercel Inc. / OVH SAS].",
+        "hostAddress": "Address: [Host address].",
+        "hostContact": "Contact: [Phone / email].",
+        "ip": "The entire site (texts, graphics, logos, source code) is protected by copyright. Any reproduction without prior written authorization is forbidden.",
+        "takedown": "To report illegal content, write to legal@quizelo.app with a precise description and the URL involved.",
+        "disputes": "Pursuant to articles L.612-1 et seq. of the French Consumer Code, the consumer can use the CM2C mediation service — Centre de la Médiation de la Consommation de Conciliateurs de Justice, 14 rue Saint-Jean, 75017 Paris, France (cm2c.net) — free of charge in case of unresolved dispute."
+      }
+    },
+    "cgv": {
+      "title": "Sales Terms",
+      "updatedAt": "Last updated: June 1, 2026",
+      "intro": "These Sales Terms govern any purchase made on Quizelo between Mehdi GRAR — sole trader doing business under the trading name \"Quizelo\" — (the \"Seller\") and any adult individual (the \"Customer\"). They complement the Terms of Service and prevail in case of contradiction on commercial matters.",
+      "h": {
+        "scope": "1. Scope",
+        "seller": "2. Seller",
+        "products": "3. Product and service characteristics",
+        "prices": "4. Prices",
+        "payment": "5. Payment terms",
+        "execution": "6. Execution",
+        "subscription": "7. Premium subscription and renewal",
+        "withdrawal": "8. Right of withdrawal",
+        "warranty": "9. Statutory warranties",
+        "refund": "10. Refunds",
+        "complaints": "11. Complaints",
+        "mediation": "12. Consumer mediation",
+        "law": "13. Governing law and jurisdiction"
+      },
+      "p": {
+        "scope": "These Sales Terms apply to any order placed by the Customer on Quizelo, regardless of payment method. The Customer acknowledges having read these Terms before validating their order; validation constitutes full acceptance.",
+        "seller": "Mehdi GRAR, sole trader doing business under the trading name \"Quizelo\". Office: 136 rue de l'Église, 74970 Marignier, France. SIREN 790 231 468 — SIRET 790 231 468 00030. EU VAT FR60 790 231 468. Email: contact@quizelo.app.",
+        "products": "Quizelo sells two types of online digital products:",
+        "prices": "Prices are listed in euros (€), VAT included. French VAT (20%) applies unless otherwise specified.",
+        "payment": "Payment is made exclusively by credit card via Stripe. Card details are never stored by Quizelo. Payment is immediate; no order is validated until Stripe confirms the transaction.",
+        "execution": "The service is delivered as soon as payment is confirmed. Premium access or purchased credits become active on the Customer's account immediately. No physical delivery is involved.",
+        "subscription": "Premium is an auto-renewing subscription (monthly or yearly depending on the chosen plan). The Customer can cancel anytime from /settings: cancellation takes effect at the end of the current period. No prorated refund is owed in case of cancellation, except where the right of withdrawal has been validly exercised (see §8).",
+        "withdrawal": "Pursuant to article L.221-18 of the French Code de la consommation, the Customer has 14 days to exercise their right of withdrawal from the conclusion of the contract, by emailing legal@quizelo.app, using the standard withdrawal form, or by any other unambiguous declaration.",
+        "withdrawalWaiver": "However, in line with article L.221-28-13° of the same Code, the Customer expressly waives their right of withdrawal upon validating the order, given that execution of the digital service starts immediately with their prior express consent. This waiver is materialised by the checkbox \"I accept the Sales Terms and waive my right of withdrawal\" displayed before payment. Without this acceptance, access to the service cannot start.",
+        "warranty": "The Customer benefits from the legal warranty of conformity (articles L.217-3 et seq. of the Code de la consommation) and the warranty against hidden defects (articles 1641 et seq. of the Civil Code). In case of a non-compliant service, the Customer can contact the Seller at legal@quizelo.app within a reasonable timeframe.",
+        "refund": "Any legitimate refund is processed via Stripe on the payment method used for the order, within 14 days of the Seller's decision.",
+        "complaints": "Any complaint must be sent to legal@quizelo.app with a precise description of the issue and the Stripe transaction reference (visible in the email confirmation).",
+        "mediation": "If a dispute is not resolved amicably, the Customer can use the CM2C mediation service — Centre de la Médiation de la Consommation de Conciliateurs de Justice, 14 rue Saint-Jean, 75017 Paris, France (cm2c.net) — free of charge, in accordance with article L.612-1 of the Code de la consommation. The Customer may also use the EU online dispute resolution platform: https://ec.europa.eu/consumers/odr.",
+        "law": "These Sales Terms are governed by French law. Failing amicable resolution, any dispute falls under the jurisdiction of French courts, subject to mandatory provisions applicable to consumers."
+      },
+      "li": {
+        "products1": "Quizelo Premium: monthly or yearly subscription unlocking unlimited ranked mode, exclusive cosmetics, and the boost shop.",
+        "products2": "Credit packs: one-time non-refundable purchases (except where the right of withdrawal applies), usable in the shop to buy boost cards.",
+        "prices1": "Premium monthly: €4.99 incl. VAT / month.",
+        "prices2": "Premium yearly: €39.99 incl. VAT / year.",
+        "prices3": "Credit packs: prices listed on the shop page."
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "updatedAt": "Last updated: June 1, 2026",
+      "intro": "Quizelo uses a limited number of cookies and storage technologies to operate. Here's which ones and why.",
+      "h": {
+        "essential": "Essential (always on)",
+        "analytics": "Analytics (consent required)",
+        "marketing": "Marketing (consent required)",
+        "choice": "Update my choice"
+      },
+      "p": {
+        "essential": "Strictly necessary to operate the Service. Without them, authentication or payment can't work. No consent required (article 82 of the French Data Protection Act).",
+        "analytics": "No third-party analytics enabled at this time.",
+        "marketing": "No marketing cookies at this time.",
+        "choice": "You can update your choice anytime via the button below."
+      },
+      "li": {
+        "essential1": "Auth.js — session cookie (lifetime: 8 hours to 30 days depending on mode).",
+        "essential2": "Stripe — payment iframes loaded on demand during a checkout.",
+        "essential3": "next-intl — language preference (lifetime: session)."
+      },
+      "reopen": "Update my consent"
+    }
+  },
+  "cookies": {
+    "ariaLabel": "Cookie consent banner",
+    "summary": "Quizelo uses essential cookies to operate the Service. With your consent we may also enable analytics and marketing — none are active today.",
+    "learnMore": "Learn more",
+    "customize": "Customize",
+    "rejectAll": "Reject all",
+    "acceptAll": "Accept all",
+    "customizeIntro": "Pick the categories you allow. Essential cookies cannot be disabled.",
+    "essential": {
+      "title": "Essential",
+      "body": "Authentication, payment, language preference. Strictly necessary."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "body": "Anonymous statistics to understand how the service is used."
+    },
+    "marketing": {
+      "title": "Marketing",
+      "body": "Personalisation and campaign-effectiveness measurement."
+    },
+    "back": "Back",
+    "saveChoices": "Save my choices"
   }
 }

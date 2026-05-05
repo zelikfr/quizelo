@@ -29,6 +29,7 @@ import {
   type SubscriptionInitResult,
 } from "@/lib/stripe-actions";
 import { Button } from "@/components/ui/button";
+import { ConsentCheckbox } from "@/components/legal/ConsentCheckbox";
 
 /**
  * Lazy-loads the Stripe.js bundle exactly once per page load.
@@ -236,6 +237,8 @@ function CheckoutForm({
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  // Mandatory checkbox under L.221-28-13° — see ConsentCheckbox docs.
+  const [consent, setConsent] = useState(false);
 
   const formattedAmount = useMemo(
     () =>
@@ -254,6 +257,11 @@ function CheckoutForm({
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+    if (!consent) {
+      // Belt and braces: button is disabled when !consent, but if a
+      // user submits via Enter on a focused field we still bail.
+      return;
+    }
 
     setSubmitting(true);
     setFormError(null);
@@ -322,12 +330,18 @@ function CheckoutForm({
         </div>
       ) : null}
 
+      <ConsentCheckbox
+        checked={consent}
+        onChange={setConsent}
+        disabled={submitting}
+      />
+
       <Button
         type="submit"
         variant="primary"
         size="full"
         className="justify-center py-3 text-xs"
-        disabled={!stripe || !elements || submitting}
+        disabled={!stripe || !elements || submitting || !consent}
       >
         {submitting ? t("paying") : t("payCta", { amount: formattedAmount })}
       </Button>

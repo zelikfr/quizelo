@@ -94,6 +94,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         });
 
         if (!user?.passwordHash) return null;
+        // Tombstoned account — RGPD deletion already wiped the row's
+        // PII; refuse any further authentication. Returning null
+        // surfaces as "invalid credentials" client-side, which is
+        // intentional — we don't reveal that the address is gone.
+        if (user.deletedAt) return null;
 
         const ok = await verifyPassword(user.passwordHash, password);
         if (!ok) return null;

@@ -1022,6 +1022,14 @@ export class MatchRoom {
       .filter((p) => p.status === "eliminated_p1")
       .slice()
       .sort(byDeathThenScore);
+    // Mid-match quitters — placed below every elimination so a forfeit
+    // is strictly worse than playing out the match. The shield boost
+    // is intentionally bypassed for these (see podium loop) so a
+    // rage-quit can't be cushioned by an active card.
+    const forfeited = this.state.players
+      .filter((p) => p.status === "left")
+      .slice()
+      .sort(byDeathThenScore);
 
     if (phase3Active[0]) phase3Active[0].status = "winner";
 
@@ -1030,18 +1038,27 @@ export class MatchRoom {
       ...phase3Out,
       ...phase2Out,
       ...phase1Out,
+      ...forfeited,
     ];
     const isRanked = this.state.mode === "ranked";
     const podium = ordered.map((p, i) => {
       // Quick matches broadcast a delta of 0 so the result screen shows
       // no ELO movement and matches what the DB will (not) write.
       let eloDelta = isRanked ? eloDeltaForRank(i + 1) : 0;
+      const isForfeit = p.status === "left";
       // Apply the player's pre-match boost (if any). Boosts only ever
       // help the player — they never compound a loss into a bigger one.
+      // Forfeiters lose their shield: you don't get to rage-quit AND
+      // keep the protection, the boost charge is already gone too.
       if (isRanked && p.activeBoost === "double-elo" && eloDelta > 0) {
         eloDelta *= 2;
       }
-      if (isRanked && p.activeBoost === "shield" && eloDelta < 0) {
+      if (
+        isRanked &&
+        p.activeBoost === "shield" &&
+        eloDelta < 0 &&
+        !isForfeit
+      ) {
         eloDelta = 0;
       }
       return {
@@ -1087,8 +1104,12 @@ export class MatchRoom {
       this.broadcastLobby();
     } else if (p.status === "active" || p.status === "finalist") {
       // Mid-game leaver — keep their record so we can compute final ranks
-      // at match end, just flag them as gone.
+      // at match end. Status flips to "left" and `eliminatedAt` is
+      // stamped now so the audit log + the byDeathThenScore comparator
+      // both see the right timestamp; in `endMatch` they're routed to
+      // the bottom-of-podium `forfeited` group with no shield mercy.
       p.status = "left";
+      p.eliminatedAt = Date.now();
     }
 
     const conn = this.conns.get(userId);

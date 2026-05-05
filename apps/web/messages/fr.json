@@ -537,6 +537,12 @@
       }
     }
   },
+  "consent": {
+    "labelPrefix": "J'accepte les ",
+    "labelLink": "CGV",
+    "labelSuffix": " et je renonce à mon droit de rétractation pour bénéficier du service immédiatement.",
+    "blocked": "Coche la case pour continuer."
+  },
 
   "premium": {
     "badge": "PREMIUM",
@@ -762,7 +768,28 @@
       "deleteAction": "Supprimer",
       "comingSoon": "Bientôt disponible",
       "signOutTitle": "Se déconnecter",
-      "signOutSubtitle": "Reviens quand tu veux, tes données restent."
+      "signOutSubtitle": "Reviens quand tu veux, tes données restent.",
+      "dialog": {
+        "header": "Suppression du compte",
+        "closeAria": "Fermer",
+        "title": "Es-tu sûr·e de vouloir supprimer ton compte ?",
+        "body": "Cette action est définitive. Conformément au RGPD, ton droit à l'effacement est appliqué immédiatement.",
+        "bullets": {
+          "session": "Ta session sera fermée et tu ne pourras plus te reconnecter avec ce compte.",
+          "subscription": "Ton abonnement Premium est annulé immédiatement (remboursement au prorata côté Stripe).",
+          "history": "Tes informations personnelles sont effacées. L'historique des parties auxquelles tu as participé est conservé pour les autres joueurs, mais anonymisé.",
+          "irreversible": "Cette opération ne peut pas être annulée."
+        },
+        "retypeLabel": "Pour confirmer, tape ton email : {email}",
+        "cancel": "Annuler",
+        "confirm": "Supprimer mon compte",
+        "deleting": "Suppression…",
+        "errors": {
+          "emailMismatch": "L'email saisi ne correspond pas.",
+          "unauthorized": "Tu dois être connecté pour effectuer cette action.",
+          "generic": "Une erreur est survenue. Réessaie."
+        }
+      }
     }
   },
 
@@ -965,5 +992,211 @@
     "errors": {
       "generic": "Une erreur est survenue. Réessaie."
     }
+  },
+  "legalNav": {
+    "ariaLabel": "Liens légaux",
+    "terms": "CGU",
+    "cgv": "CGV",
+    "privacy": "Confidentialité",
+    "mentions": "Mentions légales",
+    "cookies": "Cookies"
+  },
+  "legal": {
+    "back": "Retour",
+    "terms": {
+      "title": "Conditions Générales d'Utilisation",
+      "updatedAt": "Dernière mise à jour : 1 juin 2026",
+      "intro": "Les présentes CGU régissent l'accès et l'utilisation de Quizelo (le « Service »). En créant un compte ou en utilisant Quizelo, tu acceptes ces conditions sans réserve.",
+      "h": {
+        "acceptance": "1. Acceptation",
+        "account": "2. Compte utilisateur",
+        "subscription": "3. Abonnement Premium",
+        "fairplay": "4. Règles de fair-play",
+        "ip": "5. Propriété intellectuelle",
+        "liability": "6. Limitation de responsabilité",
+        "termination": "7. Résiliation",
+        "law": "8. Droit applicable",
+        "contact": "9. Contact"
+      },
+      "p": {
+        "acceptance": "L'utilisation du Service implique l'acceptation pleine et entière des présentes CGU. Si tu n'acceptes pas l'une des clauses, tu ne dois pas utiliser Quizelo.",
+        "account": "Tu es responsable de la confidentialité de tes identifiants et de toute activité réalisée depuis ton compte. Tu t'engages à fournir des informations exactes lors de l'inscription.",
+        "subscription": "Quizelo Premium est un abonnement mensuel ou annuel à reconduction tacite. Le paiement est traité par Stripe. Tu peux annuler à tout moment depuis /settings ; tu conserves les avantages jusqu'à la fin de la période en cours, sans remboursement au prorata.",
+        "fairplay": "Quizelo est un jeu compétitif. Toute tentative de tricherie entraîne la suspension immédiate du compte sans préavis ni remboursement.",
+        "ip": "Tous les contenus du Service (questions, design, code, sons, marques) sont la propriété de Quizelo ou de leurs ayants droit. Toute reproduction non autorisée est interdite.",
+        "liability": "Le Service est fourni « en l'état », sans garantie de disponibilité ininterrompue. Quizelo ne peut être tenu responsable des dommages indirects ou de pertes de données liées à l'utilisation du Service.",
+        "termination": "Tu peux supprimer ton compte à tout moment depuis /settings (effet immédiat, conformément au RGPD). Quizelo se réserve le droit de suspendre tout compte en violation des présentes CGU.",
+        "law": "Les présentes CGU sont régies par le droit français. Tout litige relève de la compétence exclusive des tribunaux français.",
+        "contact": "Pour toute question, contacte-nous à legal@quizelo.app."
+      },
+      "li": {
+        "account1": "Un seul compte par personne.",
+        "account2": "Tu dois avoir au moins 13 ans pour t'inscrire.",
+        "account3": "Le compte n'est pas cessible.",
+        "fair1": "Pas de bot, script automatisé ou client tiers.",
+        "fair2": "Pas de partage de réponses ni de coordination en match classé.",
+        "fair3": "Pas d'achat ou de vente de comptes."
+      }
+    },
+    "privacy": {
+      "title": "Politique de Confidentialité",
+      "updatedAt": "Dernière mise à jour : 1 juin 2026",
+      "intro": "Cette politique décrit comment Quizelo collecte, utilise et protège tes données personnelles, conformément au RGPD (Règlement (UE) 2016/679).",
+      "h": {
+        "controller": "Responsable du traitement",
+        "data": "Données collectées",
+        "purposes": "Finalités du traitement",
+        "basis": "Base légale",
+        "processors": "Sous-traitants",
+        "retention": "Durée de conservation",
+        "rights": "Tes droits",
+        "cookies": "Cookies",
+        "contact": "Contact"
+      },
+      "p": {
+        "controller": "Le responsable du traitement est Mehdi GRAR, entrepreneur individuel exploitant sous le nom commercial « Quizelo », dont les coordonnées figurent dans les mentions légales.",
+        "data": "Nous collectons uniquement les données strictement nécessaires au fonctionnement du Service :",
+        "basis": "Le traitement est fondé sur l'exécution du contrat (article 6.1.b RGPD) pour les données de compte et de jeu, et sur ton consentement (article 6.1.a) pour les cookies non-essentiels.",
+        "processors": "Nous transmettons les données strictement nécessaires aux sous-traitants suivants :",
+        "retention": "Les données de compte sont conservées tant que ton compte est actif. À la suppression, les informations personnelles sont anonymisées immédiatement (droit à l'effacement). Les logs techniques sont conservés 12 mois maximum.",
+        "rights": "Tu disposes des droits suivants concernant tes données personnelles :",
+        "cookies": "Voir la page dédiée /legal/cookies pour la liste complète et la possibilité de modifier ton consentement à tout moment.",
+        "contact": "Pour exercer tes droits ou poser une question : privacy@quizelo.app. Tu peux aussi déposer une réclamation auprès de la CNIL (cnil.fr)."
+      },
+      "li": {
+        "data1": "Identifiants : email, pseudo, mot de passe (hashé via scrypt).",
+        "data2": "Profil de jeu : ELO, historique des parties, classement.",
+        "data3": "Paiement : statut Premium, ID client Stripe (les données de carte sont gérées exclusivement par Stripe, jamais par nous).",
+        "data4": "Logs techniques : IP, user-agent (à des fins de sécurité, conservés 30 jours).",
+        "purpose1": "Fournir le Service (matchmaking, classement, parties).",
+        "purpose2": "Gérer la facturation Premium et les remboursements.",
+        "purpose3": "Prévenir la fraude et les abus (anti-tricherie, anti-spam).",
+        "purpose4": "Communiquer sur le Service (vérification email, alertes de sécurité).",
+        "processor1": "Stripe Inc. (paiements) — États-Unis, garanties RGPD via les Clauses Contractuelles Types.",
+        "processor2": "Resend (emails transactionnels) — UE.",
+        "processor3": "Hébergement : voir mentions légales pour la liste complète.",
+        "right1": "Droit d'accès : obtenir une copie de tes données.",
+        "right2": "Droit de rectification : corriger une donnée inexacte.",
+        "right3": "Droit à l'effacement : supprimer ton compte (immédiat depuis /settings).",
+        "right4": "Droit à la portabilité : recevoir tes données dans un format structuré.",
+        "right5": "Droit d'opposition et de limitation du traitement."
+      }
+    },
+    "mentions": {
+      "title": "Mentions Légales",
+      "updatedAt": "Dernière mise à jour : 1 juin 2026",
+      "h": {
+        "publisher": "Éditeur du site",
+        "director": "Directeur de la publication",
+        "host": "Hébergeur",
+        "ip": "Propriété intellectuelle",
+        "takedown": "Signalement de contenu",
+        "disputes": "Médiation"
+      },
+      "p": {
+        "publisherName": "Éditeur : Mehdi GRAR, entrepreneur individuel exploitant sous le nom commercial « Quizelo ».",
+        "publisherForm": "Forme juridique : Entreprise individuelle (EI). Activité (NAF / APE) : 6201Z – Programmation informatique. Date de création : 29 décembre 2012.",
+        "publisherAddress": "Adresse : 136 rue de l'Église, 74970 Marignier, France.",
+        "publisherSiret": "SIREN : 790 231 468 — SIRET du siège : 790 231 468 00030.",
+        "publisherVat": "Numéro de TVA intracommunautaire : FR60 790 231 468.",
+        "publisherEmail": "Email : contact@quizelo.app",
+        "director": "Mehdi GRAR, en sa qualité d'entrepreneur individuel.",
+        "hostName": "Hébergeur : [Nom de l'hébergeur, par ex. Vercel Inc. / OVH SAS].",
+        "hostAddress": "Adresse : [Adresse de l'hébergeur].",
+        "hostContact": "Contact : [Téléphone / email].",
+        "ip": "L'ensemble du site (textes, graphiques, logos, code source) est protégé par le droit d'auteur. Toute reproduction sans autorisation écrite préalable est interdite.",
+        "takedown": "Pour signaler un contenu illicite, écris à legal@quizelo.app avec une description précise et l'URL concernée.",
+        "disputes": "Conformément aux articles L.612-1 et suivants du Code de la consommation, le consommateur peut recourir gratuitement au service de médiation CM2C — Centre de la Médiation de la Consommation de Conciliateurs de Justice — 14 rue Saint-Jean, 75017 Paris (cm2c.net) en cas de litige non résolu à l'amiable."
+      }
+    },
+    "cgv": {
+      "title": "Conditions Générales de Vente",
+      "updatedAt": "Dernière mise à jour : 1 juin 2026",
+      "intro": "Les présentes CGV régissent les ventes conclues sur Quizelo entre Mehdi GRAR — entrepreneur individuel exploitant sous le nom commercial « Quizelo » — (« le Vendeur ») et toute personne physique majeure (« le Client »). Elles complètent les CGU et prévalent en cas de contradiction sur les questions commerciales.",
+      "h": {
+        "scope": "1. Champ d'application",
+        "seller": "2. Vendeur",
+        "products": "3. Caractéristiques des produits et services",
+        "prices": "4. Prix",
+        "payment": "5. Modalités de paiement",
+        "execution": "6. Exécution",
+        "subscription": "7. Abonnement Premium et reconduction",
+        "withdrawal": "8. Droit de rétractation",
+        "warranty": "9. Garanties légales",
+        "refund": "10. Remboursement",
+        "complaints": "11. Réclamations",
+        "mediation": "12. Médiation de la consommation",
+        "law": "13. Droit applicable et juridiction"
+      },
+      "p": {
+        "scope": "Les CGV s'appliquent à toute commande passée par le Client sur Quizelo, quel que soit le mode de paiement. Le Client reconnaît avoir pris connaissance des CGV avant de valider sa commande ; la validation vaut acceptation pleine et entière.",
+        "seller": "Mehdi GRAR, entrepreneur individuel exploitant sous le nom commercial « Quizelo ». Siège : 136 rue de l'Église, 74970 Marignier, France. SIREN 790 231 468 — SIRET 790 231 468 00030. TVA intracommunautaire FR60 790 231 468. Email : contact@quizelo.app.",
+        "products": "Quizelo commercialise deux types de produits numériques accessibles en ligne :",
+        "prices": "Les prix sont indiqués en euros (€), TTC. La TVA française (20 %) est applicable sauf cas particulier.",
+        "payment": "Le paiement s'effectue exclusivement par carte bancaire via Stripe. Les données bancaires ne sont jamais stockées par Quizelo. Le paiement est immédiat ; aucune commande n'est validée tant que la transaction n'est pas confirmée par Stripe.",
+        "execution": "Le service est fourni dès confirmation du paiement. L'accès Premium ou le crédit acheté est immédiatement actif sur le compte du Client. Aucune livraison physique n'est effectuée.",
+        "subscription": "Premium est un abonnement à reconduction tacite (mensuelle ou annuelle selon la formule choisie). Le Client peut annuler à tout moment depuis /settings : l'annulation prend effet à la fin de la période en cours. Aucun remboursement au prorata n'est dû en cas d'annulation, sauf droit de rétractation valablement exercé (voir §8).",
+        "withdrawal": "Conformément à l'article L.221-18 du Code de la consommation, le Client dispose d'un délai de 14 jours pour exercer son droit de rétractation à compter de la conclusion du contrat, par email à legal@quizelo.app, en utilisant le formulaire type de rétractation ou par toute autre déclaration dépourvue d'ambiguïté.",
+        "withdrawalWaiver": "Toutefois, conformément à l'article L.221-28-13° du même Code, le Client renonce expressément à son droit de rétractation en validant sa commande, dès lors que l'exécution du service numérique commence immédiatement avec son consentement préalable exprès. Cette renonciation est matérialisée par la case à cocher « J'accepte les CGV et je renonce à mon droit de rétractation » présentée avant le paiement. Sans cette acceptation, l'accès au service ne peut pas démarrer.",
+        "warranty": "Le Client bénéficie de la garantie légale de conformité (articles L.217-3 et suivants du Code de la consommation) et de la garantie des vices cachés (articles 1641 et suivants du Code civil). En cas de service non conforme, le Client peut contacter le Vendeur à legal@quizelo.app dans un délai raisonnable.",
+        "refund": "Tout remboursement légitime est effectué via Stripe sur le moyen de paiement utilisé pour la commande, sous 14 jours à compter de la décision du Vendeur.",
+        "complaints": "Toute réclamation doit être adressée à legal@quizelo.app avec une description précise du problème et la référence de la transaction Stripe (visible dans la confirmation envoyée par email).",
+        "mediation": "En cas de litige non résolu à l'amiable, le Client peut recourir gratuitement au service de médiation CM2C — Centre de la Médiation de la Consommation de Conciliateurs de Justice — 14 rue Saint-Jean, 75017 Paris (cm2c.net), conformément à l'article L.612-1 du Code de la consommation. Le Client peut également utiliser la plateforme européenne de règlement en ligne des litiges : https://ec.europa.eu/consumers/odr.",
+        "law": "Les présentes CGV sont régies par le droit français. À défaut de résolution amiable, tout litige relève de la compétence des tribunaux français, sous réserve des dispositions impératives applicables aux consommateurs."
+      },
+      "li": {
+        "products1": "Quizelo Premium : abonnement mensuel ou annuel donnant accès au mode classé illimité, aux cosmétiques exclusifs, et à la boutique de boosts.",
+        "products2": "Packs de crédits : achats one-shot non remboursables (sauf droit de rétractation valablement exercé), utilisables dans la boutique pour acheter des cartes boost.",
+        "prices1": "Premium mensuel : 4,99 € TTC / mois.",
+        "prices2": "Premium annuel : 39,99 € TTC / an.",
+        "prices3": "Packs de crédits : prix indiqués sur la page boutique."
+      }
+    },
+    "cookies": {
+      "title": "Politique Cookies",
+      "updatedAt": "Dernière mise à jour : 1 juin 2026",
+      "intro": "Quizelo utilise un nombre limité de cookies et technologies de stockage pour fonctionner. Voici lesquels et pourquoi.",
+      "h": {
+        "essential": "Essentiels (toujours actifs)",
+        "analytics": "Mesure d'audience (consentement requis)",
+        "marketing": "Marketing (consentement requis)",
+        "choice": "Modifier mon choix"
+      },
+      "p": {
+        "essential": "Strictement nécessaires au fonctionnement du Service. Sans eux, l'authentification ou le paiement ne peuvent pas marcher. Pas de consentement requis (article 82 LIL).",
+        "analytics": "Aucune mesure d'audience tierce activée à ce jour.",
+        "marketing": "Aucun cookie marketing à ce jour.",
+        "choice": "Tu peux modifier ton choix à tout moment via le bouton ci-dessous."
+      },
+      "li": {
+        "essential1": "Auth.js — cookie de session (durée : 8 heures à 30 jours selon le mode).",
+        "essential2": "Stripe — iframes de paiement chargés à la demande pendant un checkout.",
+        "essential3": "next-intl — préférence de langue (durée : session)."
+      },
+      "reopen": "Modifier mon consentement"
+    }
+  },
+  "cookies": {
+    "ariaLabel": "Bandeau de consentement aux cookies",
+    "summary": "Quizelo utilise des cookies essentiels au fonctionnement du Service. Avec ton accord, on pourrait aussi en activer pour la mesure d'audience et le marketing — aucun n'est actif aujourd'hui.",
+    "learnMore": "En savoir plus",
+    "customize": "Personnaliser",
+    "rejectAll": "Tout refuser",
+    "acceptAll": "Tout accepter",
+    "customizeIntro": "Choisis les catégories que tu autorises. Les cookies essentiels ne peuvent pas être désactivés.",
+    "essential": {
+      "title": "Essentiels",
+      "body": "Authentification, paiement, préférence de langue. Strictement nécessaires."
+    },
+    "analytics": {
+      "title": "Mesure d'audience",
+      "body": "Statistiques anonymes pour comprendre comment le service est utilisé."
+    },
+    "marketing": {
+      "title": "Marketing",
+      "body": "Personnalisation et mesure d'efficacité des campagnes."
+    },
+    "back": "Retour",
+    "saveChoices": "Enregistrer mes choix"
   }
 }

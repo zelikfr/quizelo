@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "@/i18n/routing";
 import { Wordmark } from "@/components/shared/Wordmark";
 import { QALangToggle } from "@/components/shared/QALangToggle";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 
 interface AuthShellProps {
   /**
@@ -64,6 +65,12 @@ export function AuthShell({ brand, children }: AuthShellProps) {
 
         <div className="flex flex-1 items-center justify-center px-6 py-10 md:px-14 md:py-12">
           <div className="w-full max-w-[380px]">{children}</div>
+        </div>
+
+        {/* Footer with legal links — required to be reachable from
+            every public page in the EU. */}
+        <div className="border-t border-white/[0.06] px-6 py-4 md:px-14 md:py-5">
+          <LegalFooterLinks />
         </div>
       </section>
     </main>
