@@ -11,6 +11,12 @@ type Search = {
   q?: string;
   page?: string;
   filter?: "all" | "premium" | "unverified" | "free";
+  /**
+   * Account kind. Defaults to "humans" so the admin user list isn't
+   * polluted by the few hundred shadow (bot) accounts the match
+   * runtime mints to fill empty seats.
+   */
+  kind?: "humans" | "shadows" | "all";
   sort?: "recent" | "elo";
 };
 
@@ -22,11 +28,17 @@ export default async function UsersPage({
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
   const filter = sp.filter ?? "all";
+  const kind = sp.kind ?? "humans";
   const sort = sp.sort ?? "recent";
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const offset = (page - 1) * PAGE_SIZE;
 
   const conditions: SQL[] = [];
+  if (kind === "humans") {
+    conditions.push(sql`${users.isShadow} = false`);
+  } else if (kind === "shadows") {
+    conditions.push(sql`${users.isShadow} = true`);
+  }
   if (q) {
     const search = or(
       ilike(users.email, `%${q}%`),
@@ -64,6 +76,7 @@ export default async function UsersPage({
         elo: users.elo,
         createdAt: users.createdAt,
         passwordHash: users.passwordHash,
+        isShadow: users.isShadow,
       })
       .from(users)
       .where(where)
@@ -114,6 +127,23 @@ export default async function UsersPage({
           Unverified
         </FilterPill>
 
+        <span className="ml-3 text-xs text-fg-3">Kind:</span>
+        <FilterPill
+          href={hrefWith(sp, { kind: "humans", page: "1" })}
+          active={kind === "humans"}
+        >
+          Humans
+        </FilterPill>
+        <FilterPill
+          href={hrefWith(sp, { kind: "shadows", page: "1" })}
+          active={kind === "shadows"}
+        >
+          Shadows
+        </FilterPill>
+        <FilterPill href={hrefWith(sp, { kind: "all", page: "1" })} active={kind === "all"}>
+          Both
+        </FilterPill>
+
         <span className="ml-auto text-xs text-fg-3">Sort:</span>
         <FilterPill href={hrefWith(sp, { sort: "recent", page: "1" })} active={sort === "recent"}>
           Recent
@@ -155,6 +185,7 @@ export default async function UsersPage({
                   elo: r.elo,
                   createdAt: r.createdAt,
                   hasPassword: !!r.passwordHash,
+                  isShadow: r.isShadow,
                 }}
               />
             ))

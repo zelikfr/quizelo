@@ -1,20 +1,6 @@
 import { MATCH_CONFIG } from "./config";
+import type { ShadowUserRow } from "./shadow-pool";
 import type { MatchPlayer } from "./types";
-
-const NAMES = [
-  "Nyra_92",
-  "kovax",
-  "Léa.S",
-  "pixelorca",
-  "M3RIDIAN",
-  "tofu_king",
-  "sun_yi",
-  "Drelan",
-  "auroraX",
-  "raven",
-  "echoNova",
-  "tachy",
-];
 
 export interface ShadowProfile {
   /** Probability this shadow answers correctly on a given question (0..1). */
@@ -33,29 +19,28 @@ const PROFILES: ShadowProfile[] = [
   { accuracy: 0.6, meanResponseMs: 7000, stdResponseMs: 2200 },
 ];
 
-let counter = 0;
-
 /**
- * Build a shadow MatchPlayer. The `locale` is the room's default —
- * shadows are server-driven so their locale only affects which
- * locale's `correctChoiceId` the runtime checks against in
- * `recordAnswer`. Pinning to the room default keeps shadow scoring
- * deterministic and doesn't compete with any real player slot.
+ * Build a shadow `MatchPlayer` from a DB-backed shadow user. The user
+ * row is acquired upstream from `shadowPool.acquire()`; this builder
+ * just stamps in the per-match runtime fields (seat, lives, etc.).
+ *
+ * The `MatchPlayer.locale` is the room default, not the shadow's
+ * stored locale — the room is locale-mixed and shadows are server-
+ * driven, so pinning to the room locale keeps scoring deterministic.
  */
-export function makeShadow(
-  seat: number,
-  rand: () => number,
-  locale: string,
-): MatchPlayer {
-  const idx = Math.floor(rand() * NAMES.length);
-  const name = NAMES[idx] ?? "shadow";
-  counter += 1;
+export function buildShadowPlayer(opts: {
+  user: ShadowUserRow;
+  seat: number;
+  locale: string;
+}): MatchPlayer {
+  const { user, seat, locale } = opts;
+  const display = user.displayName ?? user.name ?? user.handle ?? "shadow";
   return {
-    userId: `shadow:${counter.toString(36)}-${seat}`,
+    userId: user.id,
     seat,
-    name,
-    handle: name.toLowerCase().replace(/[^a-z0-9_]/g, "_"),
-    avatarId: Math.floor(rand() * 10),
+    name: display,
+    handle: user.handle,
+    avatarId: user.avatarId ?? 0,
     locale,
     status: "active",
     score: 0,

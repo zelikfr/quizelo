@@ -13,6 +13,14 @@ interface LeaderboardTableProps {
 
 const COLS = "60px 1fr 120px 100px 80px";
 
+/**
+ * Visible viewport for the scrollable rows region. Sized to ten data
+ * rows: each row is `py-3` (24px) + a 32px avatar + 1px separator,
+ * giving ~57px each. Slight padding bump prevents the 10th row from
+ * being cropped on hairline-DPR displays.
+ */
+const SCROLL_VIEWPORT_PX = 580;
+
 export async function LeaderboardTable({
   locale,
   rows,
@@ -40,53 +48,60 @@ export async function LeaderboardTable({
         <ColLabel className="text-right">{t("tier")}</ColLabel>
       </div>
 
-      {/* Rows */}
+      {/* Rows — scroll region capped to ten rows so the page stays
+          stable as the leaderboard grows. The header above and the
+          pinned "me" row below sit outside the scroll. */}
       {rows.length === 0 ? (
         <div className="px-[18px] py-10 text-center font-mono text-[11px] tracking-[0.15em] text-fg-3">
           {t("empty")}
         </div>
       ) : (
-        rows.map((p, i) => {
-          const isMe = me !== null && p.userId === me.userId;
-          return (
-            <div
-              key={p.userId}
-              className={cn(
-                "grid items-center px-[18px] py-3",
-                i < rows.length - 1 && "border-b border-white/[0.08]",
-                isMe && "bg-violet/[0.06]",
-              )}
-              style={{ gridTemplateColumns: COLS }}
-            >
+        <div
+          className="overflow-y-auto"
+          style={{ maxHeight: `${SCROLL_VIEWPORT_PX}px` }}
+        >
+          {rows.map((p, i) => {
+            const isMe = me !== null && p.userId === me.userId;
+            return (
               <div
+                key={p.userId}
                 className={cn(
-                  "font-display font-mono text-sm font-bold",
-                  isMe ? "text-gold" : "text-fg-2",
+                  "grid items-center px-[18px] py-3",
+                  i < rows.length - 1 && "border-b border-white/[0.08]",
+                  isMe && "bg-violet/[0.06]",
                 )}
+                style={{ gridTemplateColumns: COLS }}
               >
-                {p.rank}
+                <div
+                  className={cn(
+                    "font-display font-mono text-sm font-bold",
+                    isMe ? "text-gold" : "text-fg-2",
+                  )}
+                >
+                  {p.rank}
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <QAAvatar
+                    name={p.name}
+                    seed={p.avatarId}
+                    size={32}
+                    ring={isMe ? "#FFD166" : undefined}
+                  />
+                  <span className="font-display text-sm font-semibold">
+                    {isMe ? tCommon("you") : p.name}
+                  </span>
+                </div>
+                <div className="font-display font-mono text-base font-bold">
+                  {p.elo}
+                </div>
+                <ChangeCell change={p.change24h} />
+                <div className="flex justify-end">
+                  <QARankBadge elo={p.elo} locale={locale} />
+                </div>
               </div>
-              <div className="flex items-center gap-2.5">
-                <QAAvatar
-                  name={p.name}
-                  seed={p.avatarId}
-                  size={32}
-                  ring={isMe ? "#FFD166" : undefined}
-                />
-                <span className="font-display text-sm font-semibold">
-                  {isMe ? tCommon("you") : p.name}
-                </span>
-              </div>
-              <div className="font-display font-mono text-base font-bold">
-                {p.elo}
-              </div>
-              <ChangeCell change={p.change24h} />
-              <div className="flex justify-end">
-                <QARankBadge elo={p.elo} locale={locale} />
-              </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
 
       {/* My row pinned at bottom — only when I'm not already in the visible page */}

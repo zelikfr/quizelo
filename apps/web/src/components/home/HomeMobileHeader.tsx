@@ -18,15 +18,17 @@ export async function HomeMobileHeader() {
       </Link>
 
       <Link href="/home" className="no-underline">
-        <Wordmark className="text-sm" />
+        <Wordmark className="text-md" />
       </Link>
 
       <Link
         href="/settings"
         aria-label={tNav("settings")}
-        className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm text-fg-2 no-underline transition hover:border-white/[0.16] hover:bg-white/[0.07] hover:text-fg-1"
+        className="text-fg-2 hover:text-fg-1 flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm no-underline transition hover:border-white/[0.16] hover:bg-white/[0.07]"
       >
-        <span aria-hidden className="font-mono">⚙</span>
+        <span aria-hidden className="font-mono">
+          ⚙
+        </span>
       </Link>
     </div>
   );

@@ -14,6 +14,7 @@ import {
   flushAnswers,
   persistMatchEnd,
   persistMatchStatus,
+  persistPlayerJoin,
   persistPlayerRemove,
   persistPlayerUpdates,
 } from "./persistence";
@@ -25,7 +26,8 @@ import {
 import { rngFromSeed } from "./random";
 import { registry } from "./registry";
 import { scorePhase1, scorePhase2 } from "./scoring";
-import { makeShadow, shadowAnswer } from "./shadow";
+import { shadowPool } from "./shadow-pool";
+import { buildShadowPlayer, shadowAnswer } from "./shadow";
 import type {
   AnswerRecord,
   DbQuestion,
@@ -185,9 +187,12 @@ export class MatchRoom {
   }
 
   /**
-   * Plan the arrival of the next shadow. Spreads them stochastically across
-   * the remaining lobby window. Re-evaluates after each arrival so a real
-   * player joining mid-fill doesn't break the cadence.
+   * Plan the arrival of the next shadow. Spreads them across the
+   * remaining lobby window with a tri-modal jitter — mostly normal
+   * cadence, sometimes a longer pause, sometimes a quick burst —
+   * which reads more organically than a flat 0.5×–1.5× uniform.
+   * Re-evaluates after each arrival so a real player joining
+   * mid-fill doesn't break the cadence.
    */
   private scheduleNextShadow(deadlineAt: number): void {
     if (this.state.status !== "lobby") return;
@@ -204,31 +209,93 @@ export class MatchRoom {
     // Past the lobby window — top up immediately so we don't keep folks
     // waiting beyond their patience budget.
     if (remainingTime <= 0) {
-      this.fillWithShadows();
-      this.broadcastLobby();
-      this.armStartCountdown();
+      void this.fillWithShadows().then(() => {
+        this.broadcastLobby();
+        this.armStartCountdown();
+      });
       return;
     }
 
-    const avgInterval = remainingTime / remainingSlots;
-    // 0.5× to 1.5× of the average — keeps it spaced but unpredictable.
-    const jitter = 0.5 + this.rand();
-    const delay = Math.max(200, Math.round(avgInterval * jitter));
+    const noShadowsYet = !this.state.players.some((p) => p.isShadow);
+    let delay: number;
+    if (noShadowsYet) {
+      // First shadow gets a small handicap so a real player who just
+      // joined a fresh lobby has a beat alone before bots show up.
+      const { firstShadowMinMs: lo, firstShadowMaxMs: hi } = MATCH_CONFIG.lobby;
+      delay = lo + Math.round(this.rand() * (hi - lo));
+    } else {
+      const avgInterval = remainingTime / remainingSlots;
+      delay = Math.max(400, Math.round(avgInterval * sampleArrivalJitter(this.rand)));
+    }
 
     this.clearTimer();
     this.timer = setTimeout(() => {
       if (this.state.status !== "lobby") return;
       if (this.state.players.length < MATCH_CONFIG.size) {
-        const seat = this.state.players.length;
-        this.state.players.push(makeShadow(seat, this.rand, this.state.locale));
-        this.broadcastLobby();
+        void this.addOneShadow().then(() => {
+          if (this.state.status !== "lobby") return;
+          this.broadcastLobby();
+          if (this.state.players.length >= MATCH_CONFIG.size) {
+            this.armStartCountdown();
+          } else {
+            this.scheduleNextShadow(deadlineAt);
+          }
+        });
+        return;
       }
-      if (this.state.players.length >= MATCH_CONFIG.size) {
-        this.armStartCountdown();
-      } else {
-        this.scheduleNextShadow(deadlineAt);
-      }
+      this.armStartCountdown();
     }, delay);
+  }
+
+  /**
+   * Acquire one shadow from the pool and seat it in the lobby. The
+   * pool guarantees the same shadow user can't be handed to two
+   * concurrent rooms; if every shadow is busy, the pool mints a new
+   * row on the fly.
+   */
+  private async addOneShadow(): Promise<void> {
+    if (this.state.status !== "lobby") return;
+    if (this.state.players.length >= MATCH_CONFIG.size) return;
+
+    const inLobby = new Set(
+      this.state.players.filter((p) => p.isShadow).map((p) => p.userId),
+    );
+    let user;
+    try {
+      user = await shadowPool.acquire({ excludeIds: inLobby });
+    } catch (err) {
+      this.log.error(err, "shadowPool.acquire failed");
+      return;
+    }
+
+    // Re-check lobby state — async window may have closed it or filled it.
+    if (this.state.status !== "lobby") {
+      shadowPool.release(user.id);
+      return;
+    }
+    if (this.state.players.length >= MATCH_CONFIG.size) {
+      shadowPool.release(user.id);
+      return;
+    }
+    if (this.state.players.some((p) => p.userId === user.id)) {
+      // Defensive: if somehow the same shadow ended up here, skip.
+      shadowPool.release(user.id);
+      return;
+    }
+
+    const usedSeats = new Set(this.state.players.map((p) => p.seat));
+    let seat = 0;
+    while (usedSeats.has(seat) && seat < MATCH_CONFIG.size) seat++;
+    if (seat >= MATCH_CONFIG.size) {
+      shadowPool.release(user.id);
+      return;
+    }
+
+    const player = buildShadowPlayer({ user, seat, locale: this.state.locale });
+    this.state.players.push(player);
+    void persistPlayerJoin(this.state.matchId, player).catch((err) =>
+      this.log.error(err, "persistPlayerJoin (shadow) failed"),
+    );
   }
 
   /** Schedule the visible 5s "starting" countdown then phase 1. */
@@ -254,11 +321,46 @@ export class MatchRoom {
     this.cleanups.push(() => clearInterval(id));
   }
 
-  private fillWithShadows(): void {
+  private async fillWithShadows(): Promise<void> {
     const missing = MATCH_CONFIG.size - this.state.players.length;
+    if (missing <= 0) return;
+
+    // Acquire all shadows in parallel, telling the pool which ids the
+    // pending acquires are already going to claim so it doesn't hand
+    // the same row to two concurrent calls.
+    const claimed = new Set<string>(
+      this.state.players.filter((p) => p.isShadow).map((p) => p.userId),
+    );
+    const acquired: Array<Awaited<ReturnType<typeof shadowPool.acquire>>> = [];
     for (let i = 0; i < missing; i++) {
-      const seat = this.state.players.length;
-      this.state.players.push(makeShadow(seat, this.rand, this.state.locale));
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const u = await shadowPool.acquire({ excludeIds: claimed });
+        claimed.add(u.id);
+        acquired.push(u);
+      } catch (err) {
+        this.log.error(err, "shadowPool.acquire failed during fill");
+        break;
+      }
+    }
+
+    for (const user of acquired) {
+      if (this.state.players.length >= MATCH_CONFIG.size) {
+        shadowPool.release(user.id);
+        continue;
+      }
+      const usedSeats = new Set(this.state.players.map((p) => p.seat));
+      let seat = 0;
+      while (usedSeats.has(seat) && seat < MATCH_CONFIG.size) seat++;
+      if (seat >= MATCH_CONFIG.size) {
+        shadowPool.release(user.id);
+        continue;
+      }
+      const player = buildShadowPlayer({ user, seat, locale: this.state.locale });
+      this.state.players.push(player);
+      void persistPlayerJoin(this.state.matchId, player).catch((err) =>
+        this.log.error(err, "persistPlayerJoin (shadow fill) failed"),
+      );
     }
   }
 
@@ -1141,6 +1243,12 @@ export class MatchRoom {
       (err) => this.log.error(err, "persistMatchEnd failed"),
     );
 
+    // Free shadows the moment results are final so the next lobby can
+    // pick them up — no need to wait for the 30s room GC.
+    shadowPool.releaseAll(
+      this.state.players.filter((p) => p.isShadow).map((p) => p.userId),
+    );
+
     setTimeout(() => registry.delete(this.state.matchId, this.log), 30_000);
   }
 
@@ -1439,10 +1547,43 @@ export class MatchRoom {
       }
     }
     this.conns.clear();
+    // Free every shadow this room booked so they can be picked up by
+    // future lobbies (or, if the room is GC'd mid-match for any
+    // reason, so they aren't leaked as "permanently busy").
+    shadowPool.releaseAll(
+      this.state.players.filter((p) => p.isShadow).map((p) => p.userId),
+    );
   }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
+
+/**
+ * Sample a multiplier on the average shadow-arrival interval. Built
+ * from a tri-modal mixture so the cadence reads as organic rather
+ * than uniformly spaced:
+ *
+ *   65% — normal cadence  (0.55× … 1.45×)
+ *   25% — long pause      (1.55× … 2.60×)  — "no one's joining"
+ *   10% — quick burst     (0.20× … 0.50×)  — "someone just clicked"
+ *
+ * The wide range plus the rare-but-real long pauses break the
+ * mechanical-feeling rhythm a flat uniform produces.
+ */
+function sampleArrivalJitter(rand: () => number): number {
+  const r = rand();
+  if (r < 0.65) {
+    // Normal — slight skew so the median is just under 1.0.
+    return 0.55 + rand() * 0.9;
+  }
+  if (r < 0.9) {
+    // Long pause.
+    return 1.55 + rand() * 1.05;
+  }
+  // Quick burst.
+  return 0.2 + rand() * 0.3;
+}
+
 function phaseQuestionMs(phase: MatchPhase): number {
   switch (phase) {
     case "phase1":

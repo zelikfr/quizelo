@@ -13,11 +13,13 @@ import type { AnswerRecord, MatchPlayer, MatchState } from "./types";
 /**
  * Persistence helpers.
  *
- * Real users (non-shadow) are written to match_players + match_answers.
- * Shadows live only in memory — they have synthetic ids that aren't FKs.
+ * Shadows are now real `users` rows (with `is_shadow = true`) acquired
+ * from the `shadowPool`, so every player — human or bot — is written
+ * to `match_players`, `match_answers`, and gets ELO updates. The only
+ * shadow exclusion left is for things shadows fundamentally don't
+ * have: a daily quick-match quota.
  */
-const isReal = (p: MatchPlayer) => !p.isShadow;
-const isShadowId = (id: string) => id.startsWith("shadow:");
+const isHuman = (p: MatchPlayer) => !p.isShadow;
 
 export async function persistMatchCreate(state: MatchState): Promise<void> {
   await db.insert(matches).values({
@@ -29,10 +31,9 @@ export async function persistMatchCreate(state: MatchState): Promise<void> {
     questionIds: state.questionPool,
   });
 
-  const realPlayers = state.players.filter(isReal);
-  if (realPlayers.length === 0) return;
+  if (state.players.length === 0) return;
   await db.insert(matchPlayers).values(
-    realPlayers.map((p) => ({
+    state.players.map((p) => ({
       matchId: state.matchId,
       userId: p.userId,
       seat: p.seat,
@@ -55,11 +56,10 @@ export async function flushAnswers(
   state: MatchState,
   answers: AnswerRecord[],
 ): Promise<void> {
-  const real = answers.filter((a) => !isShadowId(a.userId));
-  if (real.length === 0) return;
+  if (answers.length === 0) return;
 
   await db.insert(matchAnswers).values(
-    real.map((a) => ({
+    answers.map((a) => ({
       matchId: state.matchId,
       userId: a.userId,
       questionId: a.questionId,
@@ -81,7 +81,7 @@ export async function flushAnswers(
  *
  * Atomic per row: only decrements where the user is **not currently
  * premium** (either `is_premium = false`, or `premium_until` has passed)
- * AND `quick_matches_remaining > 0`.
+ * AND `quick_matches_remaining > 0`. Shadows are excluded by the caller.
  */
 export async function consumeQuickQuotaForUsers(
   userIds: string[],
@@ -104,11 +104,25 @@ export async function consumeQuickQuotaForUsers(
     );
 }
 
+export async function persistPlayerJoin(
+  matchId: string,
+  player: MatchPlayer,
+): Promise<void> {
+  await db
+    .insert(matchPlayers)
+    .values({
+      matchId,
+      userId: player.userId,
+      seat: player.seat,
+      status: player.status,
+      score: player.score,
+    });
+}
+
 export async function persistPlayerRemove(
   matchId: string,
   userId: string,
 ): Promise<void> {
-  if (isShadowId(userId)) return;
   await db
     .delete(matchPlayers)
     .where(
@@ -120,7 +134,7 @@ export async function persistPlayerUpdates(
   matchId: string,
   players: MatchPlayer[],
 ): Promise<void> {
-  for (const p of players.filter(isReal)) {
+  for (const p of players) {
     await db
       .update(matchPlayers)
       .set({
@@ -148,7 +162,6 @@ export async function persistMatchEnd(
     .where(eq(matches.id, matchId));
 
   for (const row of podium) {
-    if (isShadowId(row.userId)) continue;
     await db
       .update(matchPlayers)
       .set({
@@ -162,7 +175,8 @@ export async function persistMatchEnd(
         and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.userId, row.userId)),
       );
 
-    // Only ranked matches mutate `users.elo`.
+    // Only ranked matches mutate `users.elo`. Shadows update too —
+    // that's how their leaderboard ELO drifts over time.
     if (isRanked) {
       await db
         .update(users)
@@ -171,3 +185,7 @@ export async function persistMatchEnd(
     }
   }
 }
+
+// Re-exported for callers that still want the human/shadow split
+// (e.g. the room's quick-quota call site).
+export { isHuman };

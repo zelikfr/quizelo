@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import {
   adjustEloAction,
   banUserAction,
+  deleteShadowAction,
   forceVerifyEmailAction,
   resetPasswordAction,
   setPremiumAction,
@@ -21,6 +22,8 @@ export type UserRowData = {
   elo: number;
   createdAt: Date;
   hasPassword: boolean;
+  /** Server-spawned bot account from the shadow pool. */
+  isShadow: boolean;
 };
 
 export function UserRow({ u }: { u: UserRowData }) {
@@ -34,7 +37,10 @@ export function UserRow({ u }: { u: UserRowData }) {
     <>
       <TR className={pending ? "opacity-50" : ""}>
         <TD>
-          <div className="text-fg-1">{u.name ?? "—"}</div>
+          <div className="flex items-center gap-1.5 text-fg-1">
+            <span>{u.name ?? "—"}</span>
+            {u.isShadow && <Badge tone="warn">shadow</Badge>}
+          </div>
           <div className="text-xs text-fg-3">{u.email ?? "—"}</div>
         </TD>
         <TD>
@@ -134,16 +140,46 @@ export function UserRow({ u }: { u: UserRowData }) {
               </Button>
 
               <span className="ml-auto" />
-              <Button
-                disabled={pending}
-                variant="danger"
-                onClick={() => {
-                  if (!window.confirm("Ban user? Removes verification + password.")) return;
-                  start(() => banUserAction(u.id));
-                }}
-              >
-                Ban
-              </Button>
+              {u.isShadow ? (
+                <Button
+                  disabled={pending}
+                  variant="danger"
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        "Delete this shadow? Cascades to its match history.",
+                      )
+                    ) {
+                      return;
+                    }
+                    start(async () => {
+                      const res = await deleteShadowAction(u.id);
+                      if (!res.ok) {
+                        const reason =
+                          res.code === "in_match"
+                            ? "Shadow is in an active match — try again after it ends."
+                            : res.code === "not_shadow"
+                              ? "Refused: not a shadow account."
+                              : "Shadow no longer exists.";
+                        window.alert(reason);
+                      }
+                    });
+                  }}
+                >
+                  Delete shadow
+                </Button>
+              ) : (
+                <Button
+                  disabled={pending}
+                  variant="danger"
+                  onClick={() => {
+                    if (!window.confirm("Ban user? Removes verification + password.")) return;
+                    start(() => banUserAction(u.id));
+                  }}
+                >
+                  Ban
+                </Button>
+              )}
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-fg-3 sm:grid-cols-4">

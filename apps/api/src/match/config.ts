@@ -4,8 +4,20 @@ export const MATCH_CONFIG = {
   size: 10,
 
   lobby: {
-    /** Silent shadow-fill if the room hasn't filled with real players yet. */
-    silentFillMs: 15_000,
+    /**
+     * Total budget for shadows to trickle in if no real players show
+     * up. Wider than the visible countdown so arrivals feel paced —
+     * if this is too tight the bot cadence reads as obviously
+     * mechanical (one every ~1.5s).
+     */
+    silentFillMs: 20_000,
+    /**
+     * Minimum gap before the FIRST shadow arrives, so a real player
+     * who just opened the lobby has a beat alone before the room
+     * starts filling.
+     */
+    firstShadowMinMs: 900,
+    firstShadowMaxMs: 2_400,
     /** Once full (10/10), the visible "starts in" countdown. */
     startCountdownMs: 15_000,
     /** Lobby tick (broadcast presence) interval (ms). */

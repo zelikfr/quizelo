@@ -15,6 +15,7 @@
     "migrate": "tsx src/migrate.ts",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed/index.ts",
+    "seed:shadows": "tsx src/seed/shadows.ts",
     "lint:bank": "tsx src/seed/lint-bank.ts",
     "studio": "drizzle-kit studio",
     "reset": "tsx src/reset.ts",

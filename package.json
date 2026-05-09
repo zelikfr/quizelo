@@ -19,6 +19,7 @@
     "db:migrate": "pnpm --filter @quizelo/db migrate",
     "db:push": "pnpm --filter @quizelo/db push",
     "db:seed": "pnpm --filter @quizelo/db seed",
+    "db:seed:shadows": "pnpm --filter @quizelo/db seed:shadows",
     "db:studio": "pnpm --filter @quizelo/db studio",
     "db:reset": "pnpm --filter @quizelo/db reset",
     "docker:up": "docker compose up -d",

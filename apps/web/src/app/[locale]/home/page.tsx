@@ -79,8 +79,8 @@ export default async function HomePage({ params }: HomePageProps) {
         </div>
 
         <div className="flex flex-col gap-3 px-[18px]">
-          <QuickPlayCard compact />
-          <RankedCard compact />
+          <QuickPlayCard />
+          <RankedCard />
         </div>
 
         <div className="flex-1" />

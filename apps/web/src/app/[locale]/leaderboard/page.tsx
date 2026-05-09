@@ -73,8 +73,10 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
       </div>
 
       {/* ── Mobile ───────────────────────────────────────────── */}
-      {/* `pb-24` reserves room for the fixed bottom nav. */}
-      <div className="flex min-h-screen flex-col pb-24 md:hidden">
+      {/* `h-screen` (not min-h) + `pb-24` constrain the column so the
+          list can scroll internally — the top-3 stair stays pinned at
+          the top, the bottom nav stays pinned at the bottom. */}
+      <div className="flex h-screen flex-col pb-24 md:hidden">
         <div className="flex items-center justify-between px-[18px] pt-3.5">
           <div>
             <p className="font-mono text-[9px] tracking-[0.2em] text-violet-light">
@@ -144,9 +146,12 @@ export default async function LeaderboardPage({ params }: LeaderboardPageProps) 
           )}
         </div>
 
-        {/* Mobile list (rows 4+ — first 4 of them) */}
-        <div className="flex-1 overflow-hidden px-3.5">
-          {tableRows.slice(0, 4).map((p) => {
+        {/* Mobile list — every rank below the top-3 stair (up to the 50
+            we fetched). `min-h-0` is critical: without it a flex-1 item
+            won't shrink below its content size, and the page would
+            scroll instead of the list. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-2">
+          {tableRows.map((p) => {
             const isMe = me !== null && p.userId === me.userId;
             return (
               <div

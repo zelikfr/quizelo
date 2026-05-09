@@ -92,6 +92,18 @@ export const users = pgTable("users", {
   quickMatchesRemaining: integer("quick_matches_remaining").default(3).notNull(),
   quickMatchesResetAt: timestamp("quick_matches_reset_at", { withTimezone: true }),
 
+  /**
+   * Server-spawned shadow (bot) accounts. Looks like a real user — has
+   * an ELO, a handle, an avatar, and shows up on the leaderboard — but
+   * has no auth credentials, no email, and is allocated by the match
+   * runtime to fill empty seats. The match service holds a small pool
+   * of these and creates new ones on demand if all are busy.
+   *
+   * Real signups always set this to false; the only writers of `true`
+   * are the shadow pool helpers in `apps/api/src/match/shadow-pool.ts`.
+   */
+  isShadow: boolean("is_shadow").default(false).notNull(),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   /**
